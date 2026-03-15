@@ -1,0 +1,33 @@
+import { memo } from "react";
+
+type Variant = "default" | "success" | "warning" | "error" | "info";
+
+const variantClasses: Record<Variant, string> = {
+  default: "bg-surface border border-border text-text",
+  success: "bg-success-bg text-success",
+  warning: "bg-warning-bg text-warning",
+  error: "bg-error-bg text-error",
+  info: "bg-info-bg text-info",
+};
+
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: Variant;
+  className?: string;
+}
+
+function BadgeComponent({ children, variant = "default", className = "" }: BadgeProps) {
+  return (
+    <span
+      className={[
+        "inline-flex items-center rounded-[var(--radius-sm)] px-2 py-0.5 text-xs font-medium",
+        variantClasses[variant],
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </span>
+  );
+}
+
+export const Badge = memo(BadgeComponent);
