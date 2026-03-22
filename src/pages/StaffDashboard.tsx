@@ -90,12 +90,12 @@ function StaffDashboardPage() {
             {stats.todayOrders}
           </p>
         </Card>
-        <Card>
+        {/* <Card>
           <p className="text-sm text-text-muted">Total Earnings</p>
           <p className="mt-1 text-2xl font-semibold text-earnings">
             {formatCurrency(stats.totalEarnings)}
           </p>
-        </Card>
+        </Card> */}
         {/* <Card>
           <p className="text-sm text-text-muted">Undelivered Orders</p>
           <p className="mt-1 text-2xl font-semibold text-text-heading">
@@ -112,9 +112,18 @@ function StaffDashboardPage() {
 
       {nextMilestone && (
         <Card title="Bonus Progress">
+          <div className="flex justify-between">
+            <p className="mb-2 text-sm text-text-muted">
+              Orders: {stats.orderCount}
+            </p>
+            <p className="mb-2 text-sm text-text-muted">
+              Today's Earnings: {formatCurrency(stats.totalEarnings)}
+            </p>
+          </div>
           <p className="mb-2 text-sm text-text-muted">
             Reach {nextMilestone.orders} orders for ₹{nextMilestone.bonus} bonus
           </p>
+
           <ProgressBar
             value={stats.orderCount}
             max={nextMilestone.orders}
