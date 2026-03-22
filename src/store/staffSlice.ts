@@ -3,6 +3,20 @@ import type { Staff } from "../types";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 
+/** Payload for POST /staff (no server-generated fields). */
+export type CreateStaffPayload = Omit<Staff, "id" | "temporaryPassword">;
+
+function normalizeStaff(row: Staff): Staff {
+  return {
+    ...row,
+    phone: row.phone ?? "",
+    temporaryPassword:
+      row.temporaryPassword === undefined || row.temporaryPassword === ""
+        ? null
+        : row.temporaryPassword,
+  };
+}
+
 export const fetchStaff = createAsyncThunk(
   "staff/fetchAll",
   async (_, { rejectWithValue }) => {
@@ -16,7 +30,7 @@ export const fetchStaff = createAsyncThunk(
 
 export const createStaff = createAsyncThunk(
   "staff/create",
-  async (payload: Omit<Staff, "id">, { rejectWithValue }) => {
+  async (payload: CreateStaffPayload, { rejectWithValue }) => {
     try {
       return await api.post<Staff>(endpoints.staff, payload);
     } catch (e) {
@@ -33,6 +47,17 @@ export const updateStaff = createAsyncThunk(
   ) => {
     try {
       return await api.put<Staff>(endpoints.staffById(id), patch);
+    } catch (e) {
+      return rejectWithValue(e);
+    }
+  }
+);
+
+export const resetStaffPassword = createAsyncThunk(
+  "staff/resetPassword",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      return await api.post<Staff>(endpoints.staffResetPassword(id), {});
     } catch (e) {
       return rejectWithValue(e);
     }
@@ -63,18 +88,22 @@ const staffSlice = createSlice({
       })
       .addCase(fetchStaff.fulfilled, (s, a) => {
         s.loading = false;
-        s.list = a.payload;
+        s.list = a.payload.map(normalizeStaff);
       })
       .addCase(fetchStaff.rejected, (s, a) => {
         s.loading = false;
         s.error = (a.payload as Error)?.message ?? "Failed to fetch staff";
       })
       .addCase(createStaff.fulfilled, (s, a) => {
-        s.list.push(a.payload);
+        s.list.push(normalizeStaff(a.payload));
       })
       .addCase(updateStaff.fulfilled, (s, a) => {
         const i = s.list.findIndex((st) => st.id === a.payload.id);
-        if (i !== -1) s.list[i] = a.payload;
+        if (i !== -1) s.list[i] = normalizeStaff(a.payload);
+      })
+      .addCase(resetStaffPassword.fulfilled, (s, a) => {
+        const i = s.list.findIndex((st) => st.id === a.payload.id);
+        if (i !== -1) s.list[i] = normalizeStaff(a.payload);
       });
   },
 });

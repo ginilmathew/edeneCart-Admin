@@ -3,11 +3,21 @@ import type { Order } from "../types";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 
+export type OrderListFilters = {
+  dateFrom?: string;
+  dateTo?: string;
+};
+
 export const fetchOrders = createAsyncThunk(
   "orders/fetchAll",
-  async (_, { rejectWithValue }) => {
+  async (filters: OrderListFilters | undefined, { rejectWithValue }) => {
     try {
-      return await api.get<Order[]>(endpoints.orders);
+      const params = new URLSearchParams();
+      if (filters?.dateFrom) params.append("dateFrom", filters.dateFrom);
+      if (filters?.dateTo) params.append("dateTo", filters.dateTo);
+      const qs = params.toString();
+      const path = qs ? `${endpoints.orders}?${qs}` : endpoints.orders;
+      return await api.get<Order[]>(path);
     } catch (e) {
       return rejectWithValue(e);
     }

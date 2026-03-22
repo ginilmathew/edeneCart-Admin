@@ -22,6 +22,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   "/admin/orders": "Order Management",
   "/admin/products": "Product Management",
   "/admin/export": "Export Data",
+  "/account/password": "Change password",
 };
 
 function getTitle(pathname: string, pageTitles: Record<string, string>): string {

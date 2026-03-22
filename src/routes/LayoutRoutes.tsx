@@ -11,6 +11,7 @@ import StaffProfile from "../pages/StaffProfile";
 import AdminOrderManagement from "../pages/AdminOrderManagement";
 import ProductManagement from "../pages/ProductManagement";
 import ExportData from "../pages/ExportData";
+import ChangePassword from "../pages/ChangePassword";
 
 interface LayoutRoutesProps {
   user: User;
@@ -101,6 +102,7 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
           </ProtectedRoute>
         }
       />
+      <Route path="/account/password" element={<ChangePassword />} />
       <Route
         path="*"
         element={

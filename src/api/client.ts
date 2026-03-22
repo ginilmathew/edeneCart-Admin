@@ -1,10 +1,9 @@
 /**
- * API client. For real-world API:
- * 1. Add VITE_API_BASE_URL in .env (e.g. VITE_API_BASE_URL=https://your-api.com)
- * 2. Ensure your server exposes the same paths as in endpoints.ts (/v1/api/products, etc.)
- * 3. Disable MSW in main.tsx (e.g. only start worker when import.meta.env.VITE_MSW === 'true')
- * No other code changes needed; thunks already use this client.
+ * API client. Set VITE_API_BASE_URL (e.g. http://localhost:3000/v1/api).
+ * JWT is sent automatically when present (see auth-token).
  */
+
+import { getAccessToken } from "../lib/auth-token";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -13,19 +12,37 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> | undefined),
+  };
+  const token = getAccessToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
+
+  const text = await res.text();
   if (!res.ok) {
-    const err = new Error(res.statusText || "Request failed");
+    let message = res.statusText || "Request failed";
+    if (text) {
+      try {
+        const body = JSON.parse(text) as {
+          message?: string | string[];
+        };
+        if (typeof body.message === "string") message = body.message;
+        else if (Array.isArray(body.message))
+          message = body.message.join(", ");
+      } catch {
+        /* use statusText */
+      }
+    }
+    const err = new Error(message);
     (err as Error & { status?: number }).status = res.status;
     throw err;
   }
-  const text = await res.text();
   if (!text) return undefined as T;
   return JSON.parse(text) as T;
 }

@@ -11,6 +11,7 @@ import {
   ArrowLeftOnRectangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
 import type { UserRole } from "../../types";
@@ -29,6 +30,7 @@ const STAFF_NAV: NavItem[] = [
   { to: "/", label: "Dashboard", roles: ["staff"], end: true, icon: HomeIcon },
   { to: "/orders/create", label: "Create Order", roles: ["staff"], end: true, icon: DocumentPlusIcon },
   { to: "/orders", label: "My Orders", roles: ["staff"], end: true, icon: ClipboardDocumentListIcon },
+  { to: "/account/password", label: "Change password", roles: ["staff"], end: true, icon: KeyIcon },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -37,6 +39,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/admin/orders", label: "Orders", roles: ["super_admin"], end: true, icon: CubeIcon },
   { to: "/admin/products", label: "Products", roles: ["super_admin"], end: true, icon: Squares2X2Icon },
   { to: "/admin/export", label: "Export Data", roles: ["super_admin"], end: true, icon: ArrowDownTrayIcon },
+  { to: "/account/password", label: "Change password", roles: ["super_admin"], end: true, icon: KeyIcon },
 ];
 
 function getStoredCollapsed(): boolean {

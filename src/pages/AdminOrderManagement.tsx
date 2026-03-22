@@ -1,11 +1,13 @@
 import { memo, useMemo, useState, useCallback } from "react";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
-import { updateOrder } from "../store/ordersSlice";
+import { fetchOrders, updateOrder } from "../store/ordersSlice";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts } from "../store/productsSlice";
 import { Card, CardHeader, Button, Table, Badge, Modal } from "../components/ui";
 import { toast } from "../lib/toast";
+import { downloadOrderPdf } from "../lib/download-order-pdf";
 import type { Order } from "../types";
 import { formatDate } from "../lib/orderUtils";
 
@@ -17,6 +19,12 @@ function AdminOrderManagementPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [appliedDateFrom, setAppliedDateFrom] = useState("");
+  const [appliedDateTo, setAppliedDateTo] = useState("");
+  const [filtersLoading, setFiltersLoading] = useState(false);
+  const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
 
   const filteredOrders = useMemo(() => {
     let list = [...orders].sort(
@@ -46,7 +54,52 @@ function AdminOrderManagementPage() {
     [dispatch]
   );
 
+  const applyDateFilters = useCallback(async () => {
+    setFiltersLoading(true);
+    try {
+      await dispatch(
+        fetchOrders({
+          ...(dateFrom ? { dateFrom } : {}),
+          ...(dateTo ? { dateTo } : {}),
+        })
+      ).unwrap();
+      setAppliedDateFrom(dateFrom);
+      setAppliedDateTo(dateTo);
+      toast.success("Orders updated");
+    } catch {
+      toast.error("Failed to load orders");
+    } finally {
+      setFiltersLoading(false);
+    }
+  }, [dispatch, dateFrom, dateTo]);
 
+  const clearDateFilters = useCallback(async () => {
+    setDateFrom("");
+    setDateTo("");
+    setAppliedDateFrom("");
+    setAppliedDateTo("");
+    setFiltersLoading(true);
+    try {
+      await dispatch(fetchOrders(undefined)).unwrap();
+      toast.success("Showing all dates");
+    } catch {
+      toast.error("Failed to load orders");
+    } finally {
+      setFiltersLoading(false);
+    }
+  }, [dispatch]);
+
+  const downloadPdf = useCallback(async (internalId: string, displayOrderId: string) => {
+    setPdfLoadingId(internalId);
+    try {
+      await downloadOrderPdf(internalId, `${displayOrderId}.pdf`);
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Failed to download PDF");
+    } finally {
+      setPdfLoadingId(null);
+    }
+  }, []);
 
   const productOptions = useMemo(
     () => [
@@ -114,37 +167,110 @@ function AdminOrderManagementPage() {
           </Badge>
         ),
       },
+      {
+        key: "pdf",
+        header: "PDF",
+        render: (row: Order) => (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              void downloadPdf(row.id, row.orderId);
+            }}
+            disabled={pdfLoadingId === row.id}
+            className="inline-flex items-center justify-center rounded-[var(--radius-sm)] p-1.5 text-primary hover:bg-primary-muted disabled:opacity-50"
+            title="Download PDF"
+            aria-label={`Download PDF for ${row.orderId}`}
+          >
+            <ArrowDownTrayIcon className="h-5 w-5" />
+          </button>
+        ),
+      },
     ],
-    [staff, products]
+    [staff, products, pdfLoadingId, downloadPdf]
   );
 
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader title="Order Management" subtitle="Edit status or delete orders." />
-        <div className="mb-4 flex flex-wrap gap-3">
-          <select
-            value={productFilter}
-            onChange={(e) => setProductFilter(e.target.value)}
-            className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
-          >
-            {productOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
-          >
-            {typeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+        <CardHeader
+          title="Order Management"
+          subtitle="Filter by date (server), product, and type. Download order PDFs."
+        />
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-muted">
+                From date
+              </label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-muted">
+                To date
+              </label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
+              />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void applyDateFilters()}
+              loading={filtersLoading}
+            >
+              Apply dates
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => void clearDateFilters()}
+              disabled={filtersLoading}
+            >
+              Clear dates
+            </Button>
+          </div>
+          {(appliedDateFrom || appliedDateTo) && (
+            <p className="text-xs text-text-muted">
+              Showing orders
+              {appliedDateFrom ? ` from ${appliedDateFrom}` : ""}
+              {appliedDateTo ? ` through ${appliedDateTo}` : ""}
+              {" "}(UTC day boundaries).
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={productFilter}
+              onChange={(e) => setProductFilter(e.target.value)}
+              className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
+            >
+              {productOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm"
+            >
+              {typeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <Table
           columns={columns}
@@ -225,6 +351,16 @@ function AdminOrderManagementPage() {
               )}
             </dl>
             <div className="flex flex-wrap gap-2 border-t border-border mt-4 pt-4 justify-end">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() =>
+                  void downloadPdf(orderDetail.id, orderDetail.orderId)
+                }
+                loading={pdfLoadingId === orderDetail.id}
+              >
+                Download PDF
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"

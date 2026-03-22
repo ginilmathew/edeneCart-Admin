@@ -111,6 +111,10 @@ function StaffProfilePage() {
             <dd className="font-medium">{staffProfile.username}</dd>
           </div>
           <div>
+            <dt className="text-sm text-text-muted">Phone</dt>
+            <dd className="font-medium">{staffProfile.phone || "—"}</dd>
+          </div>
+          <div>
             <dt className="text-sm text-text-muted">Total orders</dt>
             <dd className="font-medium">{stats?.orderCount ?? 0}</dd>
           </div>

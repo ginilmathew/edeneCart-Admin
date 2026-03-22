@@ -14,6 +14,7 @@ export interface Staff {
   id: string;
   name: string;
   username: string;
+  phone: string;
   joinedDate: string;
   isActive: boolean;
   avatar?: string;
@@ -21,6 +22,11 @@ export interface Staff {
   payoutPerOrder: number;
   /** Bonuses: e.g. [{ orders: 10, bonus: 50 }, ...] */
   bonusMilestones: { orders: number; bonus: number }[];
+  /**
+   * Initial login password (plain) until the staff member changes password; then null.
+   * Admin UI shows "Staff changed" when null.
+   */
+  temporaryPassword: string | null;
 }
 
 export interface Order {
@@ -52,6 +58,8 @@ export interface User {
   role: UserRole;
   staffId?: string; // when role is staff
   avatar?: string;
+  /** When true, UI should prompt to change password (set after admin-created staff login). */
+  mustChangePassword?: boolean;
 }
 
 export interface StaffWithStats extends Staff {
