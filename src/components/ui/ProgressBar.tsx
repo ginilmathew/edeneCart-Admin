@@ -7,7 +7,6 @@ interface ProgressBarProps {
   showValue?: boolean;
   className?: string;
 }
-
 function ProgressBarComponent({
   value,
   max,
