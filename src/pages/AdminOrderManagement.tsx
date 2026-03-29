@@ -49,11 +49,6 @@ function AdminOrderManagementPage() {
   const [filtersLoading, setFiltersLoading] = useState(false);
   const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
   const [bulkPdfLoading, setBulkPdfLoading] = useState(false);
-  const [pdfDialogOrder, setPdfDialogOrder] = useState<{
-    id: string;
-    orderId: string;
-  } | null>(null);
-  const [pdfSizeDraft, setPdfSizeDraft] = useState<"thermal" | "a4">("thermal");
   const [discountDraft, setDiscountDraft] = useState("");
   const [savingDiscount, setSavingDiscount] = useState(false);
   const [trackingDraft, setTrackingDraft] = useState("");
@@ -161,8 +156,8 @@ function AdminOrderManagementPage() {
           patch: { trackingId: localT || null },
         })
       ).unwrap();
-    } catch {
-      toast.error("Failed to save tracking ID");
+    } catch (err) {
+      toast.fromError(err, "Failed to save tracking ID");
     }
   }, [detailId, trackingDraft, dispatch]);
 
@@ -174,8 +169,8 @@ function AdminOrderManagementPage() {
         updateOrder({ id: orderDetail.id, patch: { status: "packed" } })
       ).unwrap();
       toast.success("Order marked packed");
-    } catch {
-      toast.error("Failed to update status");
+    } catch (err) {
+      toast.fromError(err, "Failed to update status");
     } finally {
       setMarkingPacked(false);
     }
@@ -197,8 +192,8 @@ function AdminOrderManagementPage() {
         })
       ).unwrap();
       toast.success("Order marked dispatched");
-    } catch {
-      toast.error("Failed to update order");
+    } catch (err) {
+      toast.fromError(err, "Failed to update order");
     } finally {
       setDispatching(false);
     }
@@ -221,8 +216,8 @@ function AdminOrderManagementPage() {
       ).unwrap();
       toast.success("Order marked delivered");
       setDetailId(null);
-    } catch {
-      toast.error("Failed to update order");
+    } catch (err) {
+      toast.fromError(err, "Failed to update order");
     } finally {
       setDispatching(false);
     }
@@ -238,8 +233,8 @@ function AdminOrderManagementPage() {
       setDetailId(null);
       toast.success("Return recorded — stock restocked");
       void dispatch(fetchProducts());
-    } catch {
-      toast.error("Failed to process return");
+    } catch (err) {
+      toast.fromError(err, "Failed to process return");
     } finally {
       setReturning(false);
     }
@@ -268,8 +263,8 @@ function AdminOrderManagementPage() {
       const ud = updated.discountAmount;
       setDiscountDraft(ud != null && safeMoney(ud) > 0 ? String(safeMoney(ud)) : "");
       toast.success("Discount updated");
-    } catch {
-      toast.error("Failed to update discount");
+    } catch (err) {
+      toast.fromError(err, "Failed to update discount");
     } finally {
       setSavingDiscount(false);
     }
@@ -282,8 +277,8 @@ function AdminOrderManagementPage() {
         toast.success(`Order ${status}`);
         if (status === "cancelled" || status === "delivered" || status === "returned")
           setDetailId(null);
-      } catch {
-        toast.error("Failed to update order");
+      } catch (err) {
+        toast.fromError(err, "Failed to update order");
       }
     },
     [dispatch]
@@ -301,8 +296,8 @@ function AdminOrderManagementPage() {
       setAppliedDateFrom(dateFrom);
       setAppliedDateTo(dateTo);
       toast.success("Orders updated");
-    } catch {
-      toast.error("Failed to load orders");
+    } catch (err) {
+      toast.fromError(err, "Failed to load orders");
     } finally {
       setFiltersLoading(false);
     }
@@ -317,8 +312,8 @@ function AdminOrderManagementPage() {
     try {
       await dispatch(fetchOrders(undefined)).unwrap();
       toast.success("Showing all dates");
-    } catch {
-      toast.error("Failed to load orders");
+    } catch (err) {
+      toast.fromError(err, "Failed to load orders");
     } finally {
       setFiltersLoading(false);
     }
@@ -335,16 +330,11 @@ function AdminOrderManagementPage() {
         size: sizeOverride ?? settings?.defaultPdfSize ?? "thermal",
       });
       toast.success("PDF downloaded");
-    } catch {
-      toast.error("Failed to download PDF");
+    } catch (err) {
+      toast.fromError(err, "Failed to download PDF");
     } finally {
       setPdfLoadingId(null);
     }
-  }, [settings?.defaultPdfSize]);
-
-  const openPdfDialog = useCallback((id: string, orderId: string) => {
-    setPdfSizeDraft(settings?.defaultPdfSize ?? "thermal");
-    setPdfDialogOrder({ id, orderId });
   }, [settings?.defaultPdfSize]);
 
   const clearTableFilters = useCallback(() => {
@@ -363,8 +353,8 @@ function AdminOrderManagementPage() {
         size: settings?.defaultPdfSize ?? "thermal",
       });
       toast.success("Selected orders PDF downloaded");
-    } catch {
-      toast.error("Failed to download selected orders PDF");
+    } catch (err) {
+      toast.fromError(err, "Failed to download selected orders PDF");
     } finally {
       setBulkPdfLoading(false);
     }
@@ -533,7 +523,7 @@ function AdminOrderManagementPage() {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              openPdfDialog(row.id, row.orderId);
+              void downloadPdf(row.id, row.orderId);
             }}
             disabled={pdfLoadingId === row.id}
             className="inline-flex items-center justify-center rounded-[var(--radius-sm)] p-1.5 text-primary hover:bg-primary-muted disabled:opacity-50"
@@ -553,7 +543,7 @@ function AdminOrderManagementPage() {
       allVisibleSelected,
       toggleRowSelected,
       toggleAllVisibleSelected,
-      openPdfDialog,
+      downloadPdf,
     ]
   );
 
@@ -888,14 +878,6 @@ function AdminOrderManagementPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => openPdfDialog(orderDetail.id, orderDetail.orderId)}
-                loading={pdfLoadingId === orderDetail.id}
-              >
-                Download PDF
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
                 onClick={() => setDetailId(null)}
               >
                 Close
@@ -961,56 +943,6 @@ function AdminOrderManagementPage() {
             </div>
           </div>
         )}
-      </Modal>
-      <Modal
-        isOpen={!!pdfDialogOrder}
-        onClose={() => setPdfDialogOrder(null)}
-        title="Download PDF"
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-text-muted">
-            Default size:{" "}
-            <span className="font-medium text-text">
-              {(settings?.defaultPdfSize ?? "thermal").toUpperCase()}
-            </span>
-          </p>
-          <label className="grid gap-1 text-sm">
-            <span className="text-text-muted">Override size (optional)</span>
-            <select
-              value={pdfSizeDraft}
-              onChange={(e) => setPdfSizeDraft(e.target.value as "thermal" | "a4")}
-              className="rounded-[var(--radius-md)] border border-border px-3 py-2"
-            >
-              <option value="thermal">Thermal label</option>
-              <option value="a4">A4 (2 labels)</option>
-            </select>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                if (!pdfDialogOrder) return;
-                void downloadPdf(pdfDialogOrder.id, pdfDialogOrder.orderId);
-                setPdfDialogOrder(null);
-              }}
-            >
-              Download default
-            </Button>
-            <Button
-              onClick={() => {
-                if (!pdfDialogOrder) return;
-                void downloadPdf(
-                  pdfDialogOrder.id,
-                  pdfDialogOrder.orderId,
-                  pdfSizeDraft
-                );
-                setPdfDialogOrder(null);
-              }}
-            >
-              Download selected
-            </Button>
-          </div>
-        </div>
       </Modal>
     </div>
   );

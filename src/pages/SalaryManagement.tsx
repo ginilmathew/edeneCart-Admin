@@ -53,8 +53,8 @@ function SalaryManagementPage() {
       const path = qs ? `${endpoints.staffEarnings}?${qs}` : endpoints.staffEarnings;
       const data = await api.get<StaffEarnings[]>(path);
       setRows(data);
-    } catch {
-      toast.error("Failed to load salary data");
+    } catch (err) {
+      toast.fromError(err, "Failed to load salary data");
     } finally {
       setLoading(false);
     }
@@ -108,8 +108,8 @@ function SalaryManagementPage() {
         ).unwrap();
         await loadRows();
         toast.success("Salary rule updated");
-      } catch {
-        toast.error("Failed to update salary rule");
+      } catch (err) {
+        toast.fromError(err, "Failed to update salary rule");
       } finally {
         setSavingId(null);
       }

@@ -52,8 +52,8 @@ function AssignedNumbersManagementPage() {
         toast.success("Number added");
       }
       setModalOpen(false);
-    } catch {
-      toast.error("Failed to save — check uniqueness");
+    } catch (err) {
+      toast.fromError(err, "Failed to save — check uniqueness");
     }
   }, [editingId, numberVal, dispatch]);
 
@@ -68,8 +68,8 @@ function AssignedNumbersManagementPage() {
         await dispatch(deleteAssignedNumber(row.id)).unwrap();
         if (editingId === row.id) setModalOpen(false);
         toast.success("Number deleted");
-      } catch {
-        toast.error("Cannot delete this number");
+      } catch (err) {
+        toast.fromError(err, "Cannot delete this number");
       }
     },
     [dispatch, editingId]

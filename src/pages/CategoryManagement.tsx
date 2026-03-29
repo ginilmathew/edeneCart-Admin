@@ -65,8 +65,8 @@ function CategoryManagementPage() {
         toast.success("Category created");
       }
       setModalOpen(false);
-    } catch {
-      toast.error("Failed to save category");
+    } catch (err) {
+      toast.fromError(err, "Failed to save category");
     }
   }, [editingId, name, description, dispatch]);
 
@@ -77,8 +77,8 @@ function CategoryManagementPage() {
         await dispatch(deleteCategory(id)).unwrap();
         if (editingId === id) setModalOpen(false);
         toast.success("Category deleted");
-      } catch {
-        toast.error("Cannot delete — remove or reassign products first");
+      } catch (err) {
+        toast.fromError(err, "Cannot delete — remove or reassign products first");
       }
     },
     [dispatch, editingId]

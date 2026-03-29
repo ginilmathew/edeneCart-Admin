@@ -151,9 +151,9 @@ function CreateOrderPage() {
               district: data.district,
             }));
           }
-        } catch {
+        } catch (err) {
           if (gen === lookupGen.current) {
-            toast.error("Could not look up customer");
+            toast.fromError(err, "Could not look up customer");
           }
         } finally {
           if (gen === lookupGen.current) {

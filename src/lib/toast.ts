@@ -9,6 +9,11 @@ const defaultOptions: ToastOptions = {
   draggable: true,
 };
 
+export function getErrorMessage(error: unknown, fallback = "Request failed"): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === "string" && error.trim()) return error;
+  return fallback;
+}
 
 export const toast = {
   success: (message: string, options?: ToastOptions) => {
@@ -22,5 +27,15 @@ export const toast = {
   },
   warning: (message: string, options?: ToastOptions) => {
     toastify.warning(message, { ...defaultOptions, ...options });
+  },
+  fromError: (
+    error: unknown,
+    fallback = "Request failed",
+    options?: ToastOptions
+  ) => {
+    toastify.error(getErrorMessage(error, fallback), {
+      ...defaultOptions,
+      ...options,
+    });
   },
 };

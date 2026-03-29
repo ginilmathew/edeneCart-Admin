@@ -53,8 +53,8 @@ function AdminSettingsPage() {
       ).unwrap();
       await dispatch(fetchSenders()).unwrap();
       toast.success("Settings updated");
-    } catch {
-      toast.error("Failed to save settings");
+    } catch (err) {
+      toast.fromError(err, "Failed to save settings");
     } finally {
       setSaving(false);
     }

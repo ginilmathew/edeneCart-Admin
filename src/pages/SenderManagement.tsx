@@ -126,8 +126,8 @@ function SenderManagementPage() {
       }
       setOpen(false);
       await dispatch(fetchSenders()).unwrap();
-    } catch {
-      toast.error("Failed to save sender");
+    } catch (err) {
+      toast.fromError(err, "Failed to save sender");
     }
   }, [dispatch, draft, editing]);
 
@@ -138,8 +138,8 @@ function SenderManagementPage() {
         await dispatch(deleteSender(id)).unwrap();
         await dispatch(fetchSenders()).unwrap();
         toast.success("Sender deleted");
-      } catch {
-        toast.error("Failed to delete sender");
+      } catch (err) {
+        toast.fromError(err, "Failed to delete sender");
       }
     },
     [dispatch]
@@ -150,8 +150,8 @@ function SenderManagementPage() {
       try {
         await dispatch(setDefaultSender(id)).unwrap();
         toast.success("Default sender updated");
-      } catch {
-        toast.error("Failed to set default sender");
+      } catch (err) {
+        toast.fromError(err, "Failed to set default sender");
       }
     },
     [dispatch]

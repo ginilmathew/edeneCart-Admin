@@ -170,7 +170,6 @@ function StaffManagementPage() {
             isActive: true,
             payoutPerOrder: 30,
             bonusMilestones: DEFAULT_BONUS_MILESTONES,
-            jobRole: "sales",
           })
         ).unwrap();
         toast.success("Staff created");
@@ -182,9 +181,10 @@ function StaffManagementPage() {
             password: created.temporaryPassword,
           });
         }
-      } catch {
-        setError("Failed to create staff");
-        toast.error("Failed to create staff");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to create staff";
+        setError(msg);
+        toast.fromError(err, "Failed to create staff");
       } finally {
         setSubmitting(false);
       }
@@ -237,9 +237,10 @@ function StaffManagementPage() {
         toast.success("Staff updated");
         closeEdit();
         void dispatch(fetchAssignedNumbers());
-      } catch {
-        setError("Failed to update staff");
-        toast.error("Failed to update staff");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to update staff";
+        setError(msg);
+        toast.fromError(err, "Failed to update staff");
       } finally {
         setSubmitting(false);
       }
@@ -278,8 +279,8 @@ function StaffManagementPage() {
       try {
         await dispatch(updateStaff({ id: staffId, patch: { isActive: !current } })).unwrap();
         toast.success(current ? "Staff set to inactive" : "Staff set to active");
-      } catch {
-        toast.error("Failed to update status");
+      } catch (err) {
+        toast.fromError(err, "Failed to update status");
       }
     },
     [dispatch]

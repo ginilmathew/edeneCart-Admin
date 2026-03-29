@@ -4,14 +4,30 @@ import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 
 /** Payload for POST /staff (no server-generated fields). */
-export type CreateStaffPayload = Omit<
-  Staff,
-  | "id"
-  | "temporaryPassword"
-  | "pendingPasswordResetRequest"
-  | "staffPositionName"
-  | "assignedNumber"
->;
+export interface CreateStaffPayload {
+  name: string;
+  username: string;
+  phone: string;
+  joinedDate: string;
+  staffPositionId: string;
+  assignedNumberId?: string | null;
+  isActive?: boolean;
+  payoutPerOrder?: number;
+  bonusMilestones?: { orders: number; bonus: number }[];
+  avatar?: string;
+}
+
+export interface UpdateStaffPayload {
+  name?: string;
+  phone?: string;
+  joinedDate?: string;
+  isActive?: boolean;
+  staffPositionId?: string | null;
+  assignedNumberId?: string | null;
+  payoutPerOrder?: number;
+  bonusMilestones?: { orders: number; bonus: number }[];
+  avatar?: string;
+}
 
 function normalizeStaff(row: Staff): Staff {
   return {
@@ -69,7 +85,7 @@ export const createStaff = createAsyncThunk(
 export const updateStaff = createAsyncThunk(
   "staff/update",
   async (
-    { id, patch }: { id: string; patch: Partial<Staff> },
+    { id, patch }: { id: string; patch: UpdateStaffPayload },
     { rejectWithValue }
   ) => {
     try {

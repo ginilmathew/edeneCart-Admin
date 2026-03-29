@@ -53,8 +53,8 @@ function StaffRoleManagementPage() {
         toast.success("Role created");
       }
       setModalOpen(false);
-    } catch {
-      toast.error("Failed to save role");
+    } catch (err) {
+      toast.fromError(err, "Failed to save role");
     }
   }, [editingId, name, dispatch]);
 
@@ -65,8 +65,8 @@ function StaffRoleManagementPage() {
         await dispatch(deleteStaffPosition(id)).unwrap();
         if (editingId === id) setModalOpen(false);
         toast.success("Role deleted");
-      } catch {
-        toast.error("Cannot delete — reassign staff first");
+      } catch (err) {
+        toast.fromError(err, "Cannot delete — reassign staff first");
       }
     },
     [dispatch, editingId]

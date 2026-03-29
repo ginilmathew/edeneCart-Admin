@@ -104,8 +104,8 @@ function ProductManagementPage() {
         toast.success("Product created");
       }
       setModalOpen(false);
-    } catch {
-      toast.error("Failed to save product");
+    } catch (err) {
+      toast.fromError(err, "Failed to save product");
     }
   }, [editingId, name, categoryId, price, stockQuantity, size, color, dispatch]);
 
@@ -116,8 +116,8 @@ function ProductManagementPage() {
         await dispatch(deleteProduct(id)).unwrap();
         if (editingId === id) setModalOpen(false);
         toast.success("Product deleted");
-      } catch {
-        toast.error("Failed to delete product");
+      } catch (err) {
+        toast.fromError(err, "Failed to delete product");
       }
     },
     [dispatch, editingId]

@@ -54,8 +54,8 @@ function StaffProfilePage() {
         updateStaff({ id, patch: { staffPositionId: positionDraft } })
       ).unwrap();
       toast.success("Role updated");
-    } catch {
-      toast.error("Failed to update role");
+    } catch (err) {
+      toast.fromError(err, "Failed to update role");
     } finally {
       setPositionSaving(false);
     }
