@@ -1,5 +1,6 @@
 import { memo, useState, useCallback } from "react";
 import { Navigate, useLocation } from "react-router";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card, Modal } from "../components/ui";
 import { api } from "../api/client";
@@ -11,6 +12,7 @@ function LoginPage() {
   const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -86,11 +88,11 @@ function LoginPage() {
       <Card className="w-full max-w-md shadow-[var(--shadow-card-lg)]" padding="lg">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Edenecart
+            Eden E Cart
           </p>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight text-text-heading sm:text-2xl">
+          {/* <h1 className="mt-2 text-xl font-semibold tracking-tight text-text-heading sm:text-2xl">
             Order management
-          </h1>
+          </h1> */}
           <p className="mt-2 text-sm text-text-muted">
             Sign in to your account
           </p>
@@ -106,39 +108,48 @@ function LoginPage() {
           />
           <Input
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             autoComplete="current-password"
+            endNode={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="focus:outline-none cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5 hover:text-text" />
+                ) : (
+                  <EyeIcon className="h-5 w-5 hover:text-text" />
+                )}
+              </button>
+            }
           />
           {error && (
             <p className="text-sm text-error">{error}</p>
           )}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <div className="flex flex-col gap-2  sm:items-stretch">
             <Button
               type="submit"
               size="lg"
               loading={submitting}
-              className="sm:flex-1"
+              className="sm:flex-1 sm:flex-row cursor-pointer"
             >
               Sign in
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="lg"
-              className="sm:flex-1"
+            <div
               onClick={handleForgotOpen}
-            >
-              Forgot password
-            </Button>
+              className="w-full text-right "
+            ><span className="cursor-pointer hover:text-blue-500">
+                Forgot password
+              </span>
+            </div>
           </div>
         </form>
-        <p className="mt-6 text-pretty text-center text-xs leading-relaxed text-text-muted">
-          Use the account created by your admin. First-time staff: use the temporary password, then change it when prompted.
-          Forgot password uses your username; an admin will see the request in Staff Management. If you are already signed in, you can also use Profile → Request password reset.
-        </p>
+
       </Card>
 
       <Modal
