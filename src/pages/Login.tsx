@@ -1,5 +1,6 @@
 import { memo, useState, useCallback } from "react";
 import { Navigate, useLocation } from "react-router";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card, Modal } from "../components/ui";
 import { api } from "../api/client";
@@ -11,6 +12,7 @@ function LoginPage() {
   const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -106,11 +108,25 @@ function LoginPage() {
           />
           <Input
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             autoComplete="current-password"
+            endNode={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5 hover:text-text" />
+                ) : (
+                  <EyeIcon className="h-5 w-5 hover:text-text" />
+                )}
+              </button>
+            }
           />
           {error && (
             <p className="text-sm text-error">{error}</p>
