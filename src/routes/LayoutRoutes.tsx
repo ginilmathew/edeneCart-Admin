@@ -20,6 +20,7 @@ import ChangePassword from "../pages/ChangePassword";
 import SenderManagement from "../pages/SenderManagement";
 import AdminSettings from "../pages/AdminSettings";
 import SalaryManagement from "../pages/SalaryManagement";
+import DeliveryManagement from "../pages/DeliveryManagement";
 
 interface LayoutRoutesProps {
   user: User;
@@ -131,6 +132,14 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
             <CategoryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/delivery"
+        element={
+          <ProtectedRoute allowedRoles={["super_admin"]}>
+            <DeliveryManagement />
           </ProtectedRoute>
         }
       />

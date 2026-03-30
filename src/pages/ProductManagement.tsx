@@ -18,7 +18,7 @@ function ProductManagementPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [stockQuantity, setStockQuantity] = useState("0");
+  const [stockQuantity, setStockQuantity] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
@@ -41,7 +41,7 @@ function ProductManagementPage() {
     setName("");
     setCategoryId("");
     setPrice("");
-    setStockQuantity("0");
+    setStockQuantity("");
     setSize("");
     setColor("");
     setModalOpen(true);
@@ -69,8 +69,10 @@ function ProductManagementPage() {
       toast.error("Enter a valid price");
       return;
     }
-    const stockNum = parseInt(stockQuantity, 10);
-    if (Number.isNaN(stockNum) || stockNum < 0) {
+    const stockTrim = stockQuantity.trim();
+    const stockNum =
+      stockTrim === "" ? 0 : parseInt(stockTrim, 10);
+    if (stockTrim !== "" && (Number.isNaN(stockNum) || stockNum < 0)) {
       toast.error("Enter a valid stock quantity");
       return;
     }
@@ -283,7 +285,9 @@ function ProductManagementPage() {
             min={0}
             step={1}
             value={stockQuantity}
-            onChange={(e) => setStockQuantity(e.target.value.replace(/\D/g, "") || "0")}
+            onChange={(e) =>
+              setStockQuantity(e.target.value.replace(/\D/g, ""))
+            }
             placeholder="0"
           />
           <Input

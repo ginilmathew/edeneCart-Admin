@@ -6,11 +6,11 @@ import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
 import { createOrder } from "../store/ordersSlice";
 import { Card, CardHeader, Button, Input, Modal, Select, Textarea } from "../components/ui";
+import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
-import type { Customer, OrderType, Product } from "../types";
-import type { SelectOption } from "../components/ui/Select";
+import type { Customer, DeliveryOptionForCart, OrderType, Product } from "../types";
 
 interface ProductRow {
   productId: string;
@@ -85,6 +85,9 @@ function CreateOrderPage() {
   const [addOn, setAddOn] = useState<{ amount: string; note: string } | null>(null);
   const [isAddOnModalOpen, setIsAddOnModalOpen] = useState(false);
   const [tempAddOn, setTempAddOn] = useState({ amount: "", note: "" });
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionForCart[]>([]);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [selectedDeliveryMethodId, setSelectedDeliveryMethodId] = useState("");
 
   const phoneTrim = form.phone.trim();
   const detailsEnabled = phoneTrim.length === 10;
@@ -102,6 +105,54 @@ function CreateOrderPage() {
     void dispatch(fetchProducts());
     void dispatch(fetchCategories());
   }, [dispatch]);
+
+  const cartProductIdsKey = useMemo(
+    () =>
+      [
+        ...new Set(
+          productRows.filter((r) => r.quantity > 0).map((r) => r.productId)
+        ),
+      ]
+        .sort()
+        .join(","),
+    [productRows]
+  );
+
+  useEffect(() => {
+    if (!cartProductIdsKey) {
+      setDeliveryOptions([]);
+      setSelectedDeliveryMethodId("");
+      return;
+    }
+    const ids = cartProductIdsKey.split(",").filter(Boolean);
+    let cancelled = false;
+    setDeliveryLoading(true);
+    const qs = ids.join(",");
+    void api
+      .get<DeliveryOptionForCart[]>(
+        `${endpoints.productDeliveryFeesForCart}?productIds=${encodeURIComponent(qs)}`
+      )
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setDeliveryOptions(list);
+        setSelectedDeliveryMethodId((prev) =>
+          list.some((o) => o.deliveryMethodId === prev) ? prev : ""
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDeliveryOptions([]);
+          setSelectedDeliveryMethodId("");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setDeliveryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cartProductIdsKey]);
 
   useEffect(() => {
     if (phoneTrim.length === 10) return;
@@ -201,10 +252,30 @@ function CreateOrderPage() {
     [unitPrice]
   );
 
+  const selectedDeliveryFee = useMemo(() => {
+    const o = deliveryOptions.find((x) => x.deliveryMethodId === selectedDeliveryMethodId);
+    return o?.totalFee ?? 0;
+  }, [deliveryOptions, selectedDeliveryMethodId]);
+
   const grandTotal = useMemo(() => {
     const productsSum = productRows.reduce((sum, row) => sum + lineSubtotal(row), 0);
-    return productsSum + (parseFloat(addOn?.amount || "0") || 0);
-  }, [productRows, lineSubtotal, addOn]);
+    return (
+      productsSum +
+      (parseFloat(addOn?.amount || "0") || 0) +
+      selectedDeliveryFee
+    );
+  }, [productRows, lineSubtotal, addOn, selectedDeliveryFee]);
+
+  const deliverySelectOptions: SelectOption[] = useMemo(
+    () => [
+      { value: "", label: "No delivery charge" },
+      ...deliveryOptions.map((o) => ({
+        value: o.deliveryMethodId,
+        label: `${o.name} (+₹${o.totalFee.toFixed(2)})`,
+      })),
+    ],
+    [deliveryOptions]
+  );
 
   const updateProductRow = (
     productId: string,
@@ -315,6 +386,7 @@ function CreateOrderPage() {
       try {
         const fullAddress = `${form.flatBuilding.trim()}, ${form.areaSector.trim()}`;
         const selectedProducts = productRows.filter((r) => r.quantity > 0);
+        const orderProductIds = selectedProducts.map((r) => r.productId);
 
         // Fetch a single order ID to share across all items (Single Order support)
         const { orderId: commonOrderId } = await api.get<{ orderId: string }>(endpoints.orderNextDisplayId);
@@ -346,6 +418,12 @@ function CreateOrderPage() {
                   addOnNote: addOn.note.trim(),
                 }
                 : {}),
+              ...(isFirst && selectedDeliveryMethodId
+                ? {
+                    deliveryMethodId: selectedDeliveryMethodId,
+                    orderProductIds,
+                  }
+                : {}),
               notes: form.notes.trim() || undefined,
               status: "pending",
             })
@@ -360,7 +438,16 @@ function CreateOrderPage() {
         setSubmitting(false);
       }
     },
-    [form, productRows, validate, user?.staffId, dispatch, navigate]
+    [
+      form,
+      productRows,
+      validate,
+      user?.staffId,
+      dispatch,
+      navigate,
+      addOn,
+      selectedDeliveryMethodId,
+    ]
   );
 
   const update = useCallback((field: string, value: string) => {
@@ -476,6 +563,29 @@ function CreateOrderPage() {
             error={errors.orderType}
             disabled={!detailsEnabled}
           />
+          <div className="rounded-[var(--radius-md)] border border-border bg-surface-alt/60 p-3">
+            {deliveryLoading && detailsEnabled ? (
+              <p className="text-sm text-text-muted py-1">Loading delivery options…</p>
+            ) : (
+              <Select
+                label="Delivery type (optional)"
+                options={deliverySelectOptions}
+                value={selectedDeliveryMethodId}
+                onChange={(e) => setSelectedDeliveryMethodId(e.target.value)}
+                placeholder="No delivery charge"
+                disabled={!detailsEnabled}
+              />
+            )}
+            <p className="mt-1.5 text-[11px] text-text-muted leading-relaxed">
+              {!detailsEnabled
+                ? "Enter 10-digit phone above to enable delivery options."
+                : !cartProductIdsKey
+                  ? "Select products below. Carriers appear when every product in the cart has a fee in Admin → Delivery."
+                  : deliveryOptions.length === 0
+                    ? "No delivery options for this product mix. Add per-product fees under Admin → Delivery."
+                    : "Choose a carrier — the configured fee is added to the first line total (same as add-ons) and included in Grand Total."}
+            </p>
+          </div>
           <div className="space-y-4 pt-4">
             <h3 className="border-b pb-2 text-lg font-bold text-gray-800">Products</h3>
 
@@ -701,6 +811,14 @@ function CreateOrderPage() {
                     {addOn && (
                       <span className="text-xs font-medium text-indigo-600">
                         Incl. Add-on: {addOn.note} (+{formatRupee(parseFloat(addOn.amount))})
+                      </span>
+                    )}
+                    {selectedDeliveryFee > 0 && (
+                      <span className="text-xs font-medium text-teal-700">
+                        Incl. delivery:{" "}
+                        {deliveryOptions.find((o) => o.deliveryMethodId === selectedDeliveryMethodId)
+                          ?.name ?? "—"}{" "}
+                        (+{formatRupee(selectedDeliveryFee)})
                       </span>
                     )}
                   </div>

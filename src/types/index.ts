@@ -17,6 +17,29 @@ export interface Category {
   description?: string;
 }
 
+export interface DeliveryMethod {
+  id: string;
+  name: string;
+  description?: string;
+  sortOrder: number;
+}
+
+export interface ProductDeliveryFee {
+  id: string;
+  productId: string;
+  productName?: string;
+  deliveryMethodId: string;
+  deliveryMethodName?: string;
+  feeAmount: number;
+}
+
+/** From GET product-delivery-fees/for-cart */
+export interface DeliveryOptionForCart {
+  deliveryMethodId: string;
+  name: string;
+  totalFee: number;
+}
+
 export interface Product {
   id: string;
   /** Business id e.g. PRD-1001 */
@@ -119,6 +142,8 @@ export interface AppSettings {
         customerId?: string | null;
       }
     | null;
+  /** Products with stock ≤ this value are flagged on dashboards (0 = only zero stock). */
+  lowStockThreshold: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -162,6 +187,9 @@ export interface Order {
   notes?: string;
   addOnAmount?: number | null;
   addOnNote?: string | null;
+  deliveryMethodId?: string | null;
+  deliveryFee?: number | null;
+  deliveryMethodName?: string | null;
   status: OrderStatus;
   /** Courier / shipment tracking reference when set */
   trackingId?: string | null;
@@ -172,12 +200,24 @@ export interface Order {
 /** Payload for POST /orders; total is computed from product price on the server. */
 export type CreateOrderPayload = Omit<
   Order,
-  "id" | "orderId" | "createdAt" | "sellingAmount" | "discountAmount" | "addOnAmount" | "addOnNote"
+  | "id"
+  | "orderId"
+  | "createdAt"
+  | "sellingAmount"
+  | "discountAmount"
+  | "addOnAmount"
+  | "addOnNote"
+  | "deliveryMethodId"
+  | "deliveryFee"
+  | "deliveryMethodName"
 > & {
   discountAmount?: number;
   addOnAmount?: number;
   addOnNote?: string;
   orderId?: string;
+  deliveryMethodId?: string;
+  /** All product ids in this multi-line order (first line only). */
+  orderProductIds?: string[];
 };
 
 export interface User {

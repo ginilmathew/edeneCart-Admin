@@ -10,6 +10,7 @@ import {
   fetchStaff,
   fetchStaffMe,
   fetchCustomers,
+  fetchSettings,
 } from "./store";
 import { RootRoutes } from "./routes";
 
@@ -21,6 +22,7 @@ function DataLoader() {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
     dispatch(fetchOrders());
+    void dispatch(fetchSettings());
     if (user?.role === "super_admin") {
       dispatch(fetchStaff());
       dispatch(fetchCustomers());

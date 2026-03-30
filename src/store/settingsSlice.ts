@@ -17,7 +17,11 @@ export const fetchSettings = createAsyncThunk(
 export const updateSettings = createAsyncThunk(
   "settings/update",
   async (
-    payload: { defaultPdfSize?: PdfSize; defaultSenderId?: string },
+    payload: {
+      defaultPdfSize?: PdfSize;
+      defaultSenderId?: string;
+      lowStockThreshold?: number;
+    },
     { rejectWithValue }
   ) => {
     try {

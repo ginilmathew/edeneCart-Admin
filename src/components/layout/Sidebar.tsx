@@ -20,6 +20,7 @@ import {
   TruckIcon,
   Cog6ToothIcon,
   CurrencyRupeeIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
 import type { UserRole } from "../../types";
@@ -51,6 +52,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/admin/customers", label: "Customers", roles: ["super_admin"], end: true, icon: UserGroupIcon },
   { to: "/admin/staff/assigned-numbers", label: "Assigned numbers", roles: ["super_admin"], end: true, icon: HashtagIcon },
   { to: "/admin/categories", label: "Categories", roles: ["super_admin"], end: true, icon: TagIcon },
+  { to: "/admin/delivery", label: "Delivery", roles: ["super_admin"], end: true, icon: PaperAirplaneIcon },
   { to: "/admin/senders", label: "Senders", roles: ["super_admin"], end: true, icon: TruckIcon },
   { to: "/admin/staff/roles", label: "Staff roles", roles: ["super_admin"], end: true, icon: BriefcaseIcon },
   { to: "/account/password", label: "Change password", roles: ["super_admin"], end: true, icon: KeyIcon },

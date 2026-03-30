@@ -11,13 +11,16 @@ import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
 import { fetchOrders, updateOrder } from "../store/ordersSlice";
+import { api } from "../api/client";
+import { endpoints } from "../api/endpoints";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { fetchSettings, selectSettings } from "../store/settingsSlice";
-import { Card, CardHeader, Button, Table, Badge, Modal } from "../components/ui";
+import { Card, CardHeader, Button, Table, Badge, Modal, Select } from "../components/ui";
+import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
-import type { Order } from "../types";
+import type { DeliveryOptionForCart, Order } from "../types";
 import { formatDate } from "../lib/orderUtils";
 
 function safeMoney(v: unknown): number {
@@ -29,6 +32,15 @@ function safeMoney(v: unknown): number {
 function discountDisplay(v: unknown): string | null {
   const n = safeMoney(v);
   return n > 0 ? `₹${n.toFixed(2)}` : null;
+}
+
+/** One customer order can be several API rows (same display `orderId`); each line has its own id. */
+function orderLineIds(detail: { id: string; items?: Order[] }): string[] {
+  const items = detail.items;
+  if (Array.isArray(items) && items.length > 0) {
+    return items.map((i) => i.id);
+  }
+  return [detail.id];
 }
 
 function AdminOrderManagementPage() {
@@ -55,6 +67,12 @@ function AdminOrderManagementPage() {
   const [dispatching, setDispatching] = useState(false);
   const [markingPacked, setMarkingPacked] = useState(false);
   const [returning, setReturning] = useState(false);
+  const [adminDeliveryOptions, setAdminDeliveryOptions] = useState<
+    DeliveryOptionForCart[]
+  >([]);
+  const [adminDeliveryLoading, setAdminDeliveryLoading] = useState(false);
+  const [adminDeliveryDraft, setAdminDeliveryDraft] = useState("");
+  const [savingDelivery, setSavingDelivery] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const selectAllHeaderRef = useRef<HTMLInputElement>(null);
   const ordersRef = useRef(orders);
@@ -136,6 +154,106 @@ function AdminOrderManagementPage() {
 
   const discountEditable =
     orderDetail?.status === "pending" || orderDetail?.status === "packed";
+
+  const sortedOrderLines = useMemo((): Order[] => {
+    if (!orderDetail) return [];
+    const items = (orderDetail as { items?: Order[] }).items;
+    if (items?.length) {
+      return [...items].sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    }
+    return [orderDetail as Order];
+  }, [orderDetail]);
+
+  const primaryOrderLine = sortedOrderLines[0];
+
+  const deliveryProductIdsKey = sortedOrderLines.map((l) => l.productId).join(",");
+
+  useEffect(() => {
+    if (!detailId || !orderDetail || !discountEditable) {
+      setAdminDeliveryOptions([]);
+      setAdminDeliveryDraft("");
+      return;
+    }
+    const items = (orderDetail as { items?: Order[] }).items;
+    const lines: Order[] = items?.length
+      ? [...items].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+      : [orderDetail as Order];
+    if (lines.length === 0) return;
+    const primary = lines[0];
+    const ids = lines.map((l) => l.productId);
+    let cancelled = false;
+    setAdminDeliveryLoading(true);
+    const qs = ids.join(",");
+    void api
+      .get<DeliveryOptionForCart[]>(
+        `${endpoints.productDeliveryFeesForCart}?productIds=${encodeURIComponent(qs)}`
+      )
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setAdminDeliveryOptions(list);
+        const cur = primary.deliveryMethodId ?? "";
+        setAdminDeliveryDraft(
+          cur && list.some((o) => o.deliveryMethodId === cur) ? cur : ""
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAdminDeliveryOptions([]);
+          setAdminDeliveryDraft("");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setAdminDeliveryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [detailId, discountEditable, deliveryProductIdsKey, orderDetail]);
+
+  const adminDeliverySelectOptions: SelectOption[] = useMemo(
+    () => [
+      { value: "", label: "No delivery charge" },
+      ...adminDeliveryOptions.map((o) => ({
+        value: o.deliveryMethodId,
+        label: `${o.name} (+₹${o.totalFee.toFixed(2)})`,
+      })),
+    ],
+    [adminDeliveryOptions]
+  );
+
+  const saveAdminDelivery = useCallback(async () => {
+    if (!primaryOrderLine || !discountEditable) return;
+    setSavingDelivery(true);
+    try {
+      await dispatch(
+        updateOrder({
+          id: primaryOrderLine.id,
+          patch: {
+            deliveryMethodId:
+              adminDeliveryDraft.trim() === "" ? null : adminDeliveryDraft,
+          },
+        })
+      ).unwrap();
+      await dispatch(fetchOrders(undefined)).unwrap();
+      toast.success("Delivery updated");
+    } catch (err) {
+      toast.fromError(err, "Failed to update delivery");
+    } finally {
+      setSavingDelivery(false);
+    }
+  }, [
+    primaryOrderLine,
+    discountEditable,
+    adminDeliveryDraft,
+    dispatch,
+  ]);
 
   /** Only when switching orders — do not depend on `orders` or the draft resets on every list refresh while typing. */
   useEffect(() => {
@@ -234,7 +352,7 @@ function AdminOrderManagementPage() {
       await dispatch(
         updateOrder({
           id: orderDetail.id,
-          patch: { status: "delivered", trackingId: tid },
+          patch: { status: "delivered" },
         })
       ).unwrap();
       toast.success("Order marked delivered");
@@ -255,9 +373,23 @@ function AdminOrderManagementPage() {
     }
     setReturning(true);
     try {
-      await dispatch(
-        updateOrder({ id: orderDetail.id, patch: { status: "returned" } })
-      ).unwrap();
+      const items = (orderDetail as { items?: Order[] }).items;
+      const returnable =
+        Array.isArray(items) && items.length > 0
+          ? items.filter(
+              (i) => i.status === "dispatch" || i.status === "delivered"
+            )
+          : [orderDetail as Order];
+      const ids = returnable.map((i) => i.id);
+      if (ids.length === 0) {
+        toast.error("No lines eligible for return");
+        return;
+      }
+      await Promise.all(
+        ids.map((id) =>
+          dispatch(updateOrder({ id, patch: { status: "returned" } })).unwrap()
+        )
+      );
       setDetailId(null);
       toast.success("Return recorded — stock restocked");
       void dispatch(fetchProducts());
@@ -305,9 +437,13 @@ function AdminOrderManagementPage() {
   }, [orderDetail, discountDraft, dispatch]);
 
   const handleStatusChange = useCallback(
-    async (orderId: string, status: Order["status"]) => {
+    async (lineIds: string[], status: Order["status"]) => {
       try {
-        await dispatch(updateOrder({ id: orderId, patch: { status } })).unwrap();
+        await Promise.all(
+          lineIds.map((id) =>
+            dispatch(updateOrder({ id, patch: { status } })).unwrap()
+          )
+        );
         toast.success(`Order ${status}`);
         if (status === "cancelled" || status === "delivered" || status === "returned")
           setDetailId(null);
@@ -803,6 +939,17 @@ function AdminOrderManagementPage() {
                                 <span>{item.addOnNote || "Extra"} ({discountDisplay(item.addOnAmount)})</span>
                               </div>
                             )}
+                            {safeMoney(item.deliveryFee) > 0 && (
+                              <div className="mt-1 text-[10px] text-teal-700 font-normal flex items-center gap-1.5">
+                                <span className="inline-block px-1 py-0.5 bg-teal-500/10 rounded uppercase tracking-tighter font-bold">
+                                  Delivery
+                                </span>
+                                <span>
+                                  {item.deliveryMethodName || "Carrier"} (
+                                  {discountDisplay(item.deliveryFee)})
+                                </span>
+                              </div>
+                            )}
                           </td>
                           <td className="px-3 py-2 text-center font-bold text-gray-600">{item.quantity}</td>
                           <td className="px-3 py-2 text-right font-black text-indigo-600">
@@ -817,6 +964,17 @@ function AdminOrderManagementPage() {
                                 <div className="mt-1 text-[10px] text-earnings font-normal flex items-center gap-1.5">
                                   <span className="inline-block px-1 py-0.5 bg-earnings/10 rounded text-earnings uppercase tracking-tighter font-bold">Add-on</span>
                                   <span>{(orderDetail as any).addOnNote || "Extra"} ({discountDisplay((orderDetail as any).addOnAmount)})</span>
+                                </div>
+                              )}
+                              {safeMoney((orderDetail as any).deliveryFee) > 0 && (
+                                <div className="mt-1 text-[10px] text-teal-700 font-normal flex items-center gap-1.5">
+                                  <span className="inline-block px-1 py-0.5 bg-teal-500/10 rounded uppercase tracking-tighter font-bold">
+                                    Delivery
+                                  </span>
+                                  <span>
+                                    {(orderDetail as any).deliveryMethodName || "Carrier"} (
+                                    {discountDisplay((orderDetail as any).deliveryFee)})
+                                  </span>
                                 </div>
                               )}
                             </td>
@@ -844,6 +1002,18 @@ function AdminOrderManagementPage() {
                 <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">Discount</dt>
                 <dd>{discountDisplay(orderDetail.discountAmount) ?? "—"}</dd>
               </div>
+              {primaryOrderLine &&
+              safeMoney(primaryOrderLine.deliveryFee) > 0 ? (
+                <div>
+                  <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">
+                    Delivery
+                  </dt>
+                  <dd className="font-medium text-teal-800">
+                    {primaryOrderLine.deliveryMethodName ?? "—"} — ₹
+                    {safeMoney(primaryOrderLine.deliveryFee).toFixed(2)}
+                  </dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">Total Amount</dt>
                 <dd className="font-medium text-earnings">
@@ -879,6 +1049,41 @@ function AdminOrderManagementPage() {
                     </Button>
                     <p className="text-xs text-text-muted sm:flex-1">
                       Clear the field or set 0 to remove discount. Total is recalculated from the product catalog price.
+                    </p>
+                  </dd>
+                </div>
+              ) : null}
+              {discountEditable &&
+              (adminDeliveryLoading || adminDeliveryOptions.length > 0) ? (
+                <div className="sm:col-span-2 rounded-[var(--radius-md)] border border-border bg-surface-alt p-3">
+                  <dt className="text-text-muted mb-2 text-xs uppercase tracking-wider">
+                    Delivery (admin)
+                  </dt>
+                  <dd className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    {adminDeliveryLoading ? (
+                      <span className="text-sm text-text-muted">Loading…</span>
+                    ) : (
+                      <div className="min-w-[220px] flex-1">
+                        <Select
+                          label=""
+                          options={adminDeliverySelectOptions}
+                          value={adminDeliveryDraft}
+                          onChange={(e) => setAdminDeliveryDraft(e.target.value)}
+                        />
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void saveAdminDelivery()}
+                      loading={savingDelivery}
+                      disabled={adminDeliveryLoading}
+                    >
+                      Apply delivery
+                    </Button>
+                    <p className="text-xs text-text-muted sm:flex-1">
+                      Totals use per-product fees from Delivery management. Clear selection to remove
+                      the charge.
                     </p>
                   </dd>
                 </div>
@@ -985,8 +1190,10 @@ function AdminOrderManagementPage() {
                   variant="danger"
                   size="sm"
                   onClick={() => {
-                    handleStatusChange((orderDetail as any).id, "cancelled");
-                    setDetailId(null);
+                    void handleStatusChange(
+                      orderLineIds(orderDetail as { id: string; items?: Order[] }),
+                      "cancelled"
+                    );
                   }}
                 >
                   Cancel Order

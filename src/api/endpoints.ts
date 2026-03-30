@@ -13,6 +13,11 @@ export const endpoints = {
   productById: (id: string) => `${V1}/products/${id}`,
   categories: `${V1}/categories`,
   categoryById: (id: string) => `${V1}/categories/${id}`,
+  deliveryMethods: `${V1}/delivery-methods`,
+  deliveryMethodById: (id: string) => `${V1}/delivery-methods/${id}`,
+  productDeliveryFees: `${V1}/product-delivery-fees`,
+  productDeliveryFeeById: (id: string) => `${V1}/product-delivery-fees/${id}`,
+  productDeliveryFeesForCart: `${V1}/product-delivery-fees/for-cart`,
   customers: `${V1}/customers`,
   customerLookupPhone: (phone: string) =>
     `${V1}/customers/lookup-phone?phone=${encodeURIComponent(phone)}`,

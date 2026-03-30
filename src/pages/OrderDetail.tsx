@@ -38,6 +38,10 @@ function OrderDetailPage() {
     (sum, item) => sum + (item.addOnAmount ? Number(item.addOnAmount) : 0),
     0
   );
+  const totalDelivery = relatedItems.reduce(
+    (sum, item) => sum + (item.deliveryFee ? Number(item.deliveryFee) : 0),
+    0
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
@@ -153,6 +157,15 @@ function OrderDetailPage() {
                               <span className="font-medium italic">{item.addOnNote || "Extra"} ({formatCurrency(item.addOnAmount || 0)})</span>
                             </div>
                           )}
+                          {item.deliveryFee != null && Number(item.deliveryFee) > 0 && (
+                            <div className="mt-1 text-[10px] text-teal-700 font-bold flex items-center gap-1.5 bg-teal-50 px-2 py-0.5 rounded w-fit border border-teal-100">
+                              <span className="uppercase tracking-tighter">Delivery:</span>
+                              <span>
+                                {item.deliveryMethodName || "Carrier"} (
+                                {formatCurrency(Number(item.deliveryFee))})
+                              </span>
+                            </div>
+                          )}
                           <div className="text-[10px] text-gray-400 font-mono mt-0.5">{item.productId.slice(0, 8)}...</div>
                         </td>
                         <td className="px-6 py-4 text-center font-bold text-gray-700">
@@ -176,6 +189,19 @@ function OrderDetailPage() {
                     <tr>
                       <td colSpan={2} className="px-6 py-1.5 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Add-ons ({relatedItems.find(i=>i.addOnNote)?.addOnNote})</td>
                       <td className="px-6 py-1.5 text-right text-sm font-bold text-green-600">+{formatCurrency(totalAddOn)}</td>
+                    </tr>
+                  )}
+                  {totalDelivery > 0 && (
+                    <tr>
+                      <td colSpan={2} className="px-6 py-1.5 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        Delivery (
+                        {relatedItems.find((i) => i.deliveryMethodName)?.deliveryMethodName ??
+                          "shipping"}
+                        )
+                      </td>
+                      <td className="px-6 py-1.5 text-right text-sm font-bold text-teal-700">
+                        +{formatCurrency(totalDelivery)}
+                      </td>
                     </tr>
                   )}
                   <tr className="border-t-2 border-gray-200">

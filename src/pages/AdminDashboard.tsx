@@ -4,7 +4,12 @@ import { useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts } from "../store/productsSlice";
-import { Card, CardHeader, Button, Table } from "../components/ui";
+import { selectSettings } from "../store/settingsSlice";
+import { Card, CardHeader, Button, Table, Badge } from "../components/ui";
+import {
+  isAtOrBelowStockThreshold,
+  stockStatusLabel,
+} from "../lib/stockUtils";
 import type { Order } from "../types";
 import {
   computeEarningsForStaff,
@@ -17,6 +22,15 @@ function AdminDashboardPage() {
   const orders = useAppSelector(selectOrders);
   const staff = useAppSelector(selectStaff);
   const products = useAppSelector(selectProducts);
+  const settings = useAppSelector(selectSettings);
+
+  const lowStockThreshold = settings?.lowStockThreshold ?? 0;
+
+  const lowOrOutProducts = useMemo(() => {
+    return products
+      .filter((p) => isAtOrBelowStockThreshold(p.stockQuantity ?? 0, lowStockThreshold))
+      .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) || a.name.localeCompare(b.name));
+  }, [products, lowStockThreshold]);
 
   const [dateFilter, setDateFilter] = useState<"week" | "month" | "year" | "custom">("week");
   const [customStart, setCustomStart] = useState<string>("");
@@ -257,7 +271,66 @@ function AdminDashboardPage() {
             {filteredOrders.filter((o) => o.status === "pending").length}
           </p>
         </Card>
+        <Card>
+          <p className="text-sm text-text-muted">Low / out of stock</p>
+          <p className="mt-1 text-2xl font-semibold text-error">
+            {lowOrOutProducts.length}
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            Stock ≤ {lowStockThreshold} (set in Settings)
+          </p>
+        </Card>
       </div>
+
+      {lowOrOutProducts.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Products to restock"
+            subtitle={`Showing items with stock at or below ${lowStockThreshold}. Change the threshold in Settings.`}
+            action={
+              <Link to="/admin/settings">
+                <Button variant="outline" size="sm">
+                  Stock threshold
+                </Button>
+              </Link>
+            }
+          />
+          <Table
+            columns={[
+              { key: "name", header: "Product" },
+              {
+                key: "categoryName",
+                header: "Category",
+                render: (p: (typeof products)[0]) => p.categoryName ?? "—",
+              },
+              {
+                key: "stockQuantity",
+                header: "Stock",
+                render: (p: (typeof products)[0]) => (
+                  <span className="font-mono font-semibold tabular-nums">
+                    {p.stockQuantity ?? 0}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                header: "Status",
+                render: (p: (typeof products)[0]) => {
+                  const s = stockStatusLabel(p.stockQuantity ?? 0, lowStockThreshold);
+                  if (s === "out")
+                    return <Badge variant="error">Out of stock</Badge>;
+                  if (s === "low")
+                    return <Badge variant="warning">Low stock</Badge>;
+                  return <Badge variant="error">Out of stock</Badge>;
+                },
+              },
+            ]}
+            data={lowOrOutProducts}
+            keyExtractor={(p) => p.id}
+            emptyMessage="None."
+          />
+        </Card>
+      )}
 
       <Card>
         <CardHeader
