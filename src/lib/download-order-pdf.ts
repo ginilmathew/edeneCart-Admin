@@ -1,7 +1,8 @@
 import { getAccessToken } from "./auth-token";
 import { endpoints } from "../api/endpoints";
+import { getApiBaseUrl } from "../api/api-base-url";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const BASE_URL = getApiBaseUrl();
 
 /**
  * GET /v1/api/orders/:id/pdf with JWT; triggers browser download.

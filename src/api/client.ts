@@ -1,11 +1,12 @@
 /**
- * API client. Set VITE_API_BASE_URL (e.g. http://localhost:3000/v1/api).
+ * API client. Dev: Vite proxy when base is empty. Prod: Railway unless VITE_API_BASE_URL is set.
  * JWT is sent automatically when present (see auth-token).
  */
 
 import { getAccessToken } from "../lib/auth-token";
+import { getApiBaseUrl } from "./api-base-url";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const BASE_URL = getApiBaseUrl();
 
 async function request<T>(
   path: string,
