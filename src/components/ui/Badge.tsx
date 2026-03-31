@@ -1,6 +1,13 @@
 import { memo } from "react";
 
-type Variant = "default" | "success" | "warning" | "error" | "info";
+type Variant =
+  | "default"
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "packed"
+  | "muted";
 
 const variantClasses: Record<Variant, string> = {
   default: "bg-surface border border-border text-text",
@@ -8,6 +15,8 @@ const variantClasses: Record<Variant, string> = {
   warning: "bg-warning-bg text-warning",
   error: "bg-error-bg text-error",
   info: "bg-info-bg text-info",
+  packed: "bg-violet-100 text-violet-900 border border-violet-200",
+  muted: "bg-slate-200 text-slate-800 border border-slate-300",
 };
 
 interface BadgeProps {

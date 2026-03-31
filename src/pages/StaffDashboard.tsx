@@ -10,24 +10,18 @@ import { selectOrders } from "../store/ordersSlice";
 import { selectStaffMe, selectStaffMeLoading } from "../store/staffSlice";
 import { selectProducts } from "../store/productsSlice";
 import { selectSettings } from "../store/settingsSlice";
-import type { Order, Product } from "../types";
 import {
   Card,
   CardHeader,
   Button,
   ProgressBar,
   Badge,
-  Table,
 } from "../components/ui";
-import {
-  isAtOrBelowStockThreshold,
-  stockStatusLabel,
-} from "../lib/stockUtils";
+import { isAtOrBelowStockThreshold } from "../lib/stockUtils";
 import {
   computeEarningsForStaff,
   getNextMilestone,
   formatCurrency,
-  formatDate,
 } from "../lib/orderUtils";
 
 const todayStart = () => {
@@ -52,22 +46,6 @@ function StaffDashboardPage() {
       ).length,
     [products, lowStockThreshold]
   );
-
-  const productsInventorySorted = useMemo(() => {
-    return [...products].sort((a, b) => {
-      const aLow = isAtOrBelowStockThreshold(a.stockQuantity ?? 0, lowStockThreshold)
-        ? 0
-        : 1;
-      const bLow = isAtOrBelowStockThreshold(b.stockQuantity ?? 0, lowStockThreshold)
-        ? 0
-        : 1;
-      if (aLow !== bLow) return aLow - bLow;
-      return (
-        (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) ||
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-      );
-    });
-  }, [products, lowStockThreshold]);
 
   const staffId = staffProfile?.id ?? null;
 
@@ -162,6 +140,12 @@ function StaffDashboardPage() {
           <p className="mt-1 text-xs text-text-muted">
             Stock ≤ {lowStockThreshold} (admin Settings)
           </p>
+          <Link
+            to="/stock"
+            className="mt-3 inline-block text-xs font-semibold text-primary hover:underline"
+          >
+            View product stock →
+          </Link>
         </Card>
       </div>
 
@@ -341,129 +325,6 @@ function StaffDashboardPage() {
           </div>
         </section>
       )}
-
-      <Card>
-        <CardHeader
-          title="Product stock"
-          subtitle={`Catalog quantities for every product. Rows at or below ${lowStockThreshold} units are highlighted (threshold is set by admin in Settings).`}
-        />
-        <Table
-          columns={[
-            { key: "name", header: "Product" },
-            {
-              key: "categoryName",
-              header: "Category",
-              render: (p: Product) => p.categoryName ?? "—",
-            },
-            {
-              key: "sku",
-              header: "SKU",
-              render: (p: Product) => p.sku ?? "—",
-            },
-            {
-              key: "stockQuantity",
-              header: "Stock",
-              render: (p: Product) => {
-                const q = p.stockQuantity ?? 0;
-                const st = stockStatusLabel(q, lowStockThreshold);
-                return (
-                  <span
-                    className={[
-                      "font-mono font-semibold tabular-nums",
-                      st ? "text-error" : "text-text-heading",
-                    ].join(" ")}
-                  >
-                    {q}
-                  </span>
-                );
-              },
-            },
-            {
-              key: "status",
-              header: "Status",
-              render: (p: Product) => {
-                const st = stockStatusLabel(p.stockQuantity ?? 0, lowStockThreshold);
-                if (st === "out") return <Badge variant="error">Out of stock</Badge>;
-                if (st === "low") return <Badge variant="warning">Low</Badge>;
-                return <Badge variant="success">OK</Badge>;
-              },
-            },
-          ]}
-          data={productsInventorySorted}
-          keyExtractor={(p) => p.id}
-          emptyMessage="No products in catalog."
-        />
-      </Card>
-
-      <Card>
-        <CardHeader
-          title="Recent Orders"
-          action={
-            <Link to="/orders">
-              <Button variant="outline" size="sm">
-                View all
-              </Button>
-            </Link>
-          }
-        />
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                <th className="pb-2 pr-4">Order ID</th>
-                <th className="pb-2 pr-4">Date</th>
-                <th className="pb-2 pr-4">Customer</th>
-                <th className="pb-2 pr-4">Product</th>
-                <th className="pb-2 pr-4">Type</th>
-                <th className="pb-2">Tracking ID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const myOrders = orders.filter((o) => o.staffId === staffId);
-                const groups = new Map<string, Order[]>();
-                for (const o of myOrders) {
-                  if (!groups.has(o.orderId)) groups.set(o.orderId, []);
-                  groups.get(o.orderId)!.push(o);
-                }
-                return Array.from(groups.values())
-                  .slice(-5)
-                  .reverse()
-                  .map((items) => {
-                    const o = items[0];
-                    return (
-                      <tr key={o.id} className="border-b border-border last:border-0">
-                        <td className="py-2 pr-4">
-                          <Link
-                            to={`/orders/${o.id}`}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {o.orderId}
-                          </Link>
-                        </td>
-                        <td className="py-2 pr-4">{formatDate(o.createdAt)}</td>
-                        <td className="py-2 pr-4">{o.customerName}</td>
-                        <td className="py-2 pr-4 italic">
-                          {items.length > 1 ? (
-                            <span className="font-bold text-primary">{items.length} items</span>
-                          ) : (
-                            products.find((p) => p.id === o.productId)?.name ?? o.productId
-                          )}
-                        </td>
-                        <td className="py-2 pr-4">
-                          <Badge variant="default">{o.orderType.toUpperCase()}</Badge>
-                        </td>
-                        <td className="py-2 font-mono text-xs">
-                          {o.trackingId?.trim() ?? "—"}
-                        </td>
-                      </tr>
-                    );
-                  });
-              })()}
-            </tbody>
-          </table>
-        </div>
-      </Card>
     </div>
   );
 }

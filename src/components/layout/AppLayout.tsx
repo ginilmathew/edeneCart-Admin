@@ -26,6 +26,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   "/admin/products": "Product Management",
   "/admin/staff/assigned-numbers": "Assigned numbers",
   "/admin/export": "Export Data",
+  "/admin/profit": "Profit analytics",
   "/account/password": "Change password",
 };
 

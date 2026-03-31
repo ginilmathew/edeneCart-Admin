@@ -17,6 +17,7 @@ function ProductManagementPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [buyingPrice, setBuyingPrice] = useState("");
   const [price, setPrice] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -40,6 +41,7 @@ function ProductManagementPage() {
     setEditingId(null);
     setName("");
     setCategoryId("");
+    setBuyingPrice("");
     setPrice("");
     setStockQuantity("");
     setSize("");
@@ -51,6 +53,9 @@ function ProductManagementPage() {
     setEditingId(p.id);
     setName(p.name);
     setCategoryId(p.categoryId ?? "");
+    setBuyingPrice(
+      p.buyingPrice != null ? String(p.buyingPrice) : ""
+    );
     setPrice(String(p.price ?? 0));
     setStockQuantity(String(p.stockQuantity ?? 0));
     setSize(p.size ?? "");
@@ -66,7 +71,14 @@ function ProductManagementPage() {
     }
     const priceNum = parseFloat(price);
     if (Number.isNaN(priceNum) || priceNum < 0) {
-      toast.error("Enter a valid price");
+      toast.error("Enter a valid selling price");
+      return;
+    }
+    const buyingTrim = buyingPrice.trim();
+    const buyingNum =
+      buyingTrim === "" ? 0 : parseFloat(buyingTrim);
+    if (buyingTrim !== "" && (Number.isNaN(buyingNum) || buyingNum < 0)) {
+      toast.error("Enter a valid buying price");
       return;
     }
     const stockTrim = stockQuantity.trim();
@@ -85,6 +97,7 @@ function ProductManagementPage() {
               name: name.trim(),
               categoryId,
               price: priceNum,
+              buyingPrice: buyingNum,
               stockQuantity: stockNum,
               size: size.trim() || undefined,
               color: color.trim() || undefined,
@@ -98,6 +111,7 @@ function ProductManagementPage() {
             name: name.trim(),
             categoryId,
             price: priceNum,
+            buyingPrice: buyingNum,
             stockQuantity: stockNum,
             size: size.trim() || undefined,
             color: color.trim() || undefined,
@@ -109,7 +123,17 @@ function ProductManagementPage() {
     } catch (err) {
       toast.fromError(err, "Failed to save product");
     }
-  }, [editingId, name, categoryId, price, stockQuantity, size, color, dispatch]);
+  }, [
+    editingId,
+    name,
+    categoryId,
+    buyingPrice,
+    price,
+    stockQuantity,
+    size,
+    color,
+    dispatch,
+  ]);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -164,8 +188,16 @@ function ProductManagementPage() {
         render: (row: Product) => row.sku ?? "—",
       },
       {
+        key: "buyingPrice",
+        header: "Buying (₹)",
+        render: (row: Product) =>
+          row.buyingPrice != null
+            ? `₹${Number(row.buyingPrice).toFixed(2)}`
+            : "—",
+      },
+      {
         key: "price",
-        header: "Price",
+        header: "Selling (₹)",
         render: (row: Product) => `₹${Number(row.price).toFixed(2)}`,
       },
       {
@@ -271,13 +303,22 @@ function ProductManagementPage() {
             </p>
           )}
           <Input
-            label="Price (₹) *"
+            label="Buying price (₹)"
+            type="number"
+            min={0}
+            step="0.01"
+            value={buyingPrice}
+            onChange={(e) => setBuyingPrice(e.target.value)}
+            placeholder="0 — cost to you (optional)"
+          />
+          <Input
+            label="Selling price (₹) *"
             type="number"
             min={0}
             step="0.01"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="0.00"
+            placeholder="0.00 — catalog / order price"
           />
           <Input
             label="Stock quantity"

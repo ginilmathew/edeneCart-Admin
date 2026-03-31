@@ -21,6 +21,9 @@ import {
   Cog6ToothIcon,
   CurrencyRupeeIcon,
   PaperAirplaneIcon,
+  ArchiveBoxIcon,
+  ClockIcon,
+  PresentationChartLineIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
 import type { UserRole } from "../../types";
@@ -39,6 +42,8 @@ const STAFF_NAV: NavItem[] = [
   { to: "/", label: "Dashboard", roles: ["staff"], end: true, icon: HomeIcon },
   { to: "/orders/create", label: "Create Order", roles: ["staff"], end: true, icon: DocumentPlusIcon },
   { to: "/orders", label: "My Orders", roles: ["staff"], end: true, icon: ClipboardDocumentListIcon },
+  { to: "/stock", label: "Product stock", roles: ["staff"], end: true, icon: ArchiveBoxIcon },
+  { to: "/recent-orders", label: "Recent orders", roles: ["staff"], end: true, icon: ClockIcon },
   { to: "/profile", label: "Profile", roles: ["staff"], end: true, icon: UserCircleIcon },
   { to: "/account/password", label: "Change password", roles: ["staff"], end: true, icon: KeyIcon },
 ];
@@ -47,6 +52,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/admin", label: "Dashboard", roles: ["super_admin"], end: true, icon: HomeIcon },
   { to: "/admin/orders", label: "Orders", roles: ["super_admin"], end: true, icon: CubeIcon },
   { to: "/admin/salary", label: "Salary", roles: ["super_admin"], end: true, icon: CurrencyRupeeIcon },
+  { to: "/admin/profit", label: "Profit", roles: ["super_admin"], end: true, icon: PresentationChartLineIcon },
   { to: "/admin/staff", label: "Staff", roles: ["super_admin"], end: true, icon: UsersIcon },
   { to: "/admin/products", label: "Products", roles: ["super_admin"], end: true, icon: Squares2X2Icon },
   { to: "/admin/customers", label: "Customers", roles: ["super_admin"], end: true, icon: UserGroupIcon },
@@ -128,43 +134,50 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active focus:outline-none focus:ring-2 focus:ring-sidebar-text-active/50"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        <Tooltip
+          content={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          side="right"
+          className="hidden md:flex"
         >
-          {collapsed ? (
-            <ChevronRightIcon className="h-5 w-5" />
-          ) : (
-            <ChevronLeftIcon className="h-5 w-5" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active focus:outline-none focus:ring-2 focus:ring-sidebar-text-active/50"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRightIcon className="h-5 w-5" />
+            ) : (
+              <ChevronLeftIcon className="h-5 w-5" />
+            )}
+          </button>
+        </Tooltip>
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        {/* Render nav items correctly based on responsive rules. We conditionally show tooltips only on md+ */}
         {filtered.map((item) => (
-          <div key={item.to}>
-            <NavLink
-              to={item.to}
-              end={item.end}
-              onClick={handleMobileNavClick}
-              title={collapsed ? item.label : undefined} // Fallback title
-              className={({ isActive }: { isActive: boolean }) =>
-                linkBase +
-                (isActive ? linkActive : linkInactive) +
-                (collapsed ? " md:justify-center md:px-2" : "")
-              }
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <span className={collapsed ? "block md:hidden" : "block"}>{item.label}</span>
-            </NavLink>
+          <div key={item.to} className="w-full">
+            <Tooltip content={item.label} side="right" className="flex w-full">
+              <NavLink
+                to={item.to}
+                end={item.end}
+                onClick={handleMobileNavClick}
+                className={({ isActive }: { isActive: boolean }) =>
+                  linkBase +
+                  " w-full " +
+                  (isActive ? linkActive : linkInactive) +
+                  (collapsed ? " md:justify-center md:px-2" : "")
+                }
+              >
+                <item.icon className="h-5 w-5 shrink-0" aria-hidden />
+                <span className={collapsed ? "block md:hidden" : "block"}>{item.label}</span>
+              </NavLink>
+            </Tooltip>
           </div>
         ))}
       </nav>
       <div className="border-t border-sidebar-hover p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {collapsed ? (
-          <Tooltip content="Logout" side="right" className="hidden md:block">
+          <Tooltip content="Logout" side="right" className="flex w-full">
             <button
               type="button"
               onClick={() => { handleMobileNavClick(); onLogout(); }}

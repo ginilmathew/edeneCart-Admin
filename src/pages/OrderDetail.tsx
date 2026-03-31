@@ -42,6 +42,7 @@ function OrderDetailPage() {
     (sum, item) => sum + (item.deliveryFee ? Number(item.deliveryFee) : 0),
     0
   );
+  const grandTotal = totalSelling + totalDelivery;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
@@ -151,22 +152,6 @@ function OrderDetailPage() {
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-gray-800">{pName}</div>
-                          {(item.addOnAmount || item.addOnNote) && (
-                            <div className="mt-1 text-[10px] text-green-600 font-bold flex items-center gap-1.5 bg-green-50 px-2 py-0.5 rounded w-fit border border-green-100">
-                              <span className="uppercase tracking-tighter">Add-on:</span>
-                              <span className="font-medium italic">{item.addOnNote || "Extra"} ({formatCurrency(item.addOnAmount || 0)})</span>
-                            </div>
-                          )}
-                          {item.deliveryFee != null && Number(item.deliveryFee) > 0 && (
-                            <div className="mt-1 text-[10px] text-teal-700 font-bold flex items-center gap-1.5 bg-teal-50 px-2 py-0.5 rounded w-fit border border-teal-100">
-                              <span className="uppercase tracking-tighter">Delivery:</span>
-                              <span>
-                                {item.deliveryMethodName || "Carrier"} (
-                                {formatCurrency(Number(item.deliveryFee))})
-                              </span>
-                            </div>
-                          )}
-                          <div className="text-[10px] text-gray-400 font-mono mt-0.5">{item.productId.slice(0, 8)}...</div>
                         </td>
                         <td className="px-6 py-4 text-center font-bold text-gray-700">
                           {item.quantity}
@@ -178,36 +163,46 @@ function OrderDetailPage() {
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-gray-50/60 font-medium">
+                <tfoot className="font-medium">
                   {totalDiscount > 0 && (
-                    <tr>
-                      <td colSpan={2} className="px-6 py-1.5 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Total Discount</td>
-                      <td className="px-6 py-1.5 text-right text-sm font-bold text-red-500">-{formatCurrency(totalDiscount)}</td>
+                    <tr className="bg-gray-50/90">
+                      <td colSpan={2} className="px-6 py-2 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        Total discount
+                      </td>
+                      <td className="px-6 py-2 text-right text-sm font-bold text-red-600">
+                        -{formatCurrency(totalDiscount)}
+                      </td>
                     </tr>
                   )}
                   {totalAddOn > 0 && (
-                    <tr>
-                      <td colSpan={2} className="px-6 py-1.5 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Add-ons ({relatedItems.find(i=>i.addOnNote)?.addOnNote})</td>
-                      <td className="px-6 py-1.5 text-right text-sm font-bold text-green-600">+{formatCurrency(totalAddOn)}</td>
+                    <tr className="bg-emerald-50 border-y border-emerald-100">
+                      <td colSpan={2} className="px-6 py-2.5 text-right text-xs font-extrabold uppercase tracking-widest text-emerald-900">
+                        Add-ons ({relatedItems.find((i) => i.addOnNote)?.addOnNote ?? "extra"})
+                      </td>
+                      <td className="px-6 py-2.5 text-right text-sm font-black tabular-nums text-emerald-700">
+                        +{formatCurrency(totalAddOn)}
+                      </td>
                     </tr>
                   )}
-                  {totalDelivery > 0 && (
-                    <tr>
-                      <td colSpan={2} className="px-6 py-1.5 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  {relatedItems.some((i) => i.deliveryMethodId || i.deliveryMethodName) && (
+                    <tr className="bg-teal-50 border-b border-teal-100">
+                      <td colSpan={2} className="px-6 py-2.5 text-right text-xs font-extrabold uppercase tracking-widest text-teal-900">
                         Delivery (
                         {relatedItems.find((i) => i.deliveryMethodName)?.deliveryMethodName ??
-                          "shipping"}
+                          "carrier"}
                         )
                       </td>
-                      <td className="px-6 py-1.5 text-right text-sm font-bold text-teal-700">
+                      <td className="px-6 py-2.5 text-right text-sm font-black tabular-nums text-teal-800">
                         +{formatCurrency(totalDelivery)}
                       </td>
                     </tr>
                   )}
-                  <tr className="border-t-2 border-gray-200">
-                    <td colSpan={2} className="px-6 py-4 text-right text-sm font-black text-gray-900 uppercase tracking-widest">Grand Total</td>
+                  <tr className="border-t-2 border-gray-200 bg-white">
+                    <td colSpan={2} className="px-6 py-4 text-right text-sm font-black text-gray-900 uppercase tracking-widest">
+                      Grand total
+                    </td>
                     <td className="px-6 py-4 text-right text-2xl font-black tabular-nums text-green-600">
-                      {formatCurrency(totalSelling)}
+                      {formatCurrency(grandTotal)}
                     </td>
                   </tr>
                 </tfoot>

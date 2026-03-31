@@ -5,6 +5,7 @@ import { endpoints } from "../api/endpoints";
 
 export type NewProductPayload = Pick<Product, "name" | "price"> & {
   categoryId: string;
+  buyingPrice?: number;
   stockQuantity?: number;
   size?: string;
   color?: string;

@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router";
 import { ProtectedRoute } from "../components/auth";
 import type { User } from "../types";
 import StaffDashboard from "../pages/StaffDashboard";
+import StaffProductStock from "../pages/StaffProductStock";
+import StaffRecentOrders from "../pages/StaffRecentOrders";
 import StaffMyProfile from "../pages/StaffMyProfile";
 import CreateOrder from "../pages/CreateOrder";
 import OrdersList from "../pages/OrdersList";
@@ -20,6 +22,7 @@ import ChangePassword from "../pages/ChangePassword";
 import SenderManagement from "../pages/SenderManagement";
 import AdminSettings from "../pages/AdminSettings";
 import SalaryManagement from "../pages/SalaryManagement";
+import ProfitAnalytics from "../pages/ProfitAnalytics";
 import DeliveryManagement from "../pages/DeliveryManagement";
 
 interface LayoutRoutesProps {
@@ -35,6 +38,22 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         element={
           <ProtectedRoute allowedRoles={["staff"]}>
             <StaffDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stock"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <StaffProductStock />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recent-orders"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <StaffRecentOrders />
           </ProtectedRoute>
         }
       />
@@ -172,6 +191,14 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
             <SalaryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/profit"
+        element={
+          <ProtectedRoute allowedRoles={["super_admin"]}>
+            <ProfitAnalytics />
           </ProtectedRoute>
         }
       />

@@ -1,4 +1,11 @@
-import { memo, useState, useCallback } from "react";
+import {
+  memo,
+  useState,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
+import { createPortal } from "react-dom";
 
 interface TooltipProps {
   content: string;
@@ -7,12 +14,40 @@ interface TooltipProps {
   className?: string;
 }
 
-const sideClasses = {
-  right: "left-full top-1/2 -translate-y-1/2 ml-2",
-  left: "right-full top-1/2 -translate-y-1/2 mr-2",
-  top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
-  bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
-};
+const TOOLTIP_Z = 9999;
+const PAD = 8;
+
+function tipPosition(
+  side: NonNullable<TooltipProps["side"]>,
+  r: DOMRect
+): { top: number; left: number; transform: string } {
+  switch (side) {
+    case "right":
+      return {
+        top: r.top + r.height / 2,
+        left: r.right + PAD,
+        transform: "translateY(-50%)",
+      };
+    case "left":
+      return {
+        top: r.top + r.height / 2,
+        left: r.left - PAD,
+        transform: "translate(-100%, -50%)",
+      };
+    case "top":
+      return {
+        top: r.top - PAD,
+        left: r.left + r.width / 2,
+        transform: "translate(-50%, -100%)",
+      };
+    case "bottom":
+      return {
+        top: r.bottom + PAD,
+        left: r.left + r.width / 2,
+        transform: "translateX(-50%)",
+      };
+  }
+}
 
 function TooltipComponent({
   content,
@@ -21,31 +56,72 @@ function TooltipComponent({
   className = "",
 }: TooltipProps) {
   const [visible, setVisible] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, transform: "" });
+  const triggerRef = useRef<HTMLDivElement>(null);
 
-  const show = useCallback(() => setVisible(true), []);
+  const place = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    setCoords(tipPosition(side, el.getBoundingClientRect()));
+  }, [side]);
+
+  const show = useCallback(() => {
+    const el = triggerRef.current;
+    if (el) {
+      setCoords(tipPosition(side, el.getBoundingClientRect()));
+    }
+    setVisible(true);
+  }, [side]);
+
   const hide = useCallback(() => setVisible(false), []);
 
-  return (
-    <div
-      className={"relative inline-flex " + className}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onFocus={show}
-      onBlur={hide}
-    >
-      {children}
-      {visible && (
+  useLayoutEffect(() => {
+    if (!visible) return;
+    place();
+    const sync = () => place();
+    window.addEventListener("scroll", sync, true);
+    window.addEventListener("resize", sync);
+    return () => {
+      window.removeEventListener("scroll", sync, true);
+      window.removeEventListener("resize", sync);
+    };
+  }, [visible, place]);
+
+  const trimmed = className.trim();
+  const tooltipNode =
+    visible && typeof document !== "undefined" ? (
+      createPortal(
         <span
           role="tooltip"
-          className={
-            "pointer-events-none absolute z-50 whitespace-nowrap rounded-[var(--radius-sm)] bg-sidebar-hover px-2 py-1.5 text-xs font-medium text-sidebar-text-active shadow-[var(--shadow-dropdown)] " +
-            sideClasses[side]
-          }
+          style={{
+            position: "fixed",
+            top: coords.top,
+            left: coords.left,
+            transform: coords.transform,
+            zIndex: TOOLTIP_Z,
+          }}
+          className="pointer-events-none whitespace-nowrap rounded-[var(--radius-sm)] bg-sidebar-hover px-2 py-1.5 text-xs font-medium text-sidebar-text-active shadow-[var(--shadow-dropdown)]"
         >
           {content}
-        </span>
-      )}
-    </div>
+        </span>,
+        document.body
+      )
+    ) : null;
+
+  return (
+    <>
+      <div
+        ref={triggerRef}
+        className={"relative " + (trimmed ? trimmed : "inline-flex")}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+      >
+        {children}
+      </div>
+      {tooltipNode}
+    </>
   );
 }
 

@@ -66,6 +66,11 @@ function OrdersListPage() {
           (sum, i) => sum + Number(i.sellingAmount),
           0
         );
+        const totalDelivery = items.reduce(
+          (sum, i) =>
+            sum + (i.deliveryFee ? Number(i.deliveryFee) : 0),
+          0,
+        );
         const totalDiscount = items.reduce(
           (sum, i) => sum + (i.discountAmount ? Number(i.discountAmount) : 0),
           0
@@ -73,7 +78,7 @@ function OrdersListPage() {
         return {
           ...representative,
           id: representative.id, // for keyExtractor
-          sellingAmount: total,
+          sellingAmount: total + totalDelivery,
           discountAmount: totalDiscount,
           _lineCount: items.length,
           _products: items.map(

@@ -304,6 +304,20 @@ function AdminDashboardPage() {
                 render: (p: (typeof products)[0]) => p.categoryName ?? "—",
               },
               {
+                key: "buyingPrice",
+                header: "Buying (₹)",
+                render: (p: (typeof products)[0]) =>
+                  p.buyingPrice != null
+                    ? `₹${Number(p.buyingPrice).toFixed(2)}`
+                    : "—",
+              },
+              {
+                key: "price",
+                header: "Selling (₹)",
+                render: (p: (typeof products)[0]) =>
+                  `₹${Number(p.price).toFixed(2)}`,
+              },
+              {
                 key: "stockQuantity",
                 header: "Stock",
                 render: (p: (typeof products)[0]) => (

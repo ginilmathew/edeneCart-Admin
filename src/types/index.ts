@@ -48,10 +48,50 @@ export interface Product {
   categoryId?: string;
   categoryName?: string;
   sku?: string;
+  /** Selling / catalog price */
   price: number;
+  /** Cost; only returned for super_admin */
+  buyingPrice?: number;
   stockQuantity: number;
   size?: string;
   color?: string;
+}
+
+export type ProfitGranularity = "day" | "week" | "month" | "year";
+
+export interface ProfitStatusSlice {
+  lineCount: number;
+  quantity: number;
+  sellingTotal: number;
+}
+
+export interface ProfitSeriesPoint {
+  label: string;
+  revenue: number;
+  costOfGoods: number;
+  staffVariable: number;
+  deliveryFees: number;
+  netBeforeBonus: number;
+}
+
+export interface ProfitAnalyticsResponse {
+  dateFrom: string;
+  dateTo: string;
+  granularity: ProfitGranularity;
+  delivered: {
+    lineCount: number;
+    quantity: number;
+    revenue: number;
+    costOfGoods: number;
+    staffVariable: number;
+    staffMilestoneBonuses: number;
+    deliveryFees: number;
+    netProfit: number;
+  };
+  cancelled: ProfitStatusSlice;
+  returned: ProfitStatusSlice;
+  inPipeline: ProfitStatusSlice;
+  series: ProfitSeriesPoint[];
 }
 
 export interface StaffPosition {

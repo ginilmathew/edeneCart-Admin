@@ -22,6 +22,7 @@ export const endpoints = {
   customerLookupPhone: (phone: string) =>
     `${V1}/customers/lookup-phone?phone=${encodeURIComponent(phone)}`,
   orders: `${V1}/orders`,
+  ordersProfitAnalytics: `${V1}/orders/profit-analytics`,
   orderNextDisplayId: `${V1}/orders/next-display-id`,
   orderById: (id: string) => `${V1}/orders/${id}`,
   orderPdf: (id: string) => `${V1}/orders/${id}/pdf`,

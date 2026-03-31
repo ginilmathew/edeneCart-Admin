@@ -386,7 +386,6 @@ function CreateOrderPage() {
       try {
         const fullAddress = `${form.flatBuilding.trim()}, ${form.areaSector.trim()}`;
         const selectedProducts = productRows.filter((r) => r.quantity > 0);
-        const orderProductIds = selectedProducts.map((r) => r.productId);
 
         // Fetch a single order ID to share across all items (Single Order support)
         const { orderId: commonOrderId } = await api.get<{ orderId: string }>(endpoints.orderNextDisplayId);
@@ -418,11 +417,8 @@ function CreateOrderPage() {
                   addOnNote: addOn.note.trim(),
                 }
                 : {}),
-              ...(isFirst && selectedDeliveryMethodId
-                ? {
-                    deliveryMethodId: selectedDeliveryMethodId,
-                    orderProductIds,
-                  }
+              ...(selectedDeliveryMethodId
+                ? { deliveryMethodId: selectedDeliveryMethodId }
                 : {}),
               notes: form.notes.trim() || undefined,
               status: "pending",
@@ -580,10 +576,10 @@ function CreateOrderPage() {
               {!detailsEnabled
                 ? "Enter 10-digit phone above to enable delivery options."
                 : !cartProductIdsKey
-                  ? "Select products below. Carriers appear when every product in the cart has a fee in Admin → Delivery."
+                  ? "Select products below. A carrier appears if at least one selected product has a fee for it in Admin → Delivery; other products add ₹0 for that carrier."
                   : deliveryOptions.length === 0
-                    ? "No delivery options for this product mix. Add per-product fees under Admin → Delivery."
-                    : "Choose a carrier — the configured fee is added to the first line total (same as add-ons) and included in Grand Total."}
+                    ? "No delivery options: add a per-product fee (for at least one of these products) under Admin → Delivery."
+                    : "Choose a carrier — only products with a fee row are charged; Grand Total includes the sum of those fees."}
             </p>
           </div>
           <div className="space-y-4 pt-4">

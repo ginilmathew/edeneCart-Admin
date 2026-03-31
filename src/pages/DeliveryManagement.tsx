@@ -384,7 +384,7 @@ function DeliveryManagementPage() {
       <Card>
         <CardHeader
           title="Fees by product"
-          subtitle="For each product, set the delivery charge per type. Orders only show options where every product in the cart has a fee row."
+          subtitle="For each product, set the delivery charge per type. A carrier appears on the order if at least one cart product has a fee; other products add ₹0 for that carrier."
           action={
             <Button type="button" onClick={openAddFee}>
               Add fee
@@ -475,7 +475,7 @@ function DeliveryManagementPage() {
           />
           <p className="text-[11px] text-text-muted leading-relaxed">
             On Create Order, this fee is included in the total for the first line (same idea as add-ons),
-            once every product in the cart has a row for the chosen delivery type.
+            for each product that should incur a charge; leave others without a row for that type (they count as ₹0).
           </p>
           <div className="flex gap-2">
             <Button type="button" onClick={() => void saveFee()}>

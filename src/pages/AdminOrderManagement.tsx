@@ -20,7 +20,7 @@ import { Card, CardHeader, Button, Table, Badge, Modal, Select } from "../compon
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
-import type { DeliveryOptionForCart, Order } from "../types";
+import type { DeliveryOptionForCart, Order, OrderStatus } from "../types";
 import { formatDate } from "../lib/orderUtils";
 
 function safeMoney(v: unknown): number {
@@ -43,6 +43,32 @@ function orderLineIds(detail: { id: string; items?: Order[] }): string[] {
   return [detail.id];
 }
 
+/** Single status for a grouped row, or mixed if lines disagree. */
+function rowUniformStatus(row: Order & { items?: Order[] }): OrderStatus | "mixed" {
+  const items = row.items;
+  if (items && items.length > 0) {
+    const s0 = items[0].status;
+    return items.every((i) => i.status === s0) ? s0 : "mixed";
+  }
+  return row.status;
+}
+
+/** Next step in the fulfilment chain (bulk actions only). */
+function nextBulkStep(
+  current: OrderStatus,
+): { next: OrderStatus; label: string } | null {
+  switch (current) {
+    case "pending":
+      return { next: "packed", label: "Mark packed" };
+    case "packed":
+      return { next: "dispatch", label: "Mark dispatched" };
+    case "dispatch":
+      return { next: "delivered", label: "Mark delivered" };
+    default:
+      return null;
+  }
+}
+
 function AdminOrderManagementPage() {
   const dispatch = useAppDispatch();
   const orders = useAppSelector(selectOrders);
@@ -61,6 +87,7 @@ function AdminOrderManagementPage() {
   const [filtersLoading, setFiltersLoading] = useState(false);
   const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
   const [bulkPdfLoading, setBulkPdfLoading] = useState(false);
+  const [bulkStatusLoading, setBulkStatusLoading] = useState(false);
   const [discountDraft, setDiscountDraft] = useState("");
   const [savingDiscount, setSavingDiscount] = useState(false);
   const [trackingDraft, setTrackingDraft] = useState("");
@@ -99,12 +126,18 @@ function AdminOrderManagementPage() {
       const o = items[0];
       const totalSelling = items.reduce((sum, item) => sum + safeMoney(item.sellingAmount), 0);
       const totalDiscount = items.reduce((sum, item) => sum + (item.discountAmount ? safeMoney(item.discountAmount) : 0), 0);
+      const deliveryFeesTotal = items.reduce(
+        (sum, item) => sum + safeMoney(item.deliveryFee),
+        0,
+      );
 
       // Return a "summary" order object
       return {
         ...o,
         sellingAmount: totalSelling,
         discountAmount: totalDiscount > 0 ? totalDiscount : null,
+        grandTotal: totalSelling + deliveryFeesTotal,
+        deliveryFeesTotal,
         items, // Keep all items for the details modal
       };
     });
@@ -284,31 +317,39 @@ function AdminOrderManagementPage() {
   }, [detailId, orderDetail?.status, orderDetail?.trackingId]);
 
   const persistTrackingFromBlur = useCallback(async () => {
-    if (!detailId) return;
+    if (!detailId || !orderDetail) return;
     const o = ordersRef.current.find((x) => x.id === detailId);
     if (!o || (o.status !== "pending" && o.status !== "packed")) return;
     const localT = trackingDraft.trim();
     const serverT = (o.trackingId ?? "").trim();
     if (localT === serverT) return;
+    const lineIds = orderLineIds(orderDetail as { id: string; items?: Order[] });
     try {
-      await dispatch(
-        updateOrder({
-          id: detailId,
-          patch: { trackingId: localT || null },
-        })
-      ).unwrap();
+      await Promise.all(
+        lineIds.map((id) =>
+          dispatch(
+            updateOrder({
+              id,
+              patch: { trackingId: localT || null },
+            })
+          ).unwrap()
+        )
+      );
     } catch (err) {
       toast.fromError(err, "Failed to save tracking ID");
     }
-  }, [detailId, trackingDraft, dispatch]);
+  }, [detailId, orderDetail, trackingDraft, dispatch]);
 
   const markPacked = useCallback(async () => {
     if (!orderDetail || orderDetail.status !== "pending") return;
+    const lineIds = orderLineIds(orderDetail as { id: string; items?: Order[] });
     setMarkingPacked(true);
     try {
-      await dispatch(
-        updateOrder({ id: orderDetail.id, patch: { status: "packed" } })
-      ).unwrap();
+      await Promise.all(
+        lineIds.map((id) =>
+          dispatch(updateOrder({ id, patch: { status: "packed" } })).unwrap()
+        )
+      );
       toast.success("Order marked packed");
     } catch (err) {
       toast.fromError(err, "Failed to update status");
@@ -324,14 +365,19 @@ function AdminOrderManagementPage() {
       toast.error("Enter a tracking ID");
       return;
     }
+    const lineIds = orderLineIds(orderDetail as { id: string; items?: Order[] });
     setDispatching(true);
     try {
-      await dispatch(
-        updateOrder({
-          id: orderDetail.id,
-          patch: { status: "dispatch", trackingId: tid },
-        })
-      ).unwrap();
+      await Promise.all(
+        lineIds.map((id) =>
+          dispatch(
+            updateOrder({
+              id,
+              patch: { status: "dispatch", trackingId: tid },
+            })
+          ).unwrap()
+        )
+      );
       toast.success("Order marked dispatched");
     } catch (err) {
       toast.fromError(err, "Failed to update order");
@@ -347,14 +393,14 @@ function AdminOrderManagementPage() {
       toast.error("Enter a tracking ID");
       return;
     }
+    const lineIds = orderLineIds(orderDetail as { id: string; items?: Order[] });
     setDispatching(true);
     try {
-      await dispatch(
-        updateOrder({
-          id: orderDetail.id,
-          patch: { status: "delivered" },
-        })
-      ).unwrap();
+      await Promise.all(
+        lineIds.map((id) =>
+          dispatch(updateOrder({ id, patch: { status: "delivered" } })).unwrap()
+        )
+      );
       toast.success("Order marked delivered");
       setDetailId(null);
     } catch (err) {
@@ -530,6 +576,92 @@ function AdminOrderManagementPage() {
     }
   }, [selectedIds, settings?.defaultPdfSize]);
 
+  const bulkAdvanceAction = useMemo(() => {
+    if (selectedIds.size === 0) return null;
+    const rows = filteredOrders.filter((o) => selectedIds.has(o.id));
+    if (rows.length === 0) return null;
+
+    const perRow = rows.map((r) => rowUniformStatus(r as Order & { items?: Order[] }));
+    if (perRow.some((s) => s === "mixed")) {
+      return {
+        kind: "blocked" as const,
+        message:
+          "One or more orders have lines with different statuses. Open those orders and align statuses first.",
+      };
+    }
+    const current = perRow[0] as OrderStatus;
+    if (!perRow.every((s) => s === current)) {
+      return {
+        kind: "blocked" as const,
+        message:
+          "Select orders that all share the same status (e.g. only pending, or only packed).",
+      };
+    }
+    if (
+      current === "cancelled" ||
+      current === "returned" ||
+      current === "delivered"
+    ) {
+      return null;
+    }
+    const step = nextBulkStep(current);
+    if (!step) return null;
+    return {
+      kind: "action" as const,
+      current,
+      next: step.next,
+      label: step.label,
+      hint:
+        step.next === "dispatch"
+          ? "Requires a tracking ID on each order — set it in the order detail first, or some lines may fail."
+          : undefined,
+    };
+  }, [selectedIds, filteredOrders]);
+
+  const applyBulkAdvance = useCallback(
+    async (next: OrderStatus) => {
+      const lineIds: string[] = [];
+      for (const sid of selectedIds) {
+        const g = filteredOrders.find((o) => o.id === sid);
+        if (g) {
+          lineIds.push(
+            ...orderLineIds(g as { id: string; items?: Order[] }),
+          );
+        } else {
+          lineIds.push(sid);
+        }
+      }
+      const unique = [...new Set(lineIds)];
+      if (unique.length === 0) return;
+      setBulkStatusLoading(true);
+      try {
+        const results = await Promise.allSettled(
+          unique.map((id) =>
+            dispatch(updateOrder({ id, patch: { status: next } })).unwrap(),
+          ),
+        );
+        const ok = results.filter((r) => r.status === "fulfilled").length;
+        const fail = results.length - ok;
+        await dispatch(fetchOrders(undefined)).unwrap();
+        if (fail === 0) {
+          toast.success(
+            `Updated ${ok} order line${ok === 1 ? "" : "s"} to ${next}`,
+          );
+          clearRowSelection();
+        } else {
+          toast.error(
+            `${ok} line(s) set to ${next}; ${fail} failed. Check tracking and other rules per order.`,
+          );
+        }
+      } catch (err) {
+        toast.fromError(err, "Failed to refresh orders after bulk update");
+      } finally {
+        setBulkStatusLoading(false);
+      }
+    },
+    [selectedIds, filteredOrders, dispatch, clearRowSelection],
+  );
+
   const productOptions = useMemo(
     () => [
       { value: "", label: "Select all products" },
@@ -658,7 +790,11 @@ function AdminOrderManagementPage() {
       {
         key: "sellingAmount",
         header: "Total",
-        render: (row: Order) => `₹${safeMoney(row.sellingAmount).toFixed(2)}`,
+        render: (row: Order) => {
+          const gt = (row as Order & { grandTotal?: number }).grandTotal;
+          const n = gt != null ? gt : safeMoney(row.sellingAmount);
+          return `₹${n.toFixed(2)}`;
+        },
       },
       {
         key: "staffId",
@@ -677,11 +813,11 @@ function AdminOrderManagementPage() {
                 : row.status === "cancelled"
                   ? "error"
                   : row.status === "returned"
-                    ? "default"
+                    ? "muted"
                     : row.status === "dispatch"
                       ? "info"
                       : row.status === "packed"
-                        ? "default"
+                        ? "packed"
                         : "warning"
             }
           >
@@ -851,21 +987,50 @@ function AdminOrderManagementPage() {
           </div>
         </div>
         {selectedIds.size > 0 && (
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-text-muted">
-            <span>
-              {selectedIds.size} order{selectedIds.size === 1 ? "" : "s"} selected.
+          <div className="mb-2 flex flex-col gap-2 rounded-[var(--radius-md)] border border-border bg-surface-alt/50 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <span className="text-sm font-medium text-text-heading">
+              {selectedIds.size} order{selectedIds.size === 1 ? "" : "s"} selected
             </span>
+            {bulkAdvanceAction?.kind === "blocked" && (
+              <p className="max-w-xl text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-[var(--radius-sm)] px-2 py-1.5">
+                {bulkAdvanceAction.message}
+              </p>
+            )}
+            {bulkAdvanceAction?.kind === "action" && (
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  loading={bulkStatusLoading}
+                  onClick={() =>
+                    void applyBulkAdvance(bulkAdvanceAction.next)
+                  }
+                >
+                  {bulkAdvanceAction.label}
+                </Button>
+                <span className="text-xs text-text-muted capitalize">
+                  All selected: {bulkAdvanceAction.current}
+                </span>
+                {bulkAdvanceAction.hint ? (
+                  <span className="text-[11px] text-text-muted max-w-md">
+                    {bulkAdvanceAction.hint}
+                  </span>
+                ) : null}
+              </div>
+            )}
             <Button
               type="button"
               size="sm"
+              variant="secondary"
               onClick={() => void downloadSelectedPdf()}
               loading={bulkPdfLoading}
+              className="sm:ml-auto"
             >
               Download selected PDF
             </Button>
             <button
               type="button"
-              className="font-medium text-primary underline hover:no-underline"
+              className="text-sm font-medium text-primary underline hover:no-underline"
               onClick={clearRowSelection}
             >
               Clear selection
@@ -933,23 +1098,6 @@ function AdminOrderManagementPage() {
                         <tr key={item.id}>
                           <td className="px-3 py-2 font-medium">
                             <div>{products.find((p) => p.id === item.productId)?.name || item.productId}</div>
-                            {(item.addOnAmount || item.addOnNote) && (
-                              <div className="mt-1 text-[10px] text-earnings font-normal flex items-center gap-1.5">
-                                <span className="inline-block px-1 py-0.5 bg-earnings/10 rounded text-earnings uppercase tracking-tighter font-bold">Add-on</span>
-                                <span>{item.addOnNote || "Extra"} ({discountDisplay(item.addOnAmount)})</span>
-                              </div>
-                            )}
-                            {safeMoney(item.deliveryFee) > 0 && (
-                              <div className="mt-1 text-[10px] text-teal-700 font-normal flex items-center gap-1.5">
-                                <span className="inline-block px-1 py-0.5 bg-teal-500/10 rounded uppercase tracking-tighter font-bold">
-                                  Delivery
-                                </span>
-                                <span>
-                                  {item.deliveryMethodName || "Carrier"} (
-                                  {discountDisplay(item.deliveryFee)})
-                                </span>
-                              </div>
-                            )}
                           </td>
                           <td className="px-3 py-2 text-center font-bold text-gray-600">{item.quantity}</td>
                           <td className="px-3 py-2 text-right font-black text-indigo-600">
@@ -959,24 +1107,10 @@ function AdminOrderManagementPage() {
                       )) || (
                           <tr>
                             <td className="px-3 py-2 font-medium">
-                              <div>{products.find((p) => p.id === (orderDetail as any).productId)?.name || (orderDetail as any).productId}</div>
-                              {((orderDetail as any).addOnAmount || (orderDetail as any).addOnNote) && (
-                                <div className="mt-1 text-[10px] text-earnings font-normal flex items-center gap-1.5">
-                                  <span className="inline-block px-1 py-0.5 bg-earnings/10 rounded text-earnings uppercase tracking-tighter font-bold">Add-on</span>
-                                  <span>{(orderDetail as any).addOnNote || "Extra"} ({discountDisplay((orderDetail as any).addOnAmount)})</span>
-                                </div>
-                              )}
-                              {safeMoney((orderDetail as any).deliveryFee) > 0 && (
-                                <div className="mt-1 text-[10px] text-teal-700 font-normal flex items-center gap-1.5">
-                                  <span className="inline-block px-1 py-0.5 bg-teal-500/10 rounded uppercase tracking-tighter font-bold">
-                                    Delivery
-                                  </span>
-                                  <span>
-                                    {(orderDetail as any).deliveryMethodName || "Carrier"} (
-                                    {discountDisplay((orderDetail as any).deliveryFee)})
-                                  </span>
-                                </div>
-                              )}
+                              <div>
+                                {products.find((p) => p.id === (orderDetail as any).productId)?.name ||
+                                  (orderDetail as any).productId}
+                              </div>
                             </td>
                             <td className="px-3 py-2 text-center font-bold text-gray-600">{(orderDetail as any).quantity}</td>
                             <td className="px-3 py-2 text-right font-black text-indigo-600">
@@ -985,10 +1119,35 @@ function AdminOrderManagementPage() {
                           </tr>
                         )}
                     </tbody>
-                    <tfoot className="bg-gray-50/60 border-t border-gray-100">
-                      <tr>
-                        <td colSpan={2} className="px-3 py-2 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Items Amount</td>
-                        <td className="px-3 py-2 text-right font-black text-indigo-700">₹{safeMoney((orderDetail as any).sellingAmount).toFixed(2)}</td>
+                    <tfoot className="border-t border-gray-100">
+                      <tr className="bg-gray-50/90">
+                        <td colSpan={2} className="px-3 py-2 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          Items subtotal
+                        </td>
+                        <td className="px-3 py-2 text-right font-black text-indigo-700">
+                          ₹{safeMoney((orderDetail as any).sellingAmount).toFixed(2)}
+                        </td>
+                      </tr>
+                      {sortedOrderLines.some((l) => l.deliveryMethodId || l.deliveryMethodName) ? (
+                        <tr className="bg-teal-50 border-y border-teal-100">
+                          <td colSpan={2} className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-wider text-teal-900">
+                            Delivery (
+                            {sortedOrderLines.find((l) => l.deliveryMethodName)?.deliveryMethodName ??
+                              "carrier"}
+                            )
+                          </td>
+                          <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums text-teal-800">
+                            ₹{safeMoney((orderDetail as any).deliveryFeesTotal).toFixed(2)}
+                          </td>
+                        </tr>
+                      ) : null}
+                      <tr className="border-t-2 border-gray-200 bg-white">
+                        <td colSpan={2} className="px-3 py-2.5 text-right text-[10px] font-black uppercase tracking-wider text-gray-900">
+                          Grand total
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-black text-earnings">
+                          ₹{safeMoney((orderDetail as any).grandTotal ?? (orderDetail as any).sellingAmount).toFixed(2)}
+                        </td>
                       </tr>
                     </tfoot>
                   </table>
@@ -1002,22 +1161,29 @@ function AdminOrderManagementPage() {
                 <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">Discount</dt>
                 <dd>{discountDisplay(orderDetail.discountAmount) ?? "—"}</dd>
               </div>
-              {primaryOrderLine &&
-              safeMoney(primaryOrderLine.deliveryFee) > 0 ? (
+              {sortedOrderLines.some((l) => l.deliveryMethodId || l.deliveryMethodName) ? (
                 <div>
                   <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">
                     Delivery
                   </dt>
                   <dd className="font-medium text-teal-800">
-                    {primaryOrderLine.deliveryMethodName ?? "—"} — ₹
-                    {safeMoney(primaryOrderLine.deliveryFee).toFixed(2)}
+                    {sortedOrderLines.find((l) => l.deliveryMethodName)?.deliveryMethodName ??
+                      "—"}{" "}
+                    — ₹
+                    {sortedOrderLines
+                      .reduce((s, l) => s + safeMoney(l.deliveryFee), 0)
+                      .toFixed(2)}
                   </dd>
                 </div>
               ) : null}
               <div>
                 <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">Total Amount</dt>
                 <dd className="font-medium text-earnings">
-                  ₹{safeMoney(orderDetail.sellingAmount).toFixed(2)}
+                  ₹
+                  {safeMoney(
+                    (orderDetail as Order & { grandTotal?: number }).grandTotal ??
+                      orderDetail.sellingAmount,
+                  ).toFixed(2)}
                 </dd>
               </div>
               {discountEditable ? (
@@ -1222,7 +1388,7 @@ function AdminOrderManagementPage() {
                   Packed
                 </Button>
               ) : null}
-              {orderDetail.status === "packed" && trackingDraft.trim() ? (
+              {orderDetail.status === "packed" ? (
                 <Button
                   type="button"
                   variant="primary"
