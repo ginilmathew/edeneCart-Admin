@@ -12,6 +12,14 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Mobile: compact rem scale; md+ matches desktop default */
+  font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
 }
 
 body {
@@ -21,6 +29,12 @@ body {
   color: var(--color-text);
   background-color: var(--color-surface-alt);
   line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  body {
+    line-height: 1.45;
+  }
 }
 
 #root {

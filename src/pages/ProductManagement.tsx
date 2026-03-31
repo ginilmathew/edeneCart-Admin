@@ -174,6 +174,8 @@ function ProductManagementPage() {
       {
         key: "productCode",
         header: "Product ID",
+        mobileCardTitle: true,
+        mobileLabel: "ID",
         render: (row: Product) => row.productCode ?? "—",
       },
       {
@@ -190,6 +192,7 @@ function ProductManagementPage() {
       {
         key: "buyingPrice",
         header: "Buying (₹)",
+        mobileLabel: "Buying",
         render: (row: Product) =>
           row.buyingPrice != null
             ? `₹${Number(row.buyingPrice).toFixed(2)}`
@@ -198,6 +201,7 @@ function ProductManagementPage() {
       {
         key: "price",
         header: "Selling (₹)",
+        mobileLabel: "Selling",
         render: (row: Product) => `₹${Number(row.price).toFixed(2)}`,
       },
       {
@@ -218,6 +222,7 @@ function ProductManagementPage() {
       {
         key: "actions",
         header: "",
+        mobileHeaderEnd: true,
         render: (row: Product) => (
           <div className="flex items-center gap-1">
             <Tooltip content="Edit" side="top">

@@ -25,7 +25,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="mb-1 block text-sm font-medium text-text-heading"
+            className="mb-0.5 block text-xs font-medium text-text-heading md:mb-1 md:text-sm"
           >
             {label}
           </label>
@@ -34,8 +34,8 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={[
-            shouldFullWidth ? "h-10 w-full" : "h-10 w-auto min-w-[9rem]",
-            "rounded-[var(--radius-md)] border border-border bg-surface px-3 text-sm text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0",
+            shouldFullWidth ? "h-9 w-full md:h-10" : "h-9 w-auto min-w-[8rem] md:h-10 md:min-w-[9rem]",
+            "rounded-[var(--radius-md)] border border-border bg-surface px-2.5 text-xs text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 md:px-3 md:text-sm",
             error ? "border-error" : "border-border",
             className,
           ]
@@ -54,7 +54,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p className="mt-1 text-sm text-error">{error}</p>
+          <p className="mt-1 text-xs text-error md:text-sm">{error}</p>
         )}
       </div>
     );

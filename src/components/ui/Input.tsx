@@ -15,7 +15,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-1 block text-sm font-medium text-text-heading"
+            className="mb-0.5 block text-xs font-medium text-text-heading md:mb-1 md:text-sm"
           >
             {label}
           </label>
@@ -25,7 +25,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={[
-              "h-10 w-full rounded-[var(--radius-md)] border border-border bg-surface text-sm text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0",
+              "h-9 w-full rounded-[var(--radius-md)] border border-border bg-surface text-xs text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 md:h-10 md:text-sm",
               endNode ? "pl-3 pr-10" : "px-3",
               error
                 ? "border-error focus:ring-error"
@@ -45,12 +45,12 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="mt-1 text-sm text-error">
+          <p id={`${inputId}-error`} className="mt-1 text-xs text-error md:text-sm">
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="mt-1 text-sm text-text-muted">
+          <p id={`${inputId}-hint`} className="mt-1 text-xs text-text-muted md:text-sm">
             {hint}
           </p>
         )}

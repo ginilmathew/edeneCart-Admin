@@ -13,7 +13,7 @@ const TextareaComponent = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="mb-1 block text-sm font-medium text-text-heading"
+            className="mb-0.5 block text-xs font-medium text-text-heading md:mb-1 md:text-sm"
           >
             {label}
           </label>
@@ -22,7 +22,7 @@ const TextareaComponent = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={[
-            "min-h-[88px] w-full rounded-[var(--radius-md)] border border-border bg-surface px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 sm:min-h-[80px]",
+            "min-h-[72px] w-full rounded-[var(--radius-md)] border border-border bg-surface px-2.5 py-2 text-xs text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 sm:min-h-[80px] md:px-3 md:py-2.5 md:text-sm",
             error ? "border-error" : "border-border",
             className,
           ]
@@ -31,7 +31,9 @@ const TextareaComponent = forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={!!error}
           {...rest}
         />
-        {error && <p className="mt-1 text-sm text-error">{error}</p>}
+        {error && (
+          <p className="mt-1 text-xs text-error md:text-sm">{error}</p>
+        )}
       </div>
     );
   }

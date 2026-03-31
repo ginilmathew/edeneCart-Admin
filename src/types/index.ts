@@ -82,7 +82,10 @@ export interface ProfitAnalyticsResponse {
     lineCount: number;
     quantity: number;
     revenue: number;
+    discountTotal: number;
+    preDiscountSellingTotal: number;
     costOfGoods: number;
+    grossProfit: number;
     staffVariable: number;
     staffMilestoneBonuses: number;
     deliveryFees: number;

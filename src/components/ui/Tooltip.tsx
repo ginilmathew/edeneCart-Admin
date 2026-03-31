@@ -4,7 +4,9 @@ import {
   useCallback,
   useRef,
   useLayoutEffect,
+  useEffect,
 } from "react";
+import type { FocusEvent } from "react";
 import { createPortal } from "react-dom";
 
 interface TooltipProps {
@@ -78,14 +80,42 @@ function TooltipComponent({
   useLayoutEffect(() => {
     if (!visible) return;
     place();
-    const sync = () => place();
-    window.addEventListener("scroll", sync, true);
-    window.addEventListener("resize", sync);
+    const onResize = () => place();
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("scroll", sync, true);
-      window.removeEventListener("resize", sync);
+      window.removeEventListener("resize", onResize);
     };
   }, [visible, place]);
+
+  /** Dismiss on any press, scroll, or Escape — avoids tips stuck after click/focus/navigation. */
+  useEffect(() => {
+    if (!visible) return;
+
+    const onPointerDown = () => hide();
+
+    const onScroll = () => hide();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") hide();
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("scroll", onScroll, true);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [visible, hide]);
+
+  const onFocusTrigger = useCallback(
+    (e: FocusEvent<HTMLDivElement>) => {
+      const t = e.target;
+      if (t instanceof HTMLElement && t.matches(":focus-visible")) show();
+    },
+    [show],
+  );
 
   const trimmed = className.trim();
   const tooltipNode =
@@ -115,7 +145,7 @@ function TooltipComponent({
         className={"relative " + (trimmed ? trimmed : "inline-flex")}
         onMouseEnter={show}
         onMouseLeave={hide}
-        onFocus={show}
+        onFocus={onFocusTrigger}
         onBlur={hide}
       >
         {children}

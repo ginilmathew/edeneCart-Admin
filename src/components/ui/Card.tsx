@@ -6,9 +6,9 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const paddingMap = {
   none: "",
-  sm: "p-4",
-  md: "p-6",
-  lg: "p-8",
+  sm: "p-3 md:p-4",
+  md: "p-4 md:p-6",
+  lg: "p-5 md:p-8",
 };
 
 function CardComponent({
@@ -47,13 +47,15 @@ export const CardHeader = memo(function CardHeader({
   action,
 }: CardHeaderProps) {
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-2">
+    <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-2 md:gap-3">
       <div className="min-w-0 flex-1">
-        <h2 className="text-base font-semibold tracking-tight text-text-heading sm:text-lg">
+        <h2 className="text-sm font-semibold tracking-tight text-text-heading md:text-base lg:text-lg">
           {title}
         </h2>
         {subtitle ? (
-          <p className="mt-1 text-sm text-text-muted leading-relaxed">{subtitle}</p>
+          <p className="mt-1 text-xs text-text-muted leading-relaxed md:text-sm">
+            {subtitle}
+          </p>
         ) : null}
       </div>
       {action && <div className="shrink-0 sm:self-start">{action}</div>}

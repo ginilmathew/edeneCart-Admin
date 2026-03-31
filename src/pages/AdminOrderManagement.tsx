@@ -622,6 +622,7 @@ function AdminOrderManagementPage() {
           </span>
         ),
         className: "w-12",
+        mobileHeaderStart: true,
         render: (row: Order) => (
           <input
             type="checkbox"
@@ -636,6 +637,7 @@ function AdminOrderManagementPage() {
       {
         key: "orderId",
         header: "Order ID",
+        mobileCardTitle: true,
         render: (row: Order) => (
           <button
             type="button"
@@ -940,6 +942,16 @@ function AdminOrderManagementPage() {
             </button>
           </div>
         )}
+        <div className="mb-3 flex items-center gap-2 rounded-[var(--radius-md)] border border-border bg-surface-alt/50 px-3 py-2 md:hidden">
+          <input
+            type="checkbox"
+            checked={allVisibleSelected}
+            onChange={() => toggleAllVisibleSelected()}
+            className="h-4 w-4 shrink-0 rounded border-border text-primary focus:ring-primary"
+            aria-label="Select all orders in this list"
+          />
+          <span className="text-xs text-text-muted">Select all visible</span>
+        </div>
         <Table
           columns={columns}
           data={filteredOrders}
@@ -987,7 +999,53 @@ function AdminOrderManagementPage() {
               </div>
               <div className="sm:col-span-2 border-t pt-4 mt-2">
                 <dt className="text-text-muted mb-2 text-xs uppercase tracking-wider font-bold">Order Items</dt>
-                <dd className="rounded-lg border border-gray-100 overflow-hidden shadow-sm">
+                <dd className="space-y-2">
+                  {(() => {
+                    const od = orderDetail as Order & {
+                      items?: { id: string; productId: string; quantity: number; sellingAmount: unknown }[];
+                    };
+                    const itemRows =
+                      od.items?.length ?
+                        od.items
+                      : [
+                          {
+                            id: od.id,
+                            productId: od.productId,
+                            quantity: od.quantity,
+                            sellingAmount: od.sellingAmount,
+                          },
+                        ];
+                    return (
+                      <div className="space-y-2 sm:hidden">
+                        {itemRows.map((item) => {
+                          const nm =
+                            products.find((p) => p.id === item.productId)?.name ||
+                            item.productId;
+                          return (
+                            <div
+                              key={item.id}
+                              className="rounded-xl border border-border bg-surface px-3 py-2.5 shadow-[var(--shadow-card)]"
+                            >
+                              <div className="font-semibold text-text-heading">{nm}</div>
+                              <dl className="mt-2 space-y-1.5 text-xs">
+                                <div className="flex justify-between gap-2">
+                                  <dt className="text-text-muted">Qty</dt>
+                                  <dd className="font-mono font-semibold">{item.quantity}</dd>
+                                </div>
+                                <div className="flex justify-between gap-2">
+                                  <dt className="text-text-muted">Price</dt>
+                                  <dd className="font-semibold text-primary">
+                                    ₹{safeMoney(item.sellingAmount).toFixed(2)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                  <div className="hidden sm:block overflow-hidden rounded-lg border border-gray-100 shadow-sm">
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 text-gray-500 font-bold">
                       <tr>
@@ -1054,6 +1112,7 @@ function AdminOrderManagementPage() {
                       </tr>
                     </tfoot>
                   </table>
+                  </div>
                 </dd>
               </div>
               <div>

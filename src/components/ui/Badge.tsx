@@ -29,7 +29,7 @@ function BadgeComponent({ children, variant = "default", className = "" }: Badge
   return (
     <span
       className={[
-        "inline-flex items-center rounded-[var(--radius-sm)] px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:text-xs",
         variantClasses[variant],
         className,
       ].join(" ")}

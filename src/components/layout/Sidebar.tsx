@@ -109,7 +109,7 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
   const filtered = items.filter((i) => i.roles.includes(role));
 
   const linkBase =
-    "flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors md:min-h-0 md:py-2 ";
+    "flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] px-2.5 py-1.5 text-xs font-medium transition-colors max-md:gap-2.5 md:min-h-0 md:gap-3 md:px-3 md:py-2 md:text-sm ";
   const linkActive = "bg-sidebar-hover text-sidebar-text-active";
   const linkInactive = "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active";
 
@@ -129,7 +129,7 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
         className={`flex h-14 shrink-0 items-center border-b border-sidebar-hover px-2 pl-[max(0.5rem,env(safe-area-inset-left))] ${collapsed ? "md:justify-center justify-between" : "justify-between"}`}
       >
         <div className={`flex items-center ${collapsed ? "md:hidden" : ""}`}>
-          <span className="truncate px-2 font-semibold text-sidebar-text-active">
+          <span className="truncate px-2 text-xs font-semibold text-sidebar-text-active md:text-sm">
             Edenecart Admin
           </span>
         </div>
@@ -154,26 +154,37 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
         </Tooltip>
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        {filtered.map((item) => (
-          <div key={item.to} className="w-full">
-            <Tooltip content={item.label} side="right" className="flex w-full">
-              <NavLink
-                to={item.to}
-                end={item.end}
-                onClick={handleMobileNavClick}
-                className={({ isActive }: { isActive: boolean }) =>
-                  linkBase +
-                  " w-full " +
-                  (isActive ? linkActive : linkInactive) +
-                  (collapsed ? " md:justify-center md:px-2" : "")
-                }
-              >
-                <item.icon className="h-5 w-5 shrink-0" aria-hidden />
-                <span className={collapsed ? "block md:hidden" : "block"}>{item.label}</span>
-              </NavLink>
-            </Tooltip>
-          </div>
-        ))}
+        {filtered.map((item) => {
+          const link = (
+            <NavLink
+              to={item.to}
+              end={item.end}
+              onClick={handleMobileNavClick}
+              className={({ isActive }: { isActive: boolean }) =>
+                linkBase +
+                " w-full " +
+                (isActive ? linkActive : linkInactive) +
+                (collapsed ? " md:justify-center md:px-2" : "")
+              }
+            >
+              <item.icon className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
+              <span className={collapsed ? "block md:hidden" : "block"}>
+                {item.label}
+              </span>
+            </NavLink>
+          );
+          return (
+            <div key={item.to} className="w-full">
+              {collapsed ? (
+                <Tooltip content={item.label} side="right" className="flex w-full">
+                  {link}
+                </Tooltip>
+              ) : (
+                link
+              )}
+            </div>
+          );
+        })}
       </nav>
       <div className="border-t border-sidebar-hover p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {collapsed ? (
@@ -185,16 +196,18 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
               aria-label="Logout"
             >
               <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
-              <span className="ml-3 block md:hidden text-sm">Logout</span>
+              <span className="ml-2 block text-xs md:hidden md:ml-3 md:text-sm">
+                Logout
+              </span>
             </button>
           </Tooltip>
         ) : (
           <button
             type="button"
             onClick={() => { handleMobileNavClick(); onLogout(); }}
-            className="flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-left text-sm text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active"
+            className="flex w-full items-center gap-2 rounded-[var(--radius-md)] px-2.5 py-1.5 text-left text-xs text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active md:gap-3 md:px-3 md:py-2 md:text-sm"
           >
-            <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
+            <ArrowLeftOnRectangleIcon className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
             Logout
           </button>
         )}

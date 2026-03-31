@@ -5,6 +5,6 @@ export { Input } from "./Input";
 export { Modal } from "./Modal";
 export { ProgressBar } from "./ProgressBar";
 export { Select, type SelectOption } from "./Select";
-export { Table } from "./Table";
+export { Table, type Column, type TableProps } from "./Table";
 export { Textarea } from "./Textarea";
 export { Tooltip } from "./Tooltip";
