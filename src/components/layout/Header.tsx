@@ -1,14 +1,23 @@
 import { memo } from "react";
-import { Bars3Icon } from "@heroicons/react/24/outline";
+import { Bars3Icon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 interface HeaderProps {
   title: string;
   userDisplayName: string;
   userRole: string;
   onMenuClick?: () => void;
+  themeMode: "light" | "dark";
+  onToggleTheme: () => void;
 }
 
-function HeaderComponent({ title, userDisplayName, userRole, onMenuClick }: HeaderProps) {
+function HeaderComponent({
+  title,
+  userDisplayName,
+  userRole,
+  onMenuClick,
+  themeMode,
+  onToggleTheme,
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface/95 px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] shadow-[var(--shadow-header)] backdrop-blur-md supports-[backdrop-filter]:bg-surface/80 md:px-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))]">
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -27,6 +36,19 @@ function HeaderComponent({ title, userDisplayName, userRole, onMenuClick }: Head
         </h1>
       </div>
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-surface-alt text-text-muted transition-colors hover:text-text-heading focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={themeMode === "dark" ? "Light mode" : "Dark mode"}
+        >
+          {themeMode === "dark" ? (
+            <SunIcon className="h-5 w-5" />
+          ) : (
+            <MoonIcon className="h-5 w-5" />
+          )}
+        </button>
         <div className="hidden min-w-0 text-right sm:block">
           <p className="truncate text-sm font-medium text-text-heading">{userDisplayName}</p>
           <p className="text-xs text-text-muted">{userRole}</p>

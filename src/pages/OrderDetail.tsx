@@ -1,12 +1,14 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useParams, Link } from "react-router";
-import { useAppSelector } from "../store/hooks";
-import { selectOrders } from "../store/ordersSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { selectOrders, updateOrder } from "../store/ordersSlice";
 import { selectProducts } from "../store/productsSlice";
-import { Card, Badge } from "../components/ui";
+import { Card, Badge, Button } from "../components/ui";
 import { formatDateTime, formatCurrency } from "../lib/orderUtils";
+import { toast } from "../lib/toast";
 
 function OrderDetailPage() {
+  const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const allOrders = useAppSelector(selectOrders);
   const currentOrder = allOrders.find((o) => o.id === id);
@@ -14,6 +16,7 @@ function OrderDetailPage() {
     (o) => currentOrder && o.orderId === currentOrder.orderId
   );
   const products = useAppSelector(selectProducts);
+  const [cancelling, setCancelling] = useState(false);
 
   if (!currentOrder || relatedItems.length === 0) {
     return (
@@ -43,6 +46,27 @@ function OrderDetailPage() {
     0
   );
   const grandTotal = totalSelling + totalDelivery;
+  const canCancel = currentOrder.status === "pending";
+
+  const cancelOrder = async () => {
+    if (!canCancel || relatedItems.length === 0) return;
+    setCancelling(true);
+    try {
+      const pendingLineIds = relatedItems
+        .filter((item) => item.status === "pending")
+        .map((item) => item.id);
+      await Promise.all(
+        pendingLineIds.map((lineId) =>
+          dispatch(updateOrder({ id: lineId, patch: { status: "cancelled" } })).unwrap()
+        )
+      );
+      toast.success("Order cancelled");
+    } catch (err) {
+      toast.fromError(err, "Failed to cancel order");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
@@ -68,6 +92,18 @@ function OrderDetailPage() {
           {currentOrder.status}
         </Badge>
       </div>
+      {canCancel ? (
+        <div className="flex justify-end">
+          <Button
+            variant="danger"
+            size="sm"
+            loading={cancelling}
+            onClick={() => void cancelOrder()}
+          >
+            Cancel Order
+          </Button>
+        </div>
+      ) : null}
 
       <Card className="overflow-hidden border-none shadow-xl ring-1 ring-gray-200">
         <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-8 border-b border-gray-100">

@@ -39,8 +39,9 @@ export function computeEarningsForStaff(
   const orderCount = list.reduce((sum, o) => sum + Math.max(0, Number(o.quantity) || 0), 0);
   const orderEarnings = orderCount * staff.payoutPerOrder;
   let bonus = 0;
-  for (const m of staff.bonusMilestones) {
-    if (orderCount >= m.orders) bonus = m.bonus;
+  const milestones = [...staff.bonusMilestones].sort((a, b) => a.orders - b.orders);
+  for (const m of milestones) {
+    if (orderCount >= m.orders) bonus += m.bonus;
   }
   return {
     orderEarnings,

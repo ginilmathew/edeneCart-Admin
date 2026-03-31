@@ -122,7 +122,7 @@ function SalaryManagementPage() {
       <Card>
         <CardHeader
           title="Salary Management"
-          subtitle="Base payout + highest milestone bonus for each staff."
+          subtitle="Base payout + cumulative milestone bonuses for each staff."
         />
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <Input
@@ -175,7 +175,10 @@ function SalaryManagementPage() {
               key: "rules",
               header: "Rules",
               render: (r: StaffEarnings) => (
-                <div className="grid min-w-[20rem] gap-2">
+                <div className="grid min-w-[21rem] gap-2 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/60 to-yellow-50 p-3 shadow-sm">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
+                    Payout per qty
+                  </label>
                   <input
                     type="number"
                     min={0}
@@ -187,9 +190,13 @@ function SalaryManagementPage() {
                         [r.staffId]: e.target.value,
                       }))
                     }
-                    className="rounded-[var(--radius-sm)] border border-border px-2 py-1.5 text-sm"
+                    className="rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
                     placeholder="Payout per order"
                   />
+
+                  <label className="mt-1 text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
+                    Bonus tiers
+                  </label>
                   <input
                     type="text"
                     value={
@@ -202,9 +209,45 @@ function SalaryManagementPage() {
                         [r.staffId]: e.target.value,
                       }))
                     }
-                    className="rounded-[var(--radius-sm)] border border-border px-2 py-1.5 text-sm"
+                    className="rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
                     placeholder="5:50, 10:100, 15:150"
                   />
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {(() => {
+                      try {
+                        const tiers = parseMilestones(
+                          draftMilestones[r.staffId] ??
+                            milestoneText(staffById.get(r.staffId)?.bonusMilestones ?? [])
+                        );
+                        if (tiers.length === 0) {
+                          return (
+                            <span className="text-xs text-amber-900/70">
+                              No bonus tiers set.
+                            </span>
+                          );
+                        }
+                        return tiers.map((m) => (
+                          <span
+                            key={`${r.staffId}-${m.orders}-${m.bonus}`}
+                            className="rounded-full border border-amber-300/80 bg-white px-2 py-1 text-[11px] font-semibold text-amber-900"
+                          >
+                            {m.orders} → ₹{m.bonus}
+                          </span>
+                        ));
+                      } catch {
+                        return (
+                          <span className="text-xs font-medium text-red-600">
+                            Invalid format. Use `5:50, 10:100, 15:150`
+                          </span>
+                        );
+                      }
+                    })()}
+                  </div>
+
+                  <p className="text-[11px] text-amber-900/70">
+                    Bonus is cumulative across reached tiers.
+                  </p>
                   <Button
                     size="sm"
                     onClick={() => void saveStaffRule(r.staffId)}

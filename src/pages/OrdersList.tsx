@@ -26,6 +26,9 @@ function OrdersListPage() {
   const [typeFilter, setTypeFilter] = useState(
     () => searchParams.get("type") ?? ""
   );
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("search") ?? ""
+  );
   const [fromDate, setFromDate] = useState(
     () => searchParams.get("from") ?? getTodayStr()
   );
@@ -59,7 +62,7 @@ function OrdersListPage() {
       groups[o.orderId].push(o);
     }
 
-    return Object.values(groups)
+    let grouped = Object.values(groups)
       .map((items) => {
         const representative = items[0];
         const total = items.reduce(
@@ -85,9 +88,19 @@ function OrdersListPage() {
             (i) => products.find((p) => p.id === i.productId)?.name || i.productId
           ),
         };
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [orders, staffId, productFilter, typeFilter, fromDate, toDate, products]);
+      });
+
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      grouped = grouped.filter((row) => {
+        const customer = (row.customerName ?? "").toLowerCase();
+        const phone = String(row.phone ?? "").toLowerCase();
+        return customer.includes(q) || phone.includes(q);
+      });
+    }
+
+    return grouped.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [orders, staffId, productFilter, typeFilter, fromDate, toDate, products, searchTerm]);
 
   const productOptions: SelectOption[] = useMemo(
     () => [
@@ -110,10 +123,11 @@ function OrdersListPage() {
     const p = new URLSearchParams();
     if (productFilter) p.set("product", productFilter);
     if (typeFilter) p.set("type", typeFilter);
+    if (searchTerm.trim()) p.set("search", searchTerm.trim());
     if (fromDate) p.set("from", fromDate);
     if (toDate) p.set("to", toDate);
     setSearchParams(p, { replace: true });
-  }, [productFilter, typeFilter, fromDate, toDate, setSearchParams]);
+  }, [productFilter, typeFilter, searchTerm, fromDate, toDate, setSearchParams]);
 
   const columns = useMemo(
     () => [
@@ -188,7 +202,7 @@ function OrdersListPage() {
       <Card>
         <CardHeader
           title="Orders"
-          subtitle="Filter by date, product, or payment type."
+          subtitle="Filter by date, product, payment type, or search by customer/phone."
           action={
             user?.role === "staff" && (
               <Link to="/orders/create">
@@ -197,12 +211,20 @@ function OrdersListPage() {
             )
           }
         />
-        <div className="mb-4 flex flex-wrap gap-3 items-center">
+        <div className="mb-4 flex flex-wrap items-end gap-3">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search customer or phone"
+            className="h-10 w-60 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Search by customer name or phone"
+          />
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="h-10 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             title="From Date"
           />
           <span className="text-text-muted text-sm font-medium">to</span>
@@ -210,7 +232,7 @@ function OrdersListPage() {
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="h-10 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             title="To Date"
           />
           <Select
@@ -218,12 +240,14 @@ function OrdersListPage() {
             value={productFilter}
             onChange={(e) => setProductFilter(e.target.value)}
             className="w-40"
+            fullWidth={false}
           />
           <Select
             options={typeOptions}
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className="w-32"
+            fullWidth={false}
           />
           <Button variant="secondary" size="sm" onClick={applyFilters}>
             Apply

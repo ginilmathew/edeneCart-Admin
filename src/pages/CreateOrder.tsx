@@ -108,11 +108,9 @@ function CreateOrderPage() {
 
   const cartProductIdsKey = useMemo(
     () =>
-      [
-        ...new Set(
-          productRows.filter((r) => r.quantity > 0).map((r) => r.productId)
-        ),
-      ]
+      productRows
+        .filter((r) => r.quantity > 0)
+        .flatMap((r) => Array.from({ length: r.quantity }, () => r.productId))
         .sort()
         .join(","),
     [productRows]
@@ -452,14 +450,16 @@ function CreateOrderPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl px-1 sm:px-2">
       <Card>
         <CardHeader
           title="Create Order"
-          subtitle="Add one or more products (including from different categories). Prices come from the catalog; optional line discounts apply per product."
+          subtitle="Add customer details, choose products, then select delivery."
         />
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <section className="rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5">
+            <h3 className="mb-3 text-base font-semibold text-text-heading">Customer details</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Customer Name *"
               value={form.customerName}
@@ -486,8 +486,8 @@ function CreateOrderPage() {
                 aria-label="Phone number"
               />
             </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Input
               label="Flat/House/Building Name *"
               value={form.flatBuilding}
@@ -504,8 +504,8 @@ function CreateOrderPage() {
               disabled={!detailsEnabled}
               placeholder="Area/Sector/Locality"
             />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Input
               label="Pincode *"
               value={form.pincode}
@@ -522,8 +522,9 @@ function CreateOrderPage() {
               disabled={!detailsEnabled}
               placeholder="Post Office"
             />
-          </div>
-          <Input
+            </div>
+            <div className="mt-4">
+              <Input
             label="Email *"
             type="email"
             value={form.email}
@@ -531,8 +532,9 @@ function CreateOrderPage() {
             error={errors.email}
             disabled={!detailsEnabled}
             placeholder="Email "
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
+              />
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Input
               label="State *"
               value={form.state}
@@ -549,8 +551,9 @@ function CreateOrderPage() {
               disabled={!detailsEnabled}
               placeholder="District"
             />
-          </div>
-          <Select
+            </div>
+            <div className="mt-4">
+              <Select
             label="Order Type *"
             options={orderTypeOptions}
             value={form.orderType}
@@ -558,31 +561,10 @@ function CreateOrderPage() {
             placeholder="Order Type "
             error={errors.orderType}
             disabled={!detailsEnabled}
-          />
-          <div className="rounded-[var(--radius-md)] border border-border bg-surface-alt/60 p-3">
-            {deliveryLoading && detailsEnabled ? (
-              <p className="text-sm text-text-muted py-1">Loading delivery options…</p>
-            ) : (
-              <Select
-                label="Delivery type (optional)"
-                options={deliverySelectOptions}
-                value={selectedDeliveryMethodId}
-                onChange={(e) => setSelectedDeliveryMethodId(e.target.value)}
-                placeholder="No delivery charge"
-                disabled={!detailsEnabled}
               />
-            )}
-            <p className="mt-1.5 text-[11px] text-text-muted leading-relaxed">
-              {!detailsEnabled
-                ? "Enter 10-digit phone above to enable delivery options."
-                : !cartProductIdsKey
-                  ? "Select products below. A carrier appears if at least one selected product has a fee for it in Admin → Delivery; other products add ₹0 for that carrier."
-                  : deliveryOptions.length === 0
-                    ? "No delivery options: add a per-product fee (for at least one of these products) under Admin → Delivery."
-                    : "Choose a carrier — only products with a fee row are charged; Grand Total includes the sum of those fees."}
-            </p>
-          </div>
-          <div className="space-y-4 pt-4">
+            </div>
+          </section>
+          <section className="space-y-4 rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5">
             <h3 className="border-b pb-2 text-lg font-bold text-gray-800">Products</h3>
 
             <Select
@@ -852,7 +834,31 @@ function CreateOrderPage() {
             {errors.products && (
               <p className="text-sm font-medium text-red-500">{errors.products}</p>
             )}
-          </div>
+          </section>
+          <section className="rounded-[var(--radius-md)] border border-border bg-surface-alt/60 p-4 sm:p-5">
+            {deliveryLoading && detailsEnabled ? (
+              <p className="text-sm text-text-muted py-1">Loading delivery options…</p>
+            ) : (
+              <Select
+                label="Delivery type (optional)"
+                options={deliverySelectOptions}
+                value={selectedDeliveryMethodId}
+                onChange={(e) => setSelectedDeliveryMethodId(e.target.value)}
+                placeholder="No delivery charge"
+                disabled={!detailsEnabled}
+              />
+            )}
+            <p className="mt-1.5 text-[11px] text-text-muted leading-relaxed">
+              {!detailsEnabled
+                ? "Enter 10-digit phone above to enable delivery options."
+                : !cartProductIdsKey
+                  ? "Select products above first."
+                  : deliveryOptions.length === 0
+                    ? "No delivery options: add per-product fee under Admin → Delivery."
+                    : "Delivery is calculated based on selected product quantities."}
+            </p>
+          </section>
+          <section>
           <Textarea
             label="Notes (optional)"
             value={form.notes}
@@ -861,11 +867,17 @@ function CreateOrderPage() {
             rows={3}
             disabled={!detailsEnabled}
           />
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" loading={submitting}>
+          </section>
+          <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+            <Button type="submit" loading={submitting} className="sm:min-w-[140px]">
               Create Order
             </Button>
-            <Button type="button" variant="secondary" onClick={() => navigate("/orders")}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/orders")}
+              className="sm:min-w-[120px]"
+            >
               Cancel
             </Button>
           </div>

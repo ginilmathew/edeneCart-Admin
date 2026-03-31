@@ -11,8 +11,6 @@ import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
 import { fetchOrders, updateOrder } from "../store/ordersSlice";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { fetchSettings, selectSettings } from "../store/settingsSlice";
@@ -20,7 +18,7 @@ import { Card, CardHeader, Button, Table, Badge, Modal, Select } from "../compon
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
-import type { DeliveryOptionForCart, Order, OrderStatus } from "../types";
+import type { Order, OrderStatus } from "../types";
 import { formatDate } from "../lib/orderUtils";
 
 function safeMoney(v: unknown): number {
@@ -94,12 +92,6 @@ function AdminOrderManagementPage() {
   const [dispatching, setDispatching] = useState(false);
   const [markingPacked, setMarkingPacked] = useState(false);
   const [returning, setReturning] = useState(false);
-  const [adminDeliveryOptions, setAdminDeliveryOptions] = useState<
-    DeliveryOptionForCart[]
-  >([]);
-  const [adminDeliveryLoading, setAdminDeliveryLoading] = useState(false);
-  const [adminDeliveryDraft, setAdminDeliveryDraft] = useState("");
-  const [savingDelivery, setSavingDelivery] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const selectAllHeaderRef = useRef<HTMLInputElement>(null);
   const ordersRef = useRef(orders);
@@ -199,94 +191,6 @@ function AdminOrderManagementPage() {
     }
     return [orderDetail as Order];
   }, [orderDetail]);
-
-  const primaryOrderLine = sortedOrderLines[0];
-
-  const deliveryProductIdsKey = sortedOrderLines.map((l) => l.productId).join(",");
-
-  useEffect(() => {
-    if (!detailId || !orderDetail || !discountEditable) {
-      setAdminDeliveryOptions([]);
-      setAdminDeliveryDraft("");
-      return;
-    }
-    const items = (orderDetail as { items?: Order[] }).items;
-    const lines: Order[] = items?.length
-      ? [...items].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        )
-      : [orderDetail as Order];
-    if (lines.length === 0) return;
-    const primary = lines[0];
-    const ids = lines.map((l) => l.productId);
-    let cancelled = false;
-    setAdminDeliveryLoading(true);
-    const qs = ids.join(",");
-    void api
-      .get<DeliveryOptionForCart[]>(
-        `${endpoints.productDeliveryFeesForCart}?productIds=${encodeURIComponent(qs)}`
-      )
-      .then((data) => {
-        if (cancelled) return;
-        const list = Array.isArray(data) ? data : [];
-        setAdminDeliveryOptions(list);
-        const cur = primary.deliveryMethodId ?? "";
-        setAdminDeliveryDraft(
-          cur && list.some((o) => o.deliveryMethodId === cur) ? cur : ""
-        );
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAdminDeliveryOptions([]);
-          setAdminDeliveryDraft("");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setAdminDeliveryLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [detailId, discountEditable, deliveryProductIdsKey, orderDetail]);
-
-  const adminDeliverySelectOptions: SelectOption[] = useMemo(
-    () => [
-      { value: "", label: "No delivery charge" },
-      ...adminDeliveryOptions.map((o) => ({
-        value: o.deliveryMethodId,
-        label: `${o.name} (+₹${o.totalFee.toFixed(2)})`,
-      })),
-    ],
-    [adminDeliveryOptions]
-  );
-
-  const saveAdminDelivery = useCallback(async () => {
-    if (!primaryOrderLine || !discountEditable) return;
-    setSavingDelivery(true);
-    try {
-      await dispatch(
-        updateOrder({
-          id: primaryOrderLine.id,
-          patch: {
-            deliveryMethodId:
-              adminDeliveryDraft.trim() === "" ? null : adminDeliveryDraft,
-          },
-        })
-      ).unwrap();
-      await dispatch(fetchOrders(undefined)).unwrap();
-      toast.success("Delivery updated");
-    } catch (err) {
-      toast.fromError(err, "Failed to update delivery");
-    } finally {
-      setSavingDelivery(false);
-    }
-  }, [
-    primaryOrderLine,
-    discountEditable,
-    adminDeliveryDraft,
-    dispatch,
-  ]);
 
   /** Only when switching orders — do not depend on `orders` or the draft resets on every list refresh while typing. */
   useEffect(() => {
@@ -1215,41 +1119,6 @@ function AdminOrderManagementPage() {
                     </Button>
                     <p className="text-xs text-text-muted sm:flex-1">
                       Clear the field or set 0 to remove discount. Total is recalculated from the product catalog price.
-                    </p>
-                  </dd>
-                </div>
-              ) : null}
-              {discountEditable &&
-              (adminDeliveryLoading || adminDeliveryOptions.length > 0) ? (
-                <div className="sm:col-span-2 rounded-[var(--radius-md)] border border-border bg-surface-alt p-3">
-                  <dt className="text-text-muted mb-2 text-xs uppercase tracking-wider">
-                    Delivery (admin)
-                  </dt>
-                  <dd className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                    {adminDeliveryLoading ? (
-                      <span className="text-sm text-text-muted">Loading…</span>
-                    ) : (
-                      <div className="min-w-[220px] flex-1">
-                        <Select
-                          label=""
-                          options={adminDeliverySelectOptions}
-                          value={adminDeliveryDraft}
-                          onChange={(e) => setAdminDeliveryDraft(e.target.value)}
-                        />
-                      </div>
-                    )}
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => void saveAdminDelivery()}
-                      loading={savingDelivery}
-                      disabled={adminDeliveryLoading}
-                    >
-                      Apply delivery
-                    </Button>
-                    <p className="text-xs text-text-muted sm:flex-1">
-                      Totals use per-product fees from Delivery management. Clear selection to remove
-                      the charge.
                     </p>
                   </dd>
                 </div>

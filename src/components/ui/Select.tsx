@@ -10,13 +10,18 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: SelectOption[];
   error?: string;
   placeholder?: string;
+  fullWidth?: boolean;
 }
 
 const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, options, error, placeholder, className = "", id, ...rest }, ref) => {
+  (
+    { label, options, error, placeholder, fullWidth, className = "", id, ...rest },
+    ref
+  ) => {
     const selectId = id ?? `select-${Math.random().toString(36).slice(2, 9)}`;
+    const shouldFullWidth = fullWidth ?? Boolean(label);
     return (
-      <div className="w-full">
+      <div className={shouldFullWidth ? "w-full" : "w-auto"}>
         {label && (
           <label
             htmlFor={selectId}
@@ -29,7 +34,8 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={[
-            "min-h-10 w-full rounded-[var(--radius-md)] border border-border bg-surface px-3 py-2 text-sm text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 sm:min-h-0",
+            shouldFullWidth ? "h-10 w-full" : "h-10 w-auto min-w-[9rem]",
+            "rounded-[var(--radius-md)] border border-border bg-surface px-3 text-sm text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0",
             error ? "border-error" : "border-border",
             className,
           ]

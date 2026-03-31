@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useLayoutEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
@@ -10,6 +10,8 @@ interface AppLayoutProps {
   pageTitles?: Record<string, string>;
   children: React.ReactNode;
 }
+
+type ThemeMode = "light" | "dark";
 
 const DEFAULT_TITLES: Record<string, string> = {
   "/": "Dashboard",
@@ -49,8 +51,35 @@ function AppLayoutComponent({
   const titles = { ...DEFAULT_TITLES, ...pageTitles };
   const title = getTitle(location.pathname, titles);
   const roleLabel = user.role === "super_admin" ? "Super Admin" : "Staff";
-  
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") return "light";
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem("eden_theme");
+    } catch {
+      saved = null;
+    }
+    if (saved === "light" || saved === "dark") return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  });
+
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeMode);
+    document.documentElement.style.colorScheme = themeMode;
+    try {
+      window.localStorage.setItem("eden_theme", themeMode);
+    } catch {
+      // ignore storage write errors
+    }
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
   return (
     <div className="flex h-[100dvh] min-h-0 overflow-hidden bg-surface-alt">
@@ -74,6 +103,8 @@ function AppLayoutComponent({
           userDisplayName={user.name}
           userRole={roleLabel}
           onMenuClick={() => setMobileMenuOpen(true)}
+          themeMode={themeMode}
+          onToggleTheme={toggleTheme}
         />
         <main className="flex-1 overflow-y-auto overflow-x-hidden px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 pr-[max(0.75rem,env(safe-area-inset-right))] sm:px-[max(1rem,env(safe-area-inset-left))] sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pr-[max(1rem,env(safe-area-inset-right))] md:px-[max(1.5rem,env(safe-area-inset-left))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pt-6 md:pr-[max(1.5rem,env(safe-area-inset-right))]">
           <div className="mx-auto w-full max-w-[90rem]">{children}</div>
