@@ -174,8 +174,10 @@ function SalaryManagementPage() {
             {
               key: "rules",
               header: "Rules",
+              className: "md:min-w-[14rem]",
               render: (r: StaffEarnings) => (
-                <div className="grid min-w-[21rem] gap-2 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/60 to-yellow-50 p-3 shadow-sm">
+                <div className="w-full min-w-0 max-w-full text-left">
+                  <div className="grid w-full min-w-0 gap-2 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/60 to-yellow-50 p-3 shadow-sm">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
                     Payout per qty
                   </label>
@@ -190,7 +192,7 @@ function SalaryManagementPage() {
                         [r.staffId]: e.target.value,
                       }))
                     }
-                    className="rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
+                    className="box-border w-full min-w-0 max-w-full rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
                     placeholder="Payout per order"
                   />
 
@@ -209,11 +211,11 @@ function SalaryManagementPage() {
                         [r.staffId]: e.target.value,
                       }))
                     }
-                    className="rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
+                    className="box-border w-full min-w-0 max-w-full rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm"
                     placeholder="5:50, 10:100, 15:150"
                   />
 
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex min-w-0 flex-wrap gap-1.5">
                     {(() => {
                       try {
                         const tiers = parseMilestones(
@@ -250,11 +252,13 @@ function SalaryManagementPage() {
                   </p>
                   <Button
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() => void saveStaffRule(r.staffId)}
                     loading={savingId === r.staffId}
                   >
                     Save rule
                   </Button>
+                  </div>
                 </div>
               ),
             },
