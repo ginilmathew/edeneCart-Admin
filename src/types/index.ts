@@ -55,6 +55,8 @@ export interface Product {
   stockQuantity: number;
   size?: string;
   color?: string;
+  /** false = hidden from staff catalog; admin still sees all. */
+  isActive?: boolean;
 }
 
 export type ProfitGranularity = "day" | "week" | "month" | "year";
@@ -82,10 +84,7 @@ export interface ProfitAnalyticsResponse {
     lineCount: number;
     quantity: number;
     revenue: number;
-    discountTotal: number;
-    preDiscountSellingTotal: number;
     costOfGoods: number;
-    grossProfit: number;
     staffVariable: number;
     staffMilestoneBonuses: number;
     deliveryFees: number;
@@ -223,6 +222,8 @@ export interface Order {
   district: string;
   orderType: OrderType;
   productId: string;
+  /** From API when listing orders; use for display before catalog lookup. */
+  productName?: string;
   quantity: number;
   sellingAmount: number;
   /** Line discount in ₹; omitted or null when none */

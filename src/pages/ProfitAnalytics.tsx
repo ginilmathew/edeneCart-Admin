@@ -228,7 +228,7 @@ function ProfitAnalyticsPage() {
       <Card>
         <CardHeader
           title="Profit analytics"
-          subtitle="Delivered orders only. Revenue is the line total after discounts. Net profit = revenue − buying cost − staff (qty × commission per order) − delivery − milestone bonuses."
+          subtitle="Delivered orders only: revenue minus buying cost, staff payout (per quantity × rate), courier fees, and milestone bonuses. Cancelled / returned are listed separately."
         />
         <div className="flex flex-wrap items-end gap-3 border-b border-border-subtle pb-4">
           <div className="flex flex-wrap gap-2">
@@ -308,45 +308,19 @@ function ProfitAnalyticsPage() {
           <p className="py-8 text-center text-text-muted">Loading…</p>
         ) : d ? (
           <>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <Kpi
                 label="Net profit"
                 value={d.netProfit}
                 emphasize={d.netProfit >= 0 ? "positive" : "negative"}
               />
-              <Kpi
-                label="Gross profit"
-                hint="Revenue − buying cost (before staff & courier)"
-                value={d.grossProfit}
-              />
-              <Kpi
-                label="Revenue (after discounts)"
-                hint="What the customer pays on the line, incl. add-ons"
-                value={d.revenue}
-              />
-              <Kpi
-                label="Line discounts"
-                hint="Already subtracted inside revenue"
-                value={d.discountTotal}
-              />
-              <Kpi
-                label="Sell total before discount"
-                hint="Revenue + discounts on the line"
-                value={d.preDiscountSellingTotal}
-              />
-              <Kpi label="Buying cost (COGS)" value={d.costOfGoods} />
+              <Kpi label="Revenue (delivered)" value={d.revenue} />
+              <Kpi label="Buying cost" value={d.costOfGoods} />
               <Kpi label="Staff (qty × payout)" value={d.staffVariable} />
               <Kpi label="Delivery fees" value={d.deliveryFees} />
               <Kpi label="Milestone bonuses" value={d.staffMilestoneBonuses} />
             </div>
             <p className="mt-2 text-xs text-text-muted">
-              Order of operations: line discount is applied when the order is saved, so
-              revenue is already after discount. Gross profit = revenue − buying cost.
-              Net profit = gross − staff (qty × payout per order) − delivery − milestone
-              bonuses. Example (qty 1): ₹200 list, ₹10 discount → revenue ₹190; buying
-              ₹100 → gross ₹90; staff ₹30 → ₹60 net before delivery/bonuses.
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
               Lines: {d.lineCount} · Units: {d.quantity} · Range: {data.dateFrom}{" "}
               → {data.dateTo}
             </p>
@@ -414,12 +388,10 @@ function ProfitAnalyticsPage() {
 function Kpi({
   label,
   value,
-  hint,
   emphasize,
 }: {
   label: string;
   value: number;
-  hint?: string;
   emphasize?: "positive" | "negative";
 }) {
   const cls =
@@ -429,16 +401,9 @@ function Kpi({
         ? "text-error"
         : "text-text-heading";
   return (
-    <div className="rounded-[var(--radius-md)] border border-border-subtle bg-surface px-2 py-1.5 md:px-3 md:py-2">
-      <div className="text-[10px] font-medium text-text-muted md:text-xs">{label}</div>
-      {hint ? (
-        <div className="mt-0.5 text-[9px] leading-tight text-text-muted/90 md:text-[10px]">
-          {hint}
-        </div>
-      ) : null}
-      <div
-        className={`mt-0.5 font-mono text-base font-semibold tabular-nums md:text-lg ${cls}`}
-      >
+    <div className="rounded-[var(--radius-md)] border border-border-subtle bg-surface px-3 py-2">
+      <div className="text-xs font-medium text-text-muted">{label}</div>
+      <div className={`mt-0.5 font-mono text-lg font-semibold tabular-nums ${cls}`}>
         {formatCurrency(value)}
       </div>
     </div>
@@ -464,13 +429,13 @@ function SliceCard({
         : "border-border-subtle";
   return (
     <div
-      className={`rounded-[var(--radius-md)] border bg-surface px-2 py-1.5 md:px-3 md:py-2 ${border}`}
+      className={`rounded-[var(--radius-md)] border bg-surface px-3 py-2 ${border}`}
     >
-      <div className="text-xs font-semibold text-text-heading md:text-sm">{title}</div>
+      <div className="text-sm font-semibold text-text-heading">{title}</div>
       {subtitle ? (
-        <div className="text-[10px] text-text-muted md:text-xs">{subtitle}</div>
+        <div className="text-xs text-text-muted">{subtitle}</div>
       ) : null}
-      <dl className="mt-1.5 space-y-0.5 text-xs md:mt-2 md:space-y-1 md:text-sm">
+      <dl className="mt-2 space-y-1 text-sm">
         <div className="flex justify-between gap-2">
           <dt className="text-text-muted">Lines</dt>
           <dd className="font-mono">{s.lineCount}</dd>

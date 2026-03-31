@@ -16,6 +16,7 @@ import {
   getWeekRange,
   formatCurrency,
   formatDate,
+  orderLineProductLabel,
 } from "../lib/orderUtils";
 
 function AdminDashboardPage() {
@@ -28,6 +29,7 @@ function AdminDashboardPage() {
 
   const lowOrOutProducts = useMemo(() => {
     return products
+      .filter((p) => p.isActive !== false)
       .filter((p) => isAtOrBelowStockThreshold(p.stockQuantity ?? 0, lowStockThreshold))
       .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) || a.name.localeCompare(b.name));
   }, [products, lowStockThreshold]);
@@ -389,18 +391,17 @@ function AdminDashboardPage() {
               key: "productId",
               header: "Product",
               render: (o: any) => {
-                const items = o._items as Order[];
-                if (items && items.length > 1) {
+                const items = o._items as Order[] | undefined;
+                const list =
+                  items && items.length > 0 ? items : [o as Order];
+                if (list.length > 1) {
                   return (
                     <span className="font-bold text-primary">
-                      {items.length} items
+                      {list.length} items
                     </span>
                   );
                 }
-                return (
-                  products.find((p) => p.id === o.productId)?.name ??
-                  o.productId
-                );
+                return orderLineProductLabel(list[0], products);
               },
             },
             {

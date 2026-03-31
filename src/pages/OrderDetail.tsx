@@ -4,7 +4,11 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectOrders, updateOrder } from "../store/ordersSlice";
 import { selectProducts } from "../store/productsSlice";
 import { Card, Badge, Button } from "../components/ui";
-import { formatDateTime, formatCurrency } from "../lib/orderUtils";
+import {
+  formatDateTime,
+  formatCurrency,
+  orderLineProductLabel,
+} from "../lib/orderUtils";
 import { toast } from "../lib/toast";
 
 function OrderDetailPage() {
@@ -183,7 +187,7 @@ function OrderDetailPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {relatedItems.map((item) => {
-                    const pName = products.find((p) => p.id === item.productId)?.name ?? item.productId;
+                    const pName = orderLineProductLabel(item, products);
                     return (
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4">

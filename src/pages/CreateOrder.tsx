@@ -71,6 +71,11 @@ function CreateOrderPage() {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const products = useAppSelector(selectProducts);
+  /** Staff API returns only active; admin list includes inactive — exclude from new orders. */
+  const catalogProducts = useMemo(
+    () => products.filter((p) => p.isActive !== false),
+    [products],
+  );
   const categories = useAppSelector(selectCategories);
   const [form, setForm] = useState(INITIAL);
   const [productRows, setProductRows] = useState<ProductRow[]>([]);
@@ -306,19 +311,21 @@ function CreateOrderPage() {
       },
       ...sorted.map((c) => ({ value: c.id, label: c.name })),
     ];
-    if (products.some((p) => !p.categoryId)) {
+    if (catalogProducts.some((p) => !p.categoryId)) {
       opts.push({
         value: UNCATEGORIZED_KEY,
         label: "Uncategorized (legacy)",
       });
     }
     return opts;
-  }, [categories, products, detailsEnabled]);
+  }, [categories, catalogProducts, detailsEnabled]);
 
   const productsInCategory = useMemo(() => {
-    if (!orderCategory) return products;
-    return products.filter((p) => productCategoryKey(p) === orderCategory);
-  }, [products, orderCategory]);
+    if (!orderCategory) return catalogProducts;
+    return catalogProducts.filter(
+      (p) => productCategoryKey(p) === orderCategory,
+    );
+  }, [catalogProducts, orderCategory]);
 
   const validate = useCallback((): boolean => {
     const e: Record<string, string> = {};

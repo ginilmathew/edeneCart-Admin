@@ -41,3 +41,20 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
 }
+
+/*
+ * Profile routes (staff “My profile”, admin staff detail).
+ * Intentional readability on small screens — do not remove when tuning global
+ * mobile typography or shared Card/CardHeader styles.
+ */
+@media (max-width: 767px) {
+  .profile-page h2 {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .profile-page dl dd {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+}

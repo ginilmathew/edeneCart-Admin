@@ -18,7 +18,7 @@ import { Card, CardHeader, Button, Table, Badge, Modal } from "../components/ui"
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
 import type { Order, OrderStatus } from "../types";
-import { formatDate } from "../lib/orderUtils";
+import { formatDate, orderLineProductLabel } from "../lib/orderUtils";
 
 function safeMoney(v: unknown): number {
   if (v == null) return 0;
@@ -658,11 +658,13 @@ function AdminOrderManagementPage() {
         key: "productId",
         header: "Products",
         render: (row: any) => {
-          const names = row.items?.map((i: any) =>
-            products.find((p) => p.id === i.productId)?.name || i.productId
-          ) || [];
+          const lines: Order[] =
+            row.items?.length > 0 ? row.items : [];
+          const names =
+            lines.length > 0
+              ? lines.map((i) => orderLineProductLabel(i, products))
+              : [orderLineProductLabel(row as Order, products)];
 
-          if (names.length === 0) return "—";
           if (names.length === 1) return names[0];
 
           return (
@@ -1018,9 +1020,10 @@ function AdminOrderManagementPage() {
                     return (
                       <div className="space-y-2 sm:hidden">
                         {itemRows.map((item) => {
-                          const nm =
-                            products.find((p) => p.id === item.productId)?.name ||
-                            item.productId;
+                          const nm = orderLineProductLabel(
+                            item as Order,
+                            products,
+                          );
                           return (
                             <div
                               key={item.id}
@@ -1058,7 +1061,9 @@ function AdminOrderManagementPage() {
                       {(orderDetail as any).items?.map((item: any) => (
                         <tr key={item.id}>
                           <td className="px-3 py-2 font-medium">
-                            <div>{products.find((p) => p.id === item.productId)?.name || item.productId}</div>
+                            <div>
+                              {orderLineProductLabel(item as Order, products)}
+                            </div>
                           </td>
                           <td className="px-3 py-2 text-center font-bold text-gray-600">{item.quantity}</td>
                           <td className="px-3 py-2 text-right font-black text-indigo-600">
@@ -1069,8 +1074,10 @@ function AdminOrderManagementPage() {
                           <tr>
                             <td className="px-3 py-2 font-medium">
                               <div>
-                                {products.find((p) => p.id === (orderDetail as any).productId)?.name ||
-                                  (orderDetail as any).productId}
+                                {orderLineProductLabel(
+                                  orderDetail as Order,
+                                  products,
+                                )}
                               </div>
                             </td>
                             <td className="px-3 py-2 text-center font-bold text-gray-600">{(orderDetail as any).quantity}</td>

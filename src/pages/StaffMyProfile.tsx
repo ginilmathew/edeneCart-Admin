@@ -49,7 +49,7 @@ function StaffMyProfilePage() {
   const pending = profile.pendingPasswordResetRequest;
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
+    <div className="profile-page mx-auto max-w-lg space-y-6">
       <CardHeader title="My profile" subtitle="Your account details" />
 
       <Card>

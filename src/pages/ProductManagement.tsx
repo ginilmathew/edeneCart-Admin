@@ -3,7 +3,17 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectProducts, createProduct, updateProduct, deleteProduct } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
-import { Card, CardHeader, Button, Table, Modal, Input, Tooltip, Select } from "../components/ui";
+import {
+  Badge,
+  Card,
+  CardHeader,
+  Button,
+  Table,
+  Modal,
+  Input,
+  Tooltip,
+  Select,
+} from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import type { Product } from "../types";
@@ -135,9 +145,28 @@ function ProductManagementPage() {
     dispatch,
   ]);
 
+  const toggleProductActive = useCallback(
+    async (p: Product, next: boolean) => {
+      try {
+        await dispatch(
+          updateProduct({ id: p.id, patch: { isActive: next } }),
+        ).unwrap();
+        toast.success(next ? "Product is active" : "Product hidden from staff");
+      } catch (err) {
+        toast.fromError(err, "Failed to update product");
+      }
+    },
+    [dispatch],
+  );
+
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!window.confirm("Remove this product? It will disappear from dropdowns.")) return;
+      if (
+        !window.confirm(
+          "Delete this product permanently? Only allowed if it has never been ordered.",
+        )
+      )
+        return;
       try {
         await dispatch(deleteProduct(id)).unwrap();
         if (editingId === id) setModalOpen(false);
@@ -146,7 +175,7 @@ function ProductManagementPage() {
         toast.fromError(err, "Failed to delete product");
       }
     },
-    [dispatch, editingId]
+    [dispatch, editingId],
   );
 
   const categoryFilterOptions: SelectOption[] = useMemo(() => {
@@ -220,6 +249,29 @@ function ProductManagementPage() {
         render: (row: Product) => row.color ?? "—",
       },
       {
+        key: "isActive",
+        header: "Catalog",
+        mobileLabel: "Status",
+        render: (row: Product) => {
+          const active = row.isActive !== false;
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={active ? "success" : "muted"}>
+                {active ? "Active" : "Inactive"}
+              </Badge>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => void toggleProductActive(row, !active)}
+              >
+                {active ? "Deactivate" : "Activate"}
+              </Button>
+            </div>
+          );
+        },
+      },
+      {
         key: "actions",
         header: "",
         mobileHeaderEnd: true,
@@ -249,7 +301,7 @@ function ProductManagementPage() {
         ),
       },
     ],
-    [openEdit, handleDelete]
+    [openEdit, handleDelete, toggleProductActive]
   );
 
   return (

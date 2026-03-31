@@ -13,6 +13,7 @@ import {
   computeEarningsForStaff,
   formatDate,
   formatCurrency,
+  orderLineProductLabel,
 } from "../lib/orderUtils";
 import type { Order } from "../types";
 import type { SelectOption } from "../components/ui/Select";
@@ -195,17 +196,17 @@ function StaffProfilePage() {
         key: "productId",
         header: "Product",
         render: (o: any) => {
-          const items = o._items as Order[];
-          if (items && items.length > 1) {
+          const items = o._items as Order[] | undefined;
+          const list =
+            items && items.length > 0 ? items : [o as Order];
+          if (list.length > 1) {
             return (
               <span className="font-bold text-primary">
-                {items.length} items
+                {list.length} items
               </span>
             );
           }
-          return (
-            products.find((p) => p.id === o.productId)?.name ?? o.productId
-          );
+          return orderLineProductLabel(list[0], products);
         },
       },
       {
@@ -240,7 +241,7 @@ function StaffProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="profile-page space-y-6">
       <div className="flex items-center gap-2">
         <Link to="/admin/staff" className="text-primary hover:underline">
           ← Staff

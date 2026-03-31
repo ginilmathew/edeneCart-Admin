@@ -6,7 +6,7 @@ import { selectOrders } from "../store/ordersSlice";
 import { selectProducts } from "../store/productsSlice";
 import { Card, CardHeader, Button, Table, Badge, Select } from "../components/ui";
 import type { Order } from "../types";
-import { formatDate } from "../lib/orderUtils";
+import { formatDate, orderLineProductLabel } from "../lib/orderUtils";
 import type { SelectOption } from "../components/ui/Select";
 
 const getTodayStr = () => {
@@ -84,9 +84,7 @@ function OrdersListPage() {
           sellingAmount: total + totalDelivery,
           discountAmount: totalDiscount,
           _lineCount: items.length,
-          _products: items.map(
-            (i) => products.find((p) => p.id === i.productId)?.name || i.productId
-          ),
+          _products: items.map((i) => orderLineProductLabel(i, products)),
         };
       });
 

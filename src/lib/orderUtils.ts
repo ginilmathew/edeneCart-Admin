@@ -1,4 +1,4 @@
-import type { Order, Staff } from "../types";
+import type { Order, Product, Staff } from "../types";
 
 const WEEK_START = 1; // Monday
 
@@ -86,4 +86,16 @@ export function formatDateTime(dateStr: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** Prefer API `productName`, then live catalog; never show raw UUIDs. */
+export function orderLineProductLabel(
+  line: Pick<Order, "productId" | "productName">,
+  products: Pick<Product, "id" | "name">[],
+): string {
+  const fromApi = line.productName?.trim();
+  if (fromApi) return fromApi;
+  const p = products.find((x) => x.id === line.productId);
+  if (p?.name?.trim()) return p.name.trim();
+  return "Product unavailable";
 }
