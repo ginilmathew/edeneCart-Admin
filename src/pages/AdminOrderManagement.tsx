@@ -638,6 +638,7 @@ function AdminOrderManagementPage() {
         key: "orderId",
         header: "Order ID",
         mobileCardTitle: true,
+        className: "md:min-w-[9.5rem] md:whitespace-nowrap",
         render: (row: Order) => (
           <button
             type="button"
