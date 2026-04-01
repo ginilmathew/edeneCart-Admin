@@ -79,7 +79,8 @@ function LoginPage() {
     if (user.mustChangePassword) {
       return <Navigate to="/account/password" replace state={{ from: location }} />;
     }
-    const redirect = user.role === "super_admin" ? "/admin" : "/";
+    const redirect =
+      user.role === "super_admin" || user.role === "guest" ? "/admin" : "/";
     return <Navigate to={from === "/login" ? redirect : from} replace />;
   }
 

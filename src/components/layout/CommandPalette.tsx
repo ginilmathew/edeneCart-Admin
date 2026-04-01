@@ -1,14 +1,16 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import type { UserRole } from "../../types";
+import type { User, UserRole } from "../../types";
+import { hasPermission } from "../../lib/permissions";
 
 export interface CommandItem {
   to: string;
   label: string;
   roles: UserRole[];
-  /** Extra strings to match (lowercased) */
   keywords?: string[];
+  permission?: string;
+  superAdminOnly?: boolean;
 }
 
 const ITEMS: CommandItem[] = [
@@ -18,25 +20,111 @@ const ITEMS: CommandItem[] = [
   { to: "/stock", label: "Product stock", roles: ["staff"], keywords: ["inventory"] },
   { to: "/recent-orders", label: "Recent orders", roles: ["staff"] },
   { to: "/profile", label: "Profile", roles: ["staff"] },
-  { to: "/account/password", label: "Change password", roles: ["staff", "super_admin"], keywords: ["password", "account"] },
-  { to: "/admin", label: "Dashboard", roles: ["super_admin"], keywords: ["admin home"] },
-  { to: "/admin/orders", label: "Orders", roles: ["super_admin"], keywords: ["order management"] },
-  { to: "/admin/salary", label: "Salary", roles: ["super_admin"], keywords: ["pay", "staff pay"] },
-  { to: "/admin/profit", label: "Profit analytics", roles: ["super_admin"], keywords: ["profit", "analytics"] },
-  { to: "/admin/staff", label: "Staff", roles: ["super_admin"], keywords: ["staff management"] },
-  { to: "/admin/products", label: "Products", roles: ["super_admin"] },
-  { to: "/admin/customers", label: "Customers", roles: ["super_admin"] },
-  { to: "/admin/staff/assigned-numbers", label: "Assigned numbers", roles: ["super_admin"], keywords: ["numbers"] },
-  { to: "/admin/categories", label: "Categories", roles: ["super_admin"] },
-  { to: "/admin/delivery", label: "Delivery", roles: ["super_admin"] },
-  { to: "/admin/senders", label: "Senders", roles: ["super_admin"] },
-  { to: "/admin/staff/roles", label: "Staff roles", roles: ["super_admin"], keywords: ["roles"] },
-  { to: "/admin/export", label: "Export Data", roles: ["super_admin"], keywords: ["export", "download"] },
-  { to: "/admin/settings", label: "Settings", roles: ["super_admin"] },
+  {
+    to: "/account/password",
+    label: "Change password",
+    roles: ["staff", "super_admin", "guest"],
+    keywords: ["password", "account"],
+  },
+  { to: "/admin", label: "Dashboard", roles: ["super_admin", "guest"], keywords: ["admin home"] },
+  {
+    to: "/admin/orders",
+    label: "Orders",
+    roles: ["super_admin", "guest"],
+    permission: "orders.view",
+    keywords: ["order management"],
+  },
+  {
+    to: "/admin/salary",
+    label: "Salary",
+    roles: ["super_admin", "guest"],
+    permission: "staff.view",
+    keywords: ["pay", "staff pay"],
+  },
+  {
+    to: "/admin/profit",
+    label: "Profit analytics",
+    roles: ["super_admin", "guest"],
+    permission: "profit.view",
+    keywords: ["profit", "analytics"],
+  },
+  {
+    to: "/admin/staff",
+    label: "Staff",
+    roles: ["super_admin", "guest"],
+    permission: "staff.view",
+    keywords: ["staff management"],
+  },
+  {
+    to: "/admin/products",
+    label: "Products",
+    roles: ["super_admin", "guest"],
+    permission: "products.view",
+  },
+  {
+    to: "/admin/customers",
+    label: "Customers",
+    roles: ["super_admin", "guest"],
+    permission: "customers.view",
+  },
+  {
+    to: "/admin/staff/assigned-numbers",
+    label: "Assigned numbers",
+    roles: ["super_admin", "guest"],
+    permission: "assigned_numbers.view",
+    keywords: ["numbers"],
+  },
+  {
+    to: "/admin/categories",
+    label: "Categories",
+    roles: ["super_admin", "guest"],
+    permission: "categories.view",
+  },
+  {
+    to: "/admin/delivery",
+    label: "Delivery",
+    roles: ["super_admin", "guest"],
+    permission: "deliveries.view",
+  },
+  {
+    to: "/admin/senders",
+    label: "Senders",
+    roles: ["super_admin", "guest"],
+    permission: "senders.view",
+  },
+  {
+    to: "/admin/staff/roles",
+    label: "Staff roles",
+    roles: ["super_admin", "guest"],
+    permission: "staff_positions.view",
+    keywords: ["roles"],
+  },
+  {
+    to: "/admin/export",
+    label: "Export Data",
+    roles: ["super_admin", "guest"],
+    permission: "customers.view",
+    keywords: ["export", "download"],
+  },
+  {
+    to: "/admin/settings",
+    label: "Settings",
+    roles: ["super_admin", "guest"],
+    permission: "settings.view",
+  },
+  {
+    to: "/admin/role-permissions",
+    label: "Access control",
+    roles: ["super_admin", "guest"],
+    superAdminOnly: true,
+    keywords: ["rbac", "permissions", "guest"],
+  },
 ];
 
-function matches(item: CommandItem, role: UserRole, q: string): boolean {
-  if (!item.roles.includes(role)) return false;
+function matches(item: CommandItem, user: User, q: string): boolean {
+  if (!item.roles.includes(user.role)) return false;
+  if (item.superAdminOnly && user.role !== "super_admin") return false;
+  if (item.permission && !hasPermission(user, item.permission)) return false;
   if (!q.trim()) return true;
   const n = q.trim().toLowerCase();
   const hay = [item.label, item.to, ...(item.keywords ?? [])]
@@ -48,18 +136,18 @@ function matches(item: CommandItem, role: UserRole, q: string): boolean {
 interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
-  role: UserRole;
+  user: User;
 }
 
-function CommandPaletteComponent({ open, onClose, role }: CommandPaletteProps) {
+function CommandPaletteComponent({ open, onClose, user }: CommandPaletteProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    return ITEMS.filter((item) => matches(item, role, query));
-  }, [role, query]);
+    return ITEMS.filter((item) => matches(item, user, query));
+  }, [user, query]);
 
   useEffect(() => {
     setActive(0);

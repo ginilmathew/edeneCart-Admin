@@ -44,4 +44,12 @@ export const endpoints = {
   staffPositionById: (id: string) => `${V1}/staff-positions/${id}`,
   assignedNumbers: `${V1}/assigned-numbers`,
   assignedNumberById: (id: string) => `${V1}/assigned-numbers/${id}`,
+  rbacMatrix: `${V1}/rbac/matrix`,
+  rbacPermissions: `${V1}/rbac/permissions`,
+  rbacRoles: `${V1}/rbac/roles`,
+  rbacRolePermissions: (roleId: string) => `${V1}/rbac/roles/${roleId}/permissions`,
+  rbacGuestUsers: `${V1}/rbac/guest-users`,
+  rbacGuestUserById: (id: string) => `${V1}/rbac/guest-users/${id}`,
+  rbacGuestUserResetPassword: (id: string) =>
+    `${V1}/rbac/guest-users/${id}/reset-password`,
 } as const;

@@ -1,14 +1,13 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { Bars3Icon, MagnifyingGlassIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
-import type { UserRole } from "../../types";
+import type { User } from "../../types";
 import { CommandPalette } from "./CommandPalette";
 
 interface HeaderProps {
   title: string;
+  user: User;
   userDisplayName: string;
   userRole: string;
-  /** Used for command palette routes */
-  navRole: UserRole;
   onMenuClick?: () => void;
   themeMode: "light" | "dark";
   onToggleTheme: () => void;
@@ -16,9 +15,9 @@ interface HeaderProps {
 
 function HeaderComponent({
   title,
+  user,
   userDisplayName,
   userRole,
-  navRole,
   onMenuClick,
   themeMode,
   onToggleTheme,
@@ -107,7 +106,7 @@ function HeaderComponent({
           </div>
         </div>
       </header>
-      <CommandPalette open={commandOpen} onClose={closeCommand} role={navRole} />
+      <CommandPalette open={commandOpen} onClose={closeCommand} user={user} />
     </>
   );
 }

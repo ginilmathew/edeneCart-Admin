@@ -22,8 +22,9 @@ function ChangePasswordPage() {
   const afterSuccess = useCallback(async () => {
     await refreshUser();
     toast.success("Password updated");
-    if (user?.role === "super_admin") navigate("/admin", { replace: true });
-    else navigate("/", { replace: true });
+    if (user?.role === "super_admin" || user?.role === "guest") {
+      navigate("/admin", { replace: true });
+    } else navigate("/", { replace: true });
   }, [refreshUser, navigate, user?.role]);
 
   const handleSubmit = useCallback(

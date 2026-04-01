@@ -33,19 +33,22 @@ function DataLoader() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAuth();
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) return;
     dispatch(fetchProducts());
     dispatch(fetchCategories());
     dispatch(fetchOrders());
     void dispatch(fetchSettings());
-    if (user?.role === "super_admin") {
+    const p = user.permissions ?? [];
+    if (user.role === "super_admin" || p.includes("staff.view")) {
       dispatch(fetchStaff());
+    }
+    if (user.role === "super_admin" || p.includes("customers.view")) {
       dispatch(fetchCustomers());
     }
-    if (user?.role === "staff" && user.staffId) {
+    if (user.role === "staff" && user.staffId) {
       void dispatch(fetchStaffMe());
     }
-  }, [dispatch, isAuthenticated, user?.role]);
+  }, [dispatch, isAuthenticated, user]);
   return null;
 }
 

@@ -29,6 +29,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   "/admin/staff/assigned-numbers": "Assigned numbers",
   "/admin/export": "Export Data",
   "/admin/profit": "Profit analytics",
+  "/admin/role-permissions": "Access control",
   "/account/password": "Change password",
 };
 
@@ -50,7 +51,12 @@ function AppLayoutComponent({
   const location = useLocation();
   const titles = { ...DEFAULT_TITLES, ...pageTitles };
   const title = getTitle(location.pathname, titles);
-  const roleLabel = user.role === "super_admin" ? "Super Admin" : "Staff";
+  const roleLabel =
+    user.role === "super_admin"
+      ? "Super Admin"
+      : user.role === "guest"
+        ? "Guest"
+        : "Staff";
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
@@ -93,7 +99,7 @@ function AppLayoutComponent({
       )}
       <div className="shrink-0 max-md:w-0 max-md:min-w-0 max-md:overflow-visible">
         <Sidebar
-          role={user.role}
+          user={user}
           onLogout={onLogout}
           mobileOpen={mobileMenuOpen}
           setMobileOpen={setMobileMenuOpen}
@@ -102,9 +108,9 @@ function AppLayoutComponent({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Header
           title={title}
+          user={user}
           userDisplayName={user.name}
           userRole={roleLabel}
-          navRole={user.role}
           onMenuClick={() => setMobileMenuOpen(true)}
           themeMode={themeMode}
           onToggleTheme={toggleTheme}

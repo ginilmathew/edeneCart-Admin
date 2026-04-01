@@ -1,4 +1,4 @@
-export type UserRole = "super_admin" | "staff";
+export type UserRole = "super_admin" | "staff" | "guest";
 
 export type OrderType = "cod" | "prepaid";
 export type PdfSize = "thermal" | "a4";
@@ -269,10 +269,45 @@ export interface User {
   username: string;
   name: string;
   role: UserRole;
+  /** Effective permission slugs from the user’s role (empty for legacy stored users until refresh). */
+  permissions?: string[];
   staffId?: string; // when role is staff
   avatar?: string;
   /** When true, UI should prompt to change password (set after admin-created staff login). */
   mustChangePassword?: boolean;
+}
+
+/** RBAC role row from GET /rbac/roles */
+export interface RbacRoleRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  permissionSlugs: string[];
+}
+
+export interface PermissionRow {
+  id: string;
+  slug: string;
+  name: string;
+  resource: string;
+  action: string;
+}
+
+export interface RbacMatrixResponse {
+  catalog: {
+    slug: string;
+    name: string;
+    resource: string;
+    action: string;
+  }[];
+}
+
+export interface GuestUserRow {
+  id: string;
+  username: string;
+  name: string;
+  isActive: boolean;
 }
 
 export interface StaffWithStats extends Staff {

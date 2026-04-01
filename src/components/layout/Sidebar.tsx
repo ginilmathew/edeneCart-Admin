@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import { NavLink } from "react-router";
 import {
   HomeIcon,
@@ -24,47 +24,65 @@ import {
   ArchiveBoxIcon,
   ClockIcon,
   PresentationChartLineIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
-import type { UserRole } from "../../types";
+import type { User } from "../../types";
+import { hasPermission } from "../../lib/permissions";
 
 const SIDEBAR_COLLAPSED_KEY = "edenecart_sidebar_collapsed";
 
-interface NavItem {
+interface StaffNavItem {
   to: string;
   label: string;
-  roles: UserRole[];
   end?: boolean;
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const STAFF_NAV: NavItem[] = [
-  { to: "/", label: "Dashboard", roles: ["staff"], end: true, icon: HomeIcon },
-  { to: "/orders/create", label: "Create Order", roles: ["staff"], end: true, icon: DocumentPlusIcon },
-  { to: "/orders", label: "My Orders", roles: ["staff"], end: true, icon: ClipboardDocumentListIcon },
-  { to: "/stock", label: "Product stock", roles: ["staff"], end: true, icon: ArchiveBoxIcon },
-  { to: "/recent-orders", label: "Recent orders", roles: ["staff"], end: true, icon: ClockIcon },
-  { to: "/profile", label: "Profile", roles: ["staff"], end: true, icon: UserCircleIcon },
-  { to: "/account/password", label: "Change password", roles: ["staff"], end: true, icon: KeyIcon },
+interface AdminNavItem {
+  to: string;
+  label: string;
+  end?: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  /** If set, user must have this permission (super admin always sees the link). */
+  permission?: string;
+  /** Only shown to super_admin (e.g. RBAC editor). */
+  superAdminOnly?: boolean;
+}
+
+const STAFF_NAV: StaffNavItem[] = [
+  { to: "/", label: "Dashboard", end: true, icon: HomeIcon },
+  { to: "/orders/create", label: "Create Order", end: true, icon: DocumentPlusIcon },
+  { to: "/orders", label: "My Orders", end: true, icon: ClipboardDocumentListIcon },
+  { to: "/stock", label: "Product stock", end: true, icon: ArchiveBoxIcon },
+  { to: "/recent-orders", label: "Recent orders", end: true, icon: ClockIcon },
+  { to: "/profile", label: "Profile", end: true, icon: UserCircleIcon },
+  { to: "/account/password", label: "Change password", end: true, icon: KeyIcon },
 ];
 
-const ADMIN_NAV: NavItem[] = [
-  { to: "/admin", label: "Dashboard", roles: ["super_admin"], end: true, icon: HomeIcon },
-  { to: "/admin/orders", label: "Orders", roles: ["super_admin"], end: true, icon: CubeIcon },
-  { to: "/admin/salary", label: "Salary", roles: ["super_admin"], end: true, icon: CurrencyRupeeIcon },
-  { to: "/admin/profit", label: "Profit", roles: ["super_admin"], end: true, icon: PresentationChartLineIcon },
-  { to: "/admin/staff", label: "Staff", roles: ["super_admin"], end: true, icon: UsersIcon },
-  { to: "/admin/products", label: "Products", roles: ["super_admin"], end: true, icon: Squares2X2Icon },
-  { to: "/admin/customers", label: "Customers", roles: ["super_admin"], end: true, icon: UserGroupIcon },
-  { to: "/admin/staff/assigned-numbers", label: "Assigned numbers", roles: ["super_admin"], end: true, icon: HashtagIcon },
-  { to: "/admin/categories", label: "Categories", roles: ["super_admin"], end: true, icon: TagIcon },
-  { to: "/admin/delivery", label: "Delivery", roles: ["super_admin"], end: true, icon: PaperAirplaneIcon },
-  { to: "/admin/senders", label: "Senders", roles: ["super_admin"], end: true, icon: TruckIcon },
-  { to: "/admin/staff/roles", label: "Staff roles", roles: ["super_admin"], end: true, icon: BriefcaseIcon },
-  { to: "/account/password", label: "Change password", roles: ["super_admin"], end: true, icon: KeyIcon },
-  { to: "/admin/export", label: "Export Data", roles: ["super_admin"], end: true, icon: ArrowDownTrayIcon },
-  { to: "/admin/settings", label: "Settings", roles: ["super_admin"], end: true, icon: Cog6ToothIcon },
-
+const ADMIN_NAV: AdminNavItem[] = [
+  { to: "/admin", label: "Dashboard", end: true, icon: HomeIcon },
+  { to: "/admin/orders", label: "Orders", end: true, icon: CubeIcon, permission: "orders.view" },
+  { to: "/admin/salary", label: "Salary", end: true, icon: CurrencyRupeeIcon, permission: "staff.view" },
+  { to: "/admin/profit", label: "Profit", end: true, icon: PresentationChartLineIcon, permission: "profit.view" },
+  { to: "/admin/staff", label: "Staff", end: true, icon: UsersIcon, permission: "staff.view" },
+  { to: "/admin/products", label: "Products", end: true, icon: Squares2X2Icon, permission: "products.view" },
+  { to: "/admin/customers", label: "Customers", end: true, icon: UserGroupIcon, permission: "customers.view" },
+  { to: "/admin/staff/assigned-numbers", label: "Assigned numbers", end: true, icon: HashtagIcon, permission: "assigned_numbers.view" },
+  { to: "/admin/categories", label: "Categories", end: true, icon: TagIcon, permission: "categories.view" },
+  { to: "/admin/delivery", label: "Delivery", end: true, icon: PaperAirplaneIcon, permission: "deliveries.view" },
+  { to: "/admin/senders", label: "Senders", end: true, icon: TruckIcon, permission: "senders.view" },
+  { to: "/admin/staff/roles", label: "Staff roles", end: true, icon: BriefcaseIcon, permission: "staff_positions.view" },
+  { to: "/account/password", label: "Change password", end: true, icon: KeyIcon },
+  { to: "/admin/export", label: "Export Data", end: true, icon: ArrowDownTrayIcon, permission: "customers.view" },
+  { to: "/admin/settings", label: "Settings", end: true, icon: Cog6ToothIcon, permission: "settings.view" },
+  {
+    to: "/admin/role-permissions",
+    label: "Access control",
+    end: true,
+    icon: ShieldCheckIcon,
+    superAdminOnly: true,
+  },
 ];
 
 function getStoredCollapsed(): boolean {
@@ -84,13 +102,13 @@ function setStoredCollapsed(value: boolean) {
 }
 
 interface SidebarProps {
-  role: UserRole;
+  user: User;
   onLogout: () => void;
   mobileOpen?: boolean;
   setMobileOpen?: (open: boolean) => void;
 }
 
-function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: SidebarProps) {
+function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(getStoredCollapsed);
 
   const toggleCollapsed = useCallback(() => {
@@ -105,8 +123,14 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
     if (setMobileOpen) setMobileOpen(false);
   };
 
-  const items = role === "super_admin" ? ADMIN_NAV : STAFF_NAV;
-  const filtered = items.filter((i) => i.roles.includes(role));
+  const navItems = useMemo(() => {
+    if (user.role === "staff") return STAFF_NAV;
+    return ADMIN_NAV.filter((item) => {
+      if (item.superAdminOnly && user.role !== "super_admin") return false;
+      if (item.permission && !hasPermission(user, item.permission)) return false;
+      return true;
+    });
+  }, [user]);
 
   const linkBase =
     "flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] border-l-2 border-transparent py-1.5 pl-2 pr-2.5 text-xs font-medium transition-colors max-md:gap-2.5 md:min-h-0 md:gap-3 md:py-2 md:pl-2.5 md:pr-3 md:text-sm ";
@@ -162,7 +186,7 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
         </Tooltip>
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        {filtered.map((item) => {
+        {navItems.map((item) => {
           const link = (
             <NavLink
               to={item.to}

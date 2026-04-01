@@ -37,11 +37,18 @@ interface AuthResponse {
   user: User;
 }
 
+function normalizeUser(u: User): User {
+  return {
+    ...u,
+    permissions: Array.isArray(u.permissions) ? u.permissions : [],
+  };
+}
+
 function readStoredUser(): User | null {
   try {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as User;
+    return normalizeUser(JSON.parse(raw) as User);
   } catch {
     return null;
   }
@@ -64,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const me = await api.get<User>(endpoints.authMe);
+      const me = normalizeUser(await api.get<User>(endpoints.authMe));
       setUser(me);
       localStorage.setItem(USER_KEY, JSON.stringify(me));
     } catch {
@@ -89,8 +96,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
         });
         setAccessToken(data.accessToken);
-        setUser(data.user);
-        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        const nu = normalizeUser(data.user);
+        setUser(nu);
+        localStorage.setItem(USER_KEY, JSON.stringify(nu));
         return { ok: true };
       } catch (e) {
         const message =
