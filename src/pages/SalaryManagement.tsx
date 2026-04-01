@@ -128,6 +128,22 @@ function SalaryManagementPage() {
 
   return (
     <div className="space-y-4">
+      <style>{`
+        @media (max-width: 767px) {
+          dl > div:has(.rule-card-mobile-trigger) {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+          }
+          dl > div:has(.rule-card-mobile-trigger) > dt {
+            width: 100% !important;
+          }
+          dl > div:has(.rule-card-mobile-trigger) > dd {
+            width: 100% !important;
+            text-align: left !important;
+          }
+        }
+      `}</style>
       <Card>
         <CardHeader
           title="Salary Management"
@@ -135,31 +151,31 @@ function SalaryManagementPage() {
         />
         <div className="mb-4">
           <ResponsiveManagementFilters modalTitle="Salary period" triggerLabel="Filters">
-          <ManagementFilterPanel>
-            <ManagementFilterField label="From date">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="From date"
-              />
-            </ManagementFilterField>
-            <ManagementFilterField label="To date">
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="To date"
-              />
-            </ManagementFilterField>
-            <ManagementFilterField label="Period">
-              <Button type="button" onClick={() => void loadRows()} loading={loading}>
-                Apply period
-              </Button>
-            </ManagementFilterField>
-          </ManagementFilterPanel>
+            <ManagementFilterPanel>
+              <ManagementFilterField label="From date">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="From date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="To date">
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="To date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Period">
+                <Button type="button" onClick={() => void loadRows()} loading={loading}>
+                  Apply period
+                </Button>
+              </ManagementFilterField>
+            </ManagementFilterPanel>
           </ResponsiveManagementFilters>
         </div>
 
@@ -197,7 +213,7 @@ function SalaryManagementPage() {
               header: "Rules",
               className: "md:min-w-[14rem]",
               render: (r: StaffEarnings) => (
-                <div className="w-full min-w-0 max-w-full text-left">
+                <div className="rule-card-mobile-trigger w-full min-w-0 max-w-full text-left">
                   <div className="grid w-full min-w-0 gap-2 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/60 to-yellow-50 p-3 shadow-sm">
                     <label className="text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
                       Payout per qty
