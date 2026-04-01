@@ -12,7 +12,6 @@ import {
   Button,
   Table,
   Badge,
-  ResponsiveManagementFilters,
   MANAGEMENT_NATIVE_CONTROL_CLASS,
 } from "../components/ui";
 import {
@@ -319,16 +318,14 @@ function AdminDashboardPage() {
       />
       {!isMdUp && (
         <div className="mb-4">
-          <ResponsiveManagementFilters modalTitle="Dashboard period" triggerLabel="Period">
-            <AdminDashboardPeriodControls
-              dateFilter={dateFilter}
-              setDateFilter={setDateFilter}
-              customStart={customStart}
-              setCustomStart={setCustomStart}
-              customEnd={customEnd}
-              setCustomEnd={setCustomEnd}
-            />
-          </ResponsiveManagementFilters>
+          <AdminDashboardPeriodControls
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            customStart={customStart}
+            setCustomStart={setCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={setCustomEnd}
+          />
         </div>
       )}
 

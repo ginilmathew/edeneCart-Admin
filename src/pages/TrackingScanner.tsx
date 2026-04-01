@@ -30,6 +30,57 @@ function normalizeTrackingId(raw: string): string {
   return raw.replace(/\s+/g, " ").trim();
 }
 
+/** Compare tracking ids case-insensitively after normalizing spaces. */
+function trackingKey(tid: string): string {
+  return normalizeTrackingId(tid).toUpperCase();
+}
+
+/**
+ * Ensures tracking is globally unique: not already in the queue and not saved on
+ * another order line. Lines we are assigning in this same row are allowed to
+ * already show that id only if they are the only ones (re-save same order).
+ */
+function trackingUniqueError(
+  tid: string,
+  orders: Order[],
+  queue: QueueRow[],
+  lineIdsForNewRow: string[]
+): string | null {
+  const key = trackingKey(tid);
+  if (!key) return "Tracking id is empty.";
+
+  const targetLines = lineIdsForNewRow
+    .map((id) => orders.find((o) => o.id === id))
+    .filter((o): o is Order => o != null);
+  if (
+    targetLines.length > 0 &&
+    targetLines.every(
+      (l) =>
+        normalizeTrackingId(l.trackingId ?? "").length > 0 &&
+        trackingKey(l.trackingId ?? "") === key
+    )
+  ) {
+    return "This order already has this tracking id.";
+  }
+
+  if (queue.some((r) => trackingKey(r.trackingId) === key)) {
+    return "This tracking id is already in the queue. Each tracking id must be unique.";
+  }
+
+  const allowedLineIds = new Set(lineIdsForNewRow);
+  const hit = orders.find(
+    (o) =>
+      normalizeTrackingId(o.trackingId ?? "").length > 0 &&
+      trackingKey(o.trackingId ?? "") === key &&
+      !allowedLineIds.has(o.id)
+  );
+  if (hit) {
+    return `This tracking id is already used on order ${hit.orderId}. Each tracking id must be unique.`;
+  }
+
+  return null;
+}
+
 function matchingLinesForDisplayOrderId(displayId: string, orders: Order[]): Order[] {
   const want = displayId.trim().toUpperCase();
   return orders.filter((o) => o.orderId.trim().toUpperCase() === want);
@@ -82,6 +133,8 @@ function TrackingScannerPage() {
     t: 0,
     text: "",
   });
+  const queueRef = useRef<QueueRow[]>([]);
+  queueRef.current = queue;
 
   const dedupeDecode = useCallback((text: string): boolean => {
     const now = Date.now();
@@ -110,16 +163,22 @@ function TrackingScannerPage() {
         return;
       }
       const lineIds = lines.map((o) => o.id);
+      const prevQ = queueRef.current;
+      const uniqErr = trackingUniqueError(tid, orders, prevQ, lineIds);
+      if (uniqErr) {
+        toast.error(uniqErr);
+        return;
+      }
+      const newRow: QueueRow = {
+        key: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        orderId: oid,
+        trackingId: tid,
+        lineIds,
+      };
+      const nextQ = [...prevQ, newRow];
+      queueRef.current = nextQ;
+      setQueue(nextQ);
       toast.success(`Queued ${oid}`);
-      setQueue((q) => [
-        ...q,
-        {
-          key: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          orderId: oid,
-          trackingId: tid,
-          lineIds,
-        },
-      ]);
       setDraftOrderId(null);
       setScanPhase(null);
     },
@@ -200,6 +259,32 @@ function TrackingScannerPage() {
         }
       }
     }
+
+    const allUpdatingLineIds = new Set(queue.flatMap((r) => r.lineIds));
+    const seenTrackingKeys = new Set<string>();
+    for (const row of queue) {
+      const k = trackingKey(row.trackingId);
+      if (seenTrackingKeys.has(k)) {
+        toast.error(
+          "The queue lists the same tracking id more than once. Keep each id unique."
+        );
+        return;
+      }
+      seenTrackingKeys.add(k);
+      const conflict = orders.find(
+        (o) =>
+          normalizeTrackingId(o.trackingId ?? "").length > 0 &&
+          trackingKey(o.trackingId ?? "") === k &&
+          !allUpdatingLineIds.has(o.id)
+      );
+      if (conflict) {
+        toast.error(
+          `Tracking id is already used on order ${conflict.orderId}. Refresh orders or remove the duplicate row.`
+        );
+        return;
+      }
+    }
+
     setSaveBusy(true);
     try {
       for (const row of queue) {
@@ -277,7 +362,7 @@ function TrackingScannerPage() {
       <Card>
         <CardHeader
           title="Tracking scan"
-          subtitle="Only orders in Pending status can be scanned. After saving, each line gets the tracking id and moves to Packed (picked up for shipping). Camera needs HTTPS on phones (or localhost)."
+          subtitle="Only Pending orders. Each tracking id must be unique (not already saved on another order or twice in the queue). Save sets Packed. Camera needs HTTPS on phones (or localhost)."
         />
         <div className="space-y-4 px-4 pb-4 md:px-6 md:pb-6">
           {draftOrderId && scanPhase === "tracking" && (
@@ -433,7 +518,7 @@ function TrackingScannerPage() {
       <Card>
         <CardHeader
           title="Queue"
-          subtitle={`${queue.length} package(s). Save applies tracking and sets status to Packed for every matching line.`}
+          subtitle={`${queue.length} package(s). Duplicate tracking ids are blocked. Save applies tracking and sets status to Packed for every matching line.`}
         />
         <div className="space-y-3 px-4 pb-4 md:px-6 md:pb-6">
           <Table<QueueRow>
