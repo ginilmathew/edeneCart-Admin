@@ -18,7 +18,24 @@ import { selectCategories, fetchCategories } from "../store/categoriesSlice";
 import { Card, CardHeader, Button, Table, Modal, Input, Tooltip, Select } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
-import type { DeliveryMethod, Product, ProductDeliveryFee } from "../types";
+import type {
+  DeliveryMethod,
+  DeliveryMethodAppliesTo,
+  Product,
+  ProductDeliveryFee,
+} from "../types";
+
+const APPLIES_LABEL: Record<DeliveryMethodAppliesTo, string> = {
+  both: "Prepaid & COD",
+  prepaid: "Prepaid only",
+  cod: "COD only",
+};
+
+const appliesToSelectOptions: SelectOption[] = [
+  { value: "both", label: "Prepaid and COD" },
+  { value: "prepaid", label: "Prepaid only" },
+  { value: "cod", label: "COD only" },
+];
 
 const UNCATEGORIZED_KEY = "__uncategorized__";
 
@@ -38,6 +55,8 @@ function DeliveryManagementPage() {
   const [methodName, setMethodName] = useState("");
   const [methodDesc, setMethodDesc] = useState("");
   const [methodSort, setMethodSort] = useState("0");
+  const [methodAppliesTo, setMethodAppliesTo] =
+    useState<DeliveryMethodAppliesTo>("both");
 
   const [feeModal, setFeeModal] = useState(false);
   const [feeEditingId, setFeeEditingId] = useState<string | null>(null);
@@ -107,6 +126,7 @@ function DeliveryManagementPage() {
     setMethodName("");
     setMethodDesc("");
     setMethodSort("0");
+    setMethodAppliesTo("both");
     setMethodModal(true);
   }, []);
 
@@ -115,6 +135,7 @@ function DeliveryManagementPage() {
     setMethodName(m.name);
     setMethodDesc(m.description ?? "");
     setMethodSort(String(m.sortOrder ?? 0));
+    setMethodAppliesTo(m.appliesToOrderType ?? "both");
     setMethodModal(true);
   }, []);
 
@@ -137,6 +158,7 @@ function DeliveryManagementPage() {
               name: methodName.trim(),
               description: methodDesc.trim() || undefined,
               sortOrder: sort,
+              appliesToOrderType: methodAppliesTo,
             },
           })
         ).unwrap();
@@ -147,6 +169,7 @@ function DeliveryManagementPage() {
             name: methodName.trim(),
             description: methodDesc.trim() || undefined,
             sortOrder: sort,
+            appliesToOrderType: methodAppliesTo,
           })
         ).unwrap();
         toast.success("Delivery type created");
@@ -155,7 +178,14 @@ function DeliveryManagementPage() {
     } catch (err) {
       toast.fromError(err, "Failed to save");
     }
-  }, [methodEditingId, methodName, methodDesc, methodSort, dispatch]);
+  }, [
+    methodEditingId,
+    methodName,
+    methodDesc,
+    methodSort,
+    methodAppliesTo,
+    dispatch,
+  ]);
 
   const removeMethod = useCallback(
     async (id: string) => {
@@ -267,6 +297,12 @@ function DeliveryManagementPage() {
       { key: "sortOrder", header: "Order", render: (r: DeliveryMethod) => r.sortOrder },
       { key: "name", header: "Name" },
       {
+        key: "appliesToOrderType",
+        header: "Order type",
+        render: (r: DeliveryMethod) =>
+          APPLIES_LABEL[r.appliesToOrderType ?? "both"],
+      },
+      {
         key: "description",
         header: "Description",
         render: (r: DeliveryMethod) => r.description?.trim() || "—",
@@ -322,7 +358,13 @@ function DeliveryManagementPage() {
       {
         key: "method",
         header: "Delivery",
-        render: (r: ProductDeliveryFee) => r.deliveryMethodName ?? r.deliveryMethodId,
+        render: (r: ProductDeliveryFee) => {
+          const m = methods.find((x) => x.id === r.deliveryMethodId);
+          const name = r.deliveryMethodName ?? m?.name ?? r.deliveryMethodId;
+          const applies = m?.appliesToOrderType ?? "both";
+          if (applies === "both") return name;
+          return `${name} (${APPLIES_LABEL[applies]})`;
+        },
       },
       {
         key: "fee",
@@ -358,7 +400,7 @@ function DeliveryManagementPage() {
         ),
       },
     ],
-    [openEditFee, removeFee, products, categories]
+    [openEditFee, removeFee, products, categories, methods]
   );
 
   return (
@@ -425,6 +467,17 @@ function DeliveryManagementPage() {
             value={methodSort}
             onChange={(e) => setMethodSort(e.target.value)}
           />
+          <Select
+            label="Applies to"
+            options={appliesToSelectOptions}
+            value={methodAppliesTo}
+            onChange={(e) =>
+              setMethodAppliesTo(e.target.value as DeliveryMethodAppliesTo)
+            }
+          />
+          <p className="text-[11px] text-text-muted leading-relaxed">
+            Create Order only lists delivery options that match the selected payment type (Prepaid vs COD).
+          </p>
           <div className="flex gap-2">
             <Button type="button" onClick={() => void saveMethod()}>
               Save

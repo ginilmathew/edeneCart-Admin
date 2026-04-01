@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { DeliveryMethod, ProductDeliveryFee } from "../types";
+import type {
+  DeliveryMethod,
+  DeliveryMethodAppliesTo,
+  ProductDeliveryFee,
+} from "../types";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 
@@ -17,7 +21,12 @@ export const fetchDeliveryMethods = createAsyncThunk(
 export const createDeliveryMethod = createAsyncThunk(
   "deliveries/createMethod",
   async (
-    payload: { name: string; description?: string; sortOrder?: number },
+    payload: {
+      name: string;
+      description?: string;
+      sortOrder?: number;
+      appliesToOrderType?: DeliveryMethodAppliesTo;
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -36,7 +45,9 @@ export const updateDeliveryMethod = createAsyncThunk(
       patch,
     }: {
       id: string;
-      patch: Partial<Pick<DeliveryMethod, "name" | "description" | "sortOrder">>;
+      patch: Partial<
+        Pick<DeliveryMethod, "name" | "description" | "sortOrder" | "appliesToOrderType">
+      >;
     },
     { rejectWithValue }
   ) => {

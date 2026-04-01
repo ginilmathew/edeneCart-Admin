@@ -127,13 +127,19 @@ function CreateOrderPage() {
       setSelectedDeliveryMethodId("");
       return;
     }
+    if (form.orderType !== "prepaid" && form.orderType !== "cod") {
+      setDeliveryOptions([]);
+      setSelectedDeliveryMethodId("");
+      return;
+    }
     const ids = cartProductIdsKey.split(",").filter(Boolean);
     let cancelled = false;
     setDeliveryLoading(true);
     const qs = ids.join(",");
+    const ot = encodeURIComponent(form.orderType);
     void api
       .get<DeliveryOptionForCart[]>(
-        `${endpoints.productDeliveryFeesForCart}?productIds=${encodeURIComponent(qs)}`
+        `${endpoints.productDeliveryFeesForCart}?productIds=${encodeURIComponent(qs)}&orderType=${ot}`
       )
       .then((data) => {
         if (cancelled) return;
@@ -155,7 +161,7 @@ function CreateOrderPage() {
     return () => {
       cancelled = true;
     };
-  }, [cartProductIdsKey]);
+  }, [cartProductIdsKey, form.orderType]);
 
   useEffect(() => {
     if (phoneTrim.length === 10) return;
@@ -860,9 +866,11 @@ function CreateOrderPage() {
                 ? "Enter 10-digit phone above to enable delivery options."
                 : !cartProductIdsKey
                   ? "Select products above first."
-                  : deliveryOptions.length === 0
-                    ? "No delivery options: add per-product fee under Admin → Delivery."
-                    : "Delivery is calculated based on selected product quantities."}
+                  : form.orderType !== "prepaid" && form.orderType !== "cod"
+                    ? "Choose Prepaid or COD above — only matching delivery types are listed."
+                    : deliveryOptions.length === 0
+                      ? "No delivery options for this payment type: add fees under Admin → Delivery (each type can be Prepaid-only, COD-only, or both)."
+                      : "Delivery is calculated based on selected product quantities."}
             </p>
           </section>
           <section>
