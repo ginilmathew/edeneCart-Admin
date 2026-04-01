@@ -15,6 +15,7 @@ import {
   Select,
   ManagementFilterPanel,
   ManagementFilterField,
+  ResponsiveManagementFilters,
 } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
@@ -317,6 +318,7 @@ function ProductManagementPage() {
           }
         />
         <div className="mb-4">
+          <ResponsiveManagementFilters modalTitle="Product filters" triggerLabel="Filters">
           <ManagementFilterPanel>
             <ManagementFilterField label="Category" className="lg:col-span-2 xl:col-span-2">
               <Select
@@ -329,6 +331,7 @@ function ProductManagementPage() {
               />
             </ManagementFilterField>
           </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
         </div>
         <Table
           columns={columns}

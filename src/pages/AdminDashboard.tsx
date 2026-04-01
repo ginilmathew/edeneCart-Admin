@@ -1,11 +1,20 @@
 import { memo, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useAppSelector } from "../store/hooks";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { selectOrders } from "../store/ordersSlice";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts } from "../store/productsSlice";
 import { selectSettings } from "../store/settingsSlice";
-import { Card, CardHeader, Button, Table, Badge } from "../components/ui";
+import {
+  Card,
+  CardHeader,
+  Button,
+  Table,
+  Badge,
+  ResponsiveManagementFilters,
+  MANAGEMENT_NATIVE_CONTROL_CLASS,
+} from "../components/ui";
 import {
   isAtOrBelowStockThreshold,
   stockStatusLabel,
@@ -18,6 +27,105 @@ import {
   formatDate,
   orderLineProductLabel,
 } from "../lib/orderUtils";
+
+type DashboardDateFilter = "today" | "week" | "month" | "year" | "custom";
+
+const AdminDashboardPeriodControls = memo(function AdminDashboardPeriodControls({
+  dateFilter,
+  setDateFilter,
+  customStart,
+  setCustomStart,
+  customEnd,
+  setCustomEnd,
+}: {
+  dateFilter: DashboardDateFilter;
+  setDateFilter: (v: DashboardDateFilter) => void;
+  customStart: string;
+  setCustomStart: (v: string) => void;
+  customEnd: string;
+  setCustomEnd: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex w-full max-w-full flex-wrap items-center overflow-hidden rounded-md border border-border bg-surface">
+        <button
+          type="button"
+          onClick={() => setDateFilter("today")}
+          className={`px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
+            dateFilter === "today"
+              ? "bg-primary font-medium text-white"
+              : "text-text-muted hover:text-text-heading"
+          }`}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          onClick={() => setDateFilter("week")}
+          className={`border-l border-border px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
+            dateFilter === "week"
+              ? "bg-primary font-medium text-white"
+              : "text-text-muted hover:text-text-heading"
+          }`}
+        >
+          Week
+        </button>
+        <button
+          type="button"
+          onClick={() => setDateFilter("month")}
+          className={`border-l border-border px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
+            dateFilter === "month"
+              ? "bg-primary font-medium text-white"
+              : "text-text-muted hover:text-text-heading"
+          }`}
+        >
+          Month
+        </button>
+        <button
+          type="button"
+          onClick={() => setDateFilter("year")}
+          className={`border-l border-border px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
+            dateFilter === "year"
+              ? "bg-primary font-medium text-white"
+              : "text-text-muted hover:text-text-heading"
+          }`}
+        >
+          Year
+        </button>
+        <button
+          type="button"
+          onClick={() => setDateFilter("custom")}
+          className={`border-l border-border px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
+            dateFilter === "custom"
+              ? "bg-primary font-medium text-white"
+              : "text-text-muted hover:text-text-heading"
+          }`}
+        >
+          Custom
+        </button>
+      </div>
+      {dateFilter === "custom" && (
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <input
+            type="date"
+            value={customStart}
+            onChange={(e) => setCustomStart(e.target.value)}
+            className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+            aria-label="Custom range start"
+          />
+          <span className="hidden text-text-muted sm:inline">–</span>
+          <input
+            type="date"
+            value={customEnd}
+            onChange={(e) => setCustomEnd(e.target.value)}
+            className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+            aria-label="Custom range end"
+          />
+        </div>
+      )}
+    </div>
+  );
+});
 
 function AdminDashboardPage() {
   const orders = useAppSelector(selectOrders);
@@ -34,9 +142,8 @@ function AdminDashboardPage() {
       .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) || a.name.localeCompare(b.name));
   }, [products, lowStockThreshold]);
 
-  const [dateFilter, setDateFilter] = useState<
-    "today" | "week" | "month" | "year" | "custom"
-  >("week");
+  const [dateFilter, setDateFilter] = useState<DashboardDateFilter>("week");
+  const isMdUp = useMediaQuery("(min-width: 768px)");
   const [customStart, setCustomStart] = useState<string>("");
   const [customEnd, setCustomEnd] = useState<string>("");
 
@@ -196,84 +303,34 @@ function AdminDashboardPage() {
             : `Period: ${formatDate(activeStart.toISOString())} – ${formatDate(activeEnd.toISOString())}`
         }
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap items-center rounded-md border border-border overflow-hidden bg-surface">
-              <button
-                type="button"
-                onClick={() => setDateFilter("today")}
-                className={`px-2.5 py-1.5 text-sm transition-colors md:px-3 ${
-                  dateFilter === "today"
-                    ? "bg-primary text-white font-medium"
-                    : "text-text-muted hover:text-text-heading"
-                }`}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter("week")}
-                className={`px-2.5 py-1.5 text-sm border-l border-border transition-colors md:px-3 ${
-                  dateFilter === "week"
-                    ? "bg-primary text-white font-medium"
-                    : "text-text-muted hover:text-text-heading"
-                }`}
-              >
-                Week
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter("month")}
-                className={`px-2.5 py-1.5 text-sm border-l border-border transition-colors md:px-3 ${
-                  dateFilter === "month"
-                    ? "bg-primary text-white font-medium"
-                    : "text-text-muted hover:text-text-heading"
-                }`}
-              >
-                Month
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter("year")}
-                className={`px-2.5 py-1.5 text-sm border-l border-border transition-colors md:px-3 ${
-                  dateFilter === "year"
-                    ? "bg-primary text-white font-medium"
-                    : "text-text-muted hover:text-text-heading"
-                }`}
-              >
-                Year
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter("custom")}
-                className={`px-2.5 py-1.5 text-sm border-l border-border transition-colors md:px-3 ${
-                  dateFilter === "custom"
-                    ? "bg-primary text-white font-medium"
-                    : "text-text-muted hover:text-text-heading"
-                }`}
-              >
-                Custom
-              </button>
+          isMdUp ? (
+            <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
+              <AdminDashboardPeriodControls
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+                customStart={customStart}
+                setCustomStart={setCustomStart}
+                customEnd={customEnd}
+                setCustomEnd={setCustomEnd}
+              />
             </div>
-            {dateFilter === "custom" && (
-              <div className="flex flex-wrap items-center gap-2 ml-1">
-                <input
-                  type="date"
-                  value={customStart}
-                  onChange={(e) => setCustomStart(e.target.value)}
-                  className="rounded-md border border-border bg-surface px-2 py-1 text-sm text-text-heading outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-                <span className="text-text-muted text-sm">-</span>
-                <input
-                  type="date"
-                  value={customEnd}
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                  className="rounded-md border border-border bg-surface px-2 py-1 text-sm text-text-heading outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-              </div>
-            )}
-          </div>
+          ) : null
         }
       />
+      {!isMdUp && (
+        <div className="mb-4">
+          <ResponsiveManagementFilters modalTitle="Dashboard period" triggerLabel="Period">
+            <AdminDashboardPeriodControls
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
+              customStart={customStart}
+              setCustomStart={setCustomStart}
+              customEnd={customEnd}
+              setCustomEnd={setCustomEnd}
+            />
+          </ResponsiveManagementFilters>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

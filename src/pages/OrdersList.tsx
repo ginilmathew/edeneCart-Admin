@@ -4,7 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import { useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
 import { selectProducts } from "../store/productsSlice";
-import { Card, CardHeader, Button, Table, Badge, Select } from "../components/ui";
+import {
+  Card,
+  CardHeader,
+  Button,
+  Table,
+  Badge,
+  Select,
+  ManagementFilterPanel,
+  ManagementFilterField,
+  ResponsiveManagementFilters,
+  MANAGEMENT_NATIVE_CONTROL_CLASS,
+} from "../components/ui";
 import type { Order } from "../types";
 import { formatDate, orderLineProductLabel } from "../lib/orderUtils";
 import type { SelectOption } from "../components/ui/Select";
@@ -209,47 +220,66 @@ function OrdersListPage() {
             )
           }
         />
-        <div className="mb-4 flex flex-wrap items-end gap-3">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search customer or phone"
-            className="h-10 w-60 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Search by customer name or phone"
-          />
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="h-10 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            title="From Date"
-          />
-          <span className="text-text-muted text-sm font-medium">to</span>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="h-10 rounded-[var(--radius-md)] border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            title="To Date"
-          />
-          <Select
-            options={productOptions}
-            value={productFilter}
-            onChange={(e) => setProductFilter(e.target.value)}
-            className="w-40"
-            fullWidth={false}
-          />
-          <Select
-            options={typeOptions}
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-32"
-            fullWidth={false}
-          />
-          <Button variant="secondary" size="sm" onClick={applyFilters}>
-            Apply
-          </Button>
+        <div className="mb-4">
+          <ResponsiveManagementFilters modalTitle="Order filters" triggerLabel="Filters">
+            <ManagementFilterPanel>
+              <ManagementFilterField label="Search" className="lg:col-span-2">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Customer name or phone"
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Search by customer name or phone"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="From date">
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  title="From date"
+                  aria-label="From date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="To date">
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  title="To date"
+                  aria-label="To date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Product">
+                <Select
+                  label=""
+                  fullWidth
+                  options={productOptions}
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  aria-label="Filter by product"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Payment type">
+                <Select
+                  label=""
+                  fullWidth
+                  options={typeOptions}
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  aria-label="Filter by payment type"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Apply">
+                <Button variant="secondary" size="sm" type="button" onClick={applyFilters}>
+                  Apply
+                </Button>
+              </ManagementFilterField>
+            </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
         </div>
         <Table
           columns={columns}

@@ -6,7 +6,18 @@ import { selectStaffPositions, fetchStaffPositions } from "../store/staffPositio
 import { selectAssignedNumbers, fetchAssignedNumbers } from "../store/assignedNumbersSlice";
 import { selectOrders } from "../store/ordersSlice";
 import { selectProducts } from "../store/productsSlice";
-import { Card, CardHeader, Table, Select, Button, Modal } from "../components/ui";
+import {
+  Card,
+  CardHeader,
+  Table,
+  Select,
+  Button,
+  Modal,
+  ManagementFilterPanel,
+  ManagementFilterField,
+  ResponsiveManagementFilters,
+  MANAGEMENT_NATIVE_CONTROL_CLASS,
+} from "../components/ui";
 import { staffJobRoleLabel } from "../lib/staffJobRoles";
 import { toast } from "../lib/toast";
 import {
@@ -334,25 +345,40 @@ function StaffProfilePage() {
 
       <Card>
         <CardHeader title="Orders" subtitle="All orders by this staff" />
-        <div className="mb-4 flex flex-wrap gap-3">
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <Select
-            options={productOptions}
-            value={productFilter}
-            onChange={(e) => setProductFilter(e.target.value)}
-            className="w-40"
-          />
-          <Select
-            options={typeOptions}
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-32"
-          />
+        <div className="mb-4">
+          <ResponsiveManagementFilters modalTitle="Order filters" triggerLabel="Filters">
+            <ManagementFilterPanel>
+              <ManagementFilterField label="Order date">
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Filter by order date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Product">
+                <Select
+                  label=""
+                  fullWidth
+                  options={productOptions}
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  aria-label="Filter by product"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Payment type">
+                <Select
+                  label=""
+                  fullWidth
+                  options={typeOptions}
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  aria-label="Filter by payment type"
+                />
+              </ManagementFilterField>
+            </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
         </div>
         <Table
           columns={columns}

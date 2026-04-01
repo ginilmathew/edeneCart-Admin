@@ -5,13 +5,16 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
+  /** Pinned below scrollable body (e.g. primary action on mobile filter sheets). */
+  footer?: React.ReactNode;
 }
 
 const sizeClasses = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
+  xl: "max-w-4xl",
 };
 
 function ModalComponent({
@@ -20,6 +23,7 @@ function ModalComponent({
   title,
   children,
   size = "md",
+  footer,
 }: ModalProps) {
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -55,12 +59,12 @@ function ModalComponent({
       />
       <div
         className={
-          "relative m-0 max-h-[min(90dvh,100%-1rem)] w-full overflow-hidden rounded-t-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] sm:m-auto sm:max-h-[min(85dvh,40rem)] sm:rounded-[var(--radius-2xl)] " +
+          "relative m-0 flex max-h-[min(92dvh,calc(100vh-0.5rem))] w-full flex-col overflow-hidden rounded-t-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] sm:m-auto sm:max-h-[min(88dvh,42rem)] sm:rounded-[var(--radius-2xl)] " +
           sizeClasses[size]
         }
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-3 sm:gap-3 sm:px-6 sm:py-4">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-3 sm:gap-3 sm:px-6 sm:py-4">
           <h3
             id="modal-title"
             className="min-w-0 flex-1 text-sm font-semibold tracking-tight text-text-heading sm:text-base md:text-lg"
@@ -76,8 +80,15 @@ function ModalComponent({
             <span className="text-xl leading-none sm:text-2xl">&times;</span>
           </button>
         </div>
-        <div className="max-h-[calc(min(90dvh,100vh)-4.5rem)] overflow-y-auto overscroll-contain p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:max-h-[calc(min(85dvh,40rem)-5rem)] sm:p-6 sm:pb-6">
-          {children}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6 sm:pb-6">
+            {children}
+          </div>
+          {footer ? (
+            <div className="shrink-0 border-t border-border bg-surface px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-4">
+              {footer}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

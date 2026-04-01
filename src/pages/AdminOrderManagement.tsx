@@ -24,6 +24,7 @@ import {
   ManagementFilterPanel,
   ManagementFilterField,
   MANAGEMENT_NATIVE_CONTROL_CLASS,
+  ResponsiveManagementFilters,
 } from "../components/ui";
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
@@ -795,6 +796,7 @@ function AdminOrderManagementPage() {
         // subtitle="Filter by date (server), staff, status, product, and order type. Staff-entered discounts appear in the Discount column."
         />
         <div className="mb-4 space-y-2">
+          <ResponsiveManagementFilters modalTitle="Order filters" triggerLabel="Filters">
           <ManagementFilterPanel>
             <ManagementFilterField label="From date">
               <input
@@ -904,6 +906,7 @@ function AdminOrderManagementPage() {
               </Button>
             </ManagementFilterField>
           </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
           {(appliedDateFrom || appliedDateTo) && (
             <p className="text-xs text-text-muted">
               Showing orders

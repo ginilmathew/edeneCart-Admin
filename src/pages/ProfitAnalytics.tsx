@@ -20,6 +20,7 @@ import {
   ManagementFilterPanel,
   ManagementFilterField,
   MANAGEMENT_NATIVE_CONTROL_CLASS,
+  ResponsiveManagementFilters,
 } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
 import { getWeekRange, formatCurrency } from "../lib/orderUtils";
@@ -243,6 +244,7 @@ function ProfitAnalyticsPage() {
       <Card>
         <CardHeader title="Profit analytics" />
         <div className="border-b border-border-subtle pb-4">
+          <ResponsiveManagementFilters modalTitle="Profit filters" triggerLabel="Filters">
           <ManagementFilterPanel>
             <ManagementFilterField
               label="Quick presets"
@@ -319,6 +321,7 @@ function ProfitAnalyticsPage() {
               </Button>
             </ManagementFilterField>
           </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
         </div>
 
         {loading && !data ? (

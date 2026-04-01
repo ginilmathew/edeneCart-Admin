@@ -7,6 +7,7 @@ import {
   ManagementFilterPanel,
   ManagementFilterField,
   MANAGEMENT_NATIVE_CONTROL_CLASS,
+  ResponsiveManagementFilters,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectStaff, updateStaff, fetchStaff } from "../store/staffSlice";
@@ -133,6 +134,7 @@ function SalaryManagementPage() {
         // subtitle="Base payout + cumulative milestone bonuses for each staff."
         />
         <div className="mb-4">
+          <ResponsiveManagementFilters modalTitle="Salary period" triggerLabel="Filters">
           <ManagementFilterPanel>
             <ManagementFilterField label="From date">
               <input
@@ -158,6 +160,7 @@ function SalaryManagementPage() {
               </Button>
             </ManagementFilterField>
           </ManagementFilterPanel>
+          </ResponsiveManagementFilters>
         </div>
 
         <Table

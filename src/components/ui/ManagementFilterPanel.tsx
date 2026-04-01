@@ -1,4 +1,9 @@
-import { memo, type ReactNode } from "react";
+import {
+  createContext,
+  memo,
+  useContext,
+  type ReactNode,
+} from "react";
 
 /** Native `<select>` / `<input type="date">` — full width, consistent height with `Select` / `Input`. */
 export const MANAGEMENT_NATIVE_CONTROL_CLASS =
@@ -10,6 +15,25 @@ const panelClass =
 const gridClass =
   "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 [&>*]:min-w-0";
 
+const FilterPanelLayoutContext = createContext<{ embedded: boolean }>({
+  embedded: false,
+});
+
+/** Use inside mobile filter modal so the panel is grid-only (no outer card). */
+export function ManagementFilterLayoutProvider({
+  embedded,
+  children,
+}: {
+  embedded: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <FilterPanelLayoutContext.Provider value={{ embedded }}>
+      {children}
+    </FilterPanelLayoutContext.Provider>
+  );
+}
+
 interface ManagementFilterPanelProps {
   children: ReactNode;
   className?: string;
@@ -20,6 +44,10 @@ export const ManagementFilterPanel = memo(function ManagementFilterPanel({
   children,
   className = "",
 }: ManagementFilterPanelProps) {
+  const { embedded } = useContext(FilterPanelLayoutContext);
+  if (embedded) {
+    return <div className={`${gridClass} ${className}`.trim()}>{children}</div>;
+  }
   return (
     <div className={`${panelClass} ${className}`.trim()}>
       <div className={gridClass}>{children}</div>
