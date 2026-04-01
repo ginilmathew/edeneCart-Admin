@@ -15,15 +15,6 @@ export function getWeekRange(date: Date): { start: Date; end: Date } {
   return { start, end };
 }
 
-/** Calendar week immediately after the week containing `date` (Mon–Sun). */
-export function getNextWeekRange(date: Date): { start: Date; end: Date } {
-  const thisWeek = getWeekRange(date);
-  const anchor = new Date(thisWeek.end);
-  anchor.setDate(anchor.getDate() + 1);
-  anchor.setHours(12, 0, 0, 0);
-  return getWeekRange(anchor);
-}
-
 export function isInWeek(orderDate: string, weekStart: Date, weekEnd: Date): boolean {
   const d = new Date(orderDate);
   return d >= weekStart && d <= weekEnd;
