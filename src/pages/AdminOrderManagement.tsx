@@ -1182,9 +1182,9 @@ function AdminOrderManagementPage() {
                     >
                       Apply discount
                     </Button>
-                    <p className="text-xs text-text-muted sm:flex-1">
+                    {/* <p className="text-xs text-text-muted sm:flex-1">
                       Clear the field or set 0 to remove discount. Total is recalculated from the product catalog price.
-                    </p>
+                    </p> */}
                   </dd>
                 </div>
               ) : null}
