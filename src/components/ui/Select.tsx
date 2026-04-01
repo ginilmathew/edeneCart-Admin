@@ -35,7 +35,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           className={[
             shouldFullWidth ? "h-9 w-full md:h-10" : "h-9 w-auto min-w-[8rem] md:h-10 md:min-w-[9rem]",
-            "rounded-[var(--radius-md)] border border-border bg-surface px-2.5 text-xs text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 md:px-3 md:text-sm",
+            "rounded-[var(--radius-md)] border border-border bg-surface px-2.5 text-xs text-text shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0 md:px-3 md:text-sm",
             error ? "border-error" : "border-border",
             className,
           ]

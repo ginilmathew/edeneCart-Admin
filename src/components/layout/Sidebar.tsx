@@ -109,9 +109,11 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
   const filtered = items.filter((i) => i.roles.includes(role));
 
   const linkBase =
-    "flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] px-2.5 py-1.5 text-xs font-medium transition-colors max-md:gap-2.5 md:min-h-0 md:gap-3 md:px-3 md:py-2 md:text-sm ";
-  const linkActive = "bg-sidebar-hover text-sidebar-text-active";
-  const linkInactive = "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active";
+    "flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] border-l-2 border-transparent py-1.5 pl-2 pr-2.5 text-xs font-medium transition-colors max-md:gap-2.5 md:min-h-0 md:gap-3 md:py-2 md:pl-2.5 md:pr-3 md:text-sm ";
+  const linkActive =
+    "border-l-sidebar-accent bg-white/[0.08] text-sidebar-text-active md:bg-white/[0.06]";
+  const linkInactive =
+    "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active";
 
 
 
@@ -126,11 +128,17 @@ function SidebarComponent({ role, onLogout, mobileOpen, setMobileOpen }: Sidebar
       }
     >
       <div
-        className={`flex h-14 shrink-0 items-center border-b border-sidebar-hover px-2 pl-[max(0.5rem,env(safe-area-inset-left))] ${collapsed ? "md:justify-center justify-between" : "justify-between"}`}
+        className={`flex h-14 shrink-0 items-center border-b border-sidebar-hover/80 px-2 pl-[max(0.5rem,env(safe-area-inset-left))] ${collapsed ? "md:justify-center justify-between" : "justify-between"}`}
       >
-        <div className={`flex items-center ${collapsed ? "md:hidden" : ""}`}>
-          <span className="truncate px-2 text-xs font-semibold text-sidebar-text-active md:text-sm">
-            Edenecart Admin
+        <div className={`flex min-w-0 items-center gap-2 px-1 ${collapsed ? "md:hidden" : ""}`}>
+          <span
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-sidebar-accent/20 text-xs font-bold text-sidebar-accent"
+            aria-hidden
+          >
+            E
+          </span>
+          <span className="truncate text-sm font-semibold tracking-tight text-sidebar-text-active">
+            Edenecart
           </span>
         </div>
 

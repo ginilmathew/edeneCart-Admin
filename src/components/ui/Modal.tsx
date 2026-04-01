@@ -49,13 +49,13 @@ function ModalComponent({
       aria-labelledby="modal-title"
     >
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
         className={
-          "relative m-0 max-h-[min(90dvh,100%-1rem)] w-full overflow-hidden rounded-t-[var(--radius-xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] ring-1 ring-slate-900/[0.06] sm:m-auto sm:max-h-[min(85dvh,40rem)] sm:rounded-[var(--radius-lg)] " +
+          "relative m-0 max-h-[min(90dvh,100%-1rem)] w-full overflow-hidden rounded-t-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] sm:m-auto sm:max-h-[min(85dvh,40rem)] sm:rounded-[var(--radius-2xl)] " +
           sizeClasses[size]
         }
         onClick={(e) => e.stopPropagation()}

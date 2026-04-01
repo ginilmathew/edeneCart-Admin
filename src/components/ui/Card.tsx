@@ -20,7 +20,7 @@ function CardComponent({
   return (
     <div
       className={[
-        "rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-card)] ring-1 ring-slate-900/[0.04]",
+        "rounded-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-card)]",
         paddingMap[padding],
         className,
       ]
@@ -49,11 +49,11 @@ export const CardHeader = memo(function CardHeader({
   return (
     <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-2 md:gap-3">
       <div className="min-w-0 flex-1">
-        <h2 className="text-sm font-semibold tracking-tight text-text-heading md:text-base lg:text-lg">
+        <h2 className="text-base font-semibold tracking-tight text-text-heading md:text-lg lg:text-xl">
           {title}
         </h2>
         {subtitle ? (
-          <p className="mt-1 text-xs text-text-muted leading-relaxed md:text-sm">
+          <p className="mt-1.5 text-sm text-text-muted leading-relaxed md:text-[0.9375rem]">
             {subtitle}
           </p>
         ) : null}

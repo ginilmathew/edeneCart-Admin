@@ -75,7 +75,7 @@ function TableComponent<T>({
     return (
       <div
         className={
-          "rounded-[var(--radius-lg)] border border-border bg-surface py-10 text-center text-xs text-text-muted ring-1 ring-slate-900/[0.04] md:py-14 md:text-sm " +
+          "rounded-[var(--radius-2xl)] border border-border bg-surface py-10 text-center text-xs text-text-muted shadow-[var(--shadow-card)] md:py-14 md:text-sm " +
           className
         }
       >
@@ -103,13 +103,13 @@ function TableComponent<T>({
     <div
       className={
         mobileCards
-          ? "hidden md:block overflow-x-auto overscroll-x-contain rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-card)] ring-1 ring-slate-900/[0.04] [-webkit-overflow-scrolling:touch]"
-          : "overflow-x-auto overscroll-x-contain rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-card)] ring-1 ring-slate-900/[0.04] [-webkit-overflow-scrolling:touch]"
+          ? "hidden md:block overflow-x-auto overscroll-x-contain rounded-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-card)] [-webkit-overflow-scrolling:touch]"
+          : "overflow-x-auto overscroll-x-contain rounded-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-card)] [-webkit-overflow-scrolling:touch]"
       }
     >
       <table className="w-full min-w-[600px] text-left text-xs md:text-sm">
         <thead>
-          <tr className="border-b border-border bg-surface-alt/80">
+          <tr className="border-b border-border bg-surface-alt">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -157,7 +157,7 @@ function TableComponent<T>({
         {data.map((row) => (
           <article
             key={keyExtractor(row)}
-            className="overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-card-lg)] ring-1 ring-slate-900/[0.06] [touch-action:manipulation]"
+            className="overflow-hidden rounded-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-card-lg)] [touch-action:manipulation]"
           >
             <div className="flex items-center gap-1.5 border-b border-border bg-surface px-2.5 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
               {headerStartColumns.length > 0 ? (

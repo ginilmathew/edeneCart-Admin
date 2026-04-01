@@ -12,15 +12,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-primary text-text-inverse hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    "bg-primary text-text-inverse shadow-sm hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface",
   secondary:
-    "bg-surface border border-border text-text hover:bg-surface-alt focus:ring-2 focus:ring-border-strong",
+    "border border-border-strong bg-surface text-text shadow-sm hover:bg-surface-alt focus:ring-2 focus:ring-border-strong focus:ring-offset-2 focus:ring-offset-surface",
   outline:
-    "border-2 border-primary text-primary hover:bg-primary-muted focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    "border-2 border-primary text-primary hover:bg-primary-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface",
   ghost:
-    "text-text hover:bg-surface-alt focus:ring-2 focus:ring-border",
+    "text-text hover:bg-surface-alt focus:ring-2 focus:ring-border focus:ring-offset-2 focus:ring-offset-surface",
   danger:
-    "bg-error text-text-inverse hover:bg-red-700 focus:ring-2 focus:ring-error focus:ring-offset-2",
+    "bg-error text-text-inverse shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-error focus:ring-offset-2 focus:ring-offset-surface",
 };
 
 const sizeClasses: Record<Size, string> = {

@@ -22,7 +22,7 @@ const TextareaComponent = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={[
-            "min-h-[72px] w-full rounded-[var(--radius-md)] border border-border bg-surface px-2.5 py-2 text-xs text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 sm:min-h-[80px] md:px-3 md:py-2.5 md:text-sm",
+            "min-h-[72px] w-full rounded-[var(--radius-md)] border border-border bg-surface px-2.5 py-2 text-xs text-text shadow-sm transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0 sm:min-h-[80px] md:px-3 md:py-2.5 md:text-sm",
             error ? "border-error" : "border-border",
             className,
           ]

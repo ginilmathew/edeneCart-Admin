@@ -25,7 +25,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={[
-              "h-9 w-full rounded-[var(--radius-md)] border border-border bg-surface text-xs text-text transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0 md:h-10 md:text-sm",
+              "h-9 w-full rounded-[var(--radius-md)] border border-border bg-surface text-xs text-text shadow-sm transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0 md:h-10 md:text-sm",
               endNode ? "pl-3 pr-10" : "px-3",
               error
                 ? "border-error focus:ring-error"

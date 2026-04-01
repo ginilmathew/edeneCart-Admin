@@ -1,102 +1,103 @@
 /**
- * Edenecart Admin – Design tokens
- * Use these in Tailwind: bg-primary, text-surface, font-sans-app, etc.
+ * Edenecart Admin — Zenith-style dashboard tokens (light CRM / admin shell).
+ * Inspired by modern admin templates such as [Zenith Dashboard](https://zenith-dashboard.pages.dev/crm).
  */
 @theme {
-  /* Primary palette – teal/slate professional */
-  --color-primary: #0d9488;
-  --color-primary-hover: #0f766e;
-  --color-primary-muted: #ccfbf1;
-  --color-primary-dark: #0f766e;
+  /* Primary — indigo accent (Zenith-like) */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-muted: #eef2ff;
+  --color-primary-dark: #3730a3;
 
-  /* Surface & background */
+  /* Surfaces — soft gray canvas, crisp cards */
   --color-surface: #ffffff;
-  --color-surface-alt: #f1f5f9;
+  --color-surface-alt: #f4f4f5;
   --color-surface-elevated: #ffffff;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-border: #e4e4e7;
+  --color-border-strong: #d4d4d8;
 
-  /* Text */
-  --color-text: #334155;
-  --color-text-muted: #64748b;
-  --color-text-heading: #0f172a;
-  --color-text-inverse: #ffffff;
+  /* Text — zinc scale */
+  --color-text: #3f3f46;
+  --color-text-muted: #71717a;
+  --color-text-heading: #18181b;
+  --color-text-inverse: #fafafa;
 
   /* Semantic */
-  --color-success: #059669;
-  --color-success-bg: #d1fae5;
-  --color-warning: #d97706;
-  --color-warning-bg: #fef3c7;
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-warning: #ca8a04;
+  --color-warning-bg: #fef9c3;
   --color-error: #dc2626;
   --color-error-bg: #fee2e2;
-  --color-info: #0284c7;
-  --color-info-bg: #e0f2fe;
+  --color-info: #2563eb;
+  --color-info-bg: #dbeafe;
 
-  /* Earnings & incentives */
+  /* Earnings & incentives (unchanged semantics for pages using these) */
   --color-earnings: #b45309;
   --color-earnings-bg: #fffbeb;
-  --color-bonus: #0d9488;
+  --color-bonus: #4f46e5;
 
-  /* Sidebar / nav */
-  --color-sidebar-bg: #0f172a;
-  --color-sidebar-text: #94a3b8;
-  --color-sidebar-text-active: #ffffff;
-  --color-sidebar-hover: #1e293b;
+  /* Sidebar — near-black zinc */
+  --color-sidebar-bg: #09090b;
+  --color-sidebar-text: #a1a1aa;
+  --color-sidebar-text-active: #fafafa;
+  --color-sidebar-hover: #27272a;
+  --color-sidebar-accent: #6366f1;
 
-  /* Font families */
-  --font-sans-app: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-sans-app: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  /* Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 
-  /* Shadows */
-  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.08);
-  --shadow-card-lg: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.05);
-  --shadow-dropdown: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.08);
-  --shadow-header: 0 1px 0 0 rgb(15 23 42 / 0.06);
+  /* Flatter, Zenith-like elevation */
+  --shadow-card: 0 1px 2px 0 rgb(24 24 27 / 0.04), 0 1px 3px 0 rgb(24 24 27 / 0.06);
+  --shadow-card-lg: 0 4px 6px -1px rgb(24 24 27 / 0.05), 0 2px 4px -2px rgb(24 24 27 / 0.04);
+  --shadow-dropdown: 0 10px 15px -3px rgb(24 24 27 / 0.08), 0 4px 6px -4px rgb(24 24 27 / 0.05);
+  --shadow-header: 0 1px 0 0 rgb(24 24 27 / 0.06);
 }
 
 :root[data-theme="dark"] {
-  --color-primary: #14b8a6;
-  --color-primary-hover: #2dd4bf;
-  --color-primary-muted: #0f2f2d;
-  --color-primary-dark: #14b8a6;
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-primary-muted: #1e1b4b;
+  --color-primary-dark: #6366f1;
 
-  --color-surface: #0b1220;
-  --color-surface-alt: #0f172a;
-  --color-surface-elevated: #111b2e;
-  --color-border: #233047;
-  --color-border-strong: #334155;
+  --color-surface: #18181b;
+  --color-surface-alt: #09090b;
+  --color-surface-elevated: #27272a;
+  --color-border: #3f3f46;
+  --color-border-strong: #52525b;
 
-  --color-text: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-text-heading: #f1f5f9;
-  --color-text-inverse: #0f172a;
+  --color-text: #e4e4e7;
+  --color-text-muted: #a1a1aa;
+  --color-text-heading: #fafafa;
+  --color-text-inverse: #18181b;
 
-  --color-success: #34d399;
-  --color-success-bg: #052e24;
-  --color-warning: #f59e0b;
-  --color-warning-bg: #3a2605;
+  --color-success: #4ade80;
+  --color-success-bg: #14532d;
+  --color-warning: #facc15;
+  --color-warning-bg: #422006;
   --color-error: #f87171;
-  --color-error-bg: #3a0f14;
-  --color-info: #38bdf8;
-  --color-info-bg: #082f49;
+  --color-error-bg: #450a0a;
+  --color-info: #60a5fa;
+  --color-info-bg: #172554;
 
   --color-earnings: #fbbf24;
   --color-earnings-bg: #3b2c07;
-  --color-bonus: #2dd4bf;
+  --color-bonus: #a5b4fc;
 
-  --color-sidebar-bg: #020617;
-  --color-sidebar-text: #94a3b8;
+  --color-sidebar-bg: #000000;
+  --color-sidebar-text: #a1a1aa;
   --color-sidebar-text-active: #ffffff;
-  --color-sidebar-hover: #0f172a;
+  --color-sidebar-hover: #18181b;
+  --color-sidebar-accent: #818cf8;
 
-  --shadow-card: 0 1px 2px 0 rgb(2 6 23 / 0.45), 0 1px 3px 0 rgb(2 6 23 / 0.55);
-  --shadow-card-lg: 0 10px 18px -8px rgb(2 6 23 / 0.5);
-  --shadow-dropdown: 0 20px 25px -5px rgb(2 6 23 / 0.6), 0 8px 10px -6px rgb(2 6 23 / 0.45);
-  --shadow-header: 0 1px 0 0 rgb(148 163 184 / 0.14);
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.35), 0 1px 3px 0 rgb(0 0 0 / 0.45);
+  --shadow-card-lg: 0 10px 20px -8px rgb(0 0 0 / 0.55);
+  --shadow-dropdown: 0 14px 28px -6px rgb(0 0 0 / 0.5);
+  --shadow-header: 0 1px 0 0 rgb(63 63 70 / 0.5);
 }

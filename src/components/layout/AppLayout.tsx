@@ -91,17 +91,20 @@ function AppLayoutComponent({
           aria-hidden="true"
         />
       )}
-      <Sidebar
-        role={user.role}
-        onLogout={onLogout}
-        mobileOpen={mobileMenuOpen}
-        setMobileOpen={setMobileMenuOpen}
-      />
+      <div className="shrink-0 max-md:w-0 max-md:min-w-0 max-md:overflow-visible">
+        <Sidebar
+          role={user.role}
+          onLogout={onLogout}
+          mobileOpen={mobileMenuOpen}
+          setMobileOpen={setMobileMenuOpen}
+        />
+      </div>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Header
           title={title}
           userDisplayName={user.name}
           userRole={roleLabel}
+          navRole={user.role}
           onMenuClick={() => setMobileMenuOpen(true)}
           themeMode={themeMode}
           onToggleTheme={toggleTheme}

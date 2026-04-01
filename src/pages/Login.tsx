@@ -84,9 +84,12 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-slate-100 via-surface-alt to-primary-muted/40 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:p-6">
-      <Card className="w-full max-w-md shadow-[var(--shadow-card-lg)]" padding="lg">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-surface-alt px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:p-6">
+      <Card className="w-full max-w-md border-border-strong shadow-[var(--shadow-card-lg)]" padding="lg">
         <div className="mb-8 text-center">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-[var(--radius-lg)] bg-primary-muted text-lg font-bold text-primary">
+            E
+          </div>
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
             Eden E Cart
           </p>

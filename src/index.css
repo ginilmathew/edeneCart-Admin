@@ -9,9 +9,11 @@
 
 html {
   font-family: var(--font-sans-app);
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
   /* Mobile: compact rem scale; md+ matches desktop default */
   font-size: 15px;
 }
