@@ -405,7 +405,7 @@ function CreateOrderPage() {
           const item = selectedProducts[i];
           const disc = parseFloat(item.discount) || 0;
           const isFirst = i === 0;
-          const isLast = i === selectedProducts.length - 1;
+          const isLastLine = i === selectedProducts.length - 1;
 
           await dispatch(
             createOrder({
@@ -434,7 +434,8 @@ function CreateOrderPage() {
                 : {}),
               notes: form.notes.trim() || undefined,
               status: "pending",
-              notifyCustomerEmail: isLast,
+              // One confirmation email after the whole order is created (API debounces / last line schedules).
+              notifyCustomerEmail: isLastLine,
             })
           ).unwrap();
         }
