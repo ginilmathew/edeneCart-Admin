@@ -246,7 +246,7 @@ export interface Order {
   updatedAt?: string;
   /** Set on POST /orders when the API queues a confirmation email (debounced on server). */
   emailConfirmationScheduled?: boolean;
-  /** Set on POST /orders: API has SMTP_HOST + MAIL_FROM; if false, no email is actually sent. */
+  /** Set on POST /orders: API has full SMTP credentials; if false, no email is actually sent. */
   outboundEmailReady?: boolean;
 }
 

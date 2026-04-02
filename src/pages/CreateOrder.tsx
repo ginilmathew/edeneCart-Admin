@@ -468,7 +468,7 @@ function CreateOrderPage() {
           outboundEmailReady: outboundReady,
           whyNoEmail:
             scheduled && !outboundReady
-              ? "API has no SMTP (set SMTP_HOST + MAIL_FROM on Railway). Queued job does nothing."
+              ? "API has incomplete SMTP (set SMTP_HOST, MAIL_FROM, SMTP_USER, SMTP_PASS on Railway). Queued job does nothing."
               : scheduled && outboundReady
                 ? "If inbox is empty: check spam, Railway logs for [OrderEmail] FAILED, and SMTP auth (Gmail needs an App Password)."
                 : undefined,
@@ -476,7 +476,7 @@ function CreateOrderPage() {
 
         if (scheduled && !outboundReady) {
           toast.warning(
-            "Order saved, but customer email was not sent — add SMTP_HOST and MAIL_FROM to your API (e.g. Railway Variables).",
+            "Order saved, but customer email was not sent — add SMTP_HOST, MAIL_FROM, SMTP_USER, and SMTP_PASS on your API (e.g. Railway).",
             { autoClose: 8000 },
           );
         }
