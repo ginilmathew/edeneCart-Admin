@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { AppLayout } from "../components/layout";
 import { LayoutRoutes } from "./LayoutRoutes";
 import Login from "../pages/Login";
+import OrderTrackingPage from "../pages/OrderTrackingPage";
 
 function AuthenticatedLayout() {
   const { user, logout } = useAuth();
@@ -25,7 +26,11 @@ function AuthenticatedLayout() {
 export function RootRoutes() {
   return (
     <Routes>
+      {/* Public routes — no auth required */}
       <Route path="/login" element={<Login />} />
+      <Route path="/track/:orderId" element={<OrderTrackingPage />} />
+
+      {/* Protected admin routes */}
       <Route
         path="/*"
         element={

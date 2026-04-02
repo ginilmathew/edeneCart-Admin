@@ -362,7 +362,7 @@ function TrackingScannerPage() {
       <Card>
         <CardHeader
           title="Tracking scan"
-          subtitle="Only Pending orders. Each tracking id must be unique (not already saved on another order or twice in the queue). Save sets Packed. Camera needs HTTPS on phones (or localhost)."
+          subtitle=" "
         />
         <div className="space-y-4 px-4 pb-4 md:px-6 md:pb-6">
           {draftOrderId && scanPhase === "tracking" && (
@@ -518,7 +518,7 @@ function TrackingScannerPage() {
       <Card>
         <CardHeader
           title="Queue"
-          subtitle={`${queue.length} package(s). Duplicate tracking ids are blocked. Save applies tracking and sets status to Packed for every matching line.`}
+          subtitle={`${queue.length} package(s).`}
         />
         <div className="space-y-3 px-4 pb-4 md:px-6 md:pb-6">
           <Table<QueueRow>

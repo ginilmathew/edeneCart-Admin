@@ -141,6 +141,8 @@ export interface Staff {
   } | null;
   /** Merged with staff role permissions at login (JWT). */
   extraPermissionSlugs?: string[];
+  /** Order counts grouped by status. */
+  statusCounts?: Record<string, number>;
 }
 
 export interface StaffEarnings {

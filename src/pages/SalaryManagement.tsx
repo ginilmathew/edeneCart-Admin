@@ -211,46 +211,55 @@ function SalaryManagementPage() {
             {
               key: "rules",
               header: "Rules",
-              className: "md:min-w-[14rem]",
+              className: "md:min-w-[15rem]",
               render: (r: StaffEarnings) => (
                 <div className="rule-card-mobile-trigger w-full min-w-0 max-w-full text-left">
-                  <div className="grid w-full min-w-0 gap-2 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/60 to-yellow-50 p-3 shadow-sm">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
-                      Payout per qty
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={draftPayout[r.staffId] ?? String(r.payoutPerOrder)}
-                      onChange={(e) =>
-                        setDraftPayout((prev) => ({
-                          ...prev,
-                          [r.staffId]: e.target.value,
-                        }))
-                      }
-                      className="box-border w-full min-w-0 max-w-full rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm text-amber-950 placeholder:text-amber-900/45"
-                      placeholder="Payout per order"
-                    />
+                  <div className="grid w-full min-w-0 gap-3 rounded-xl border border-primary-muted bg-surface p-4 shadow-sm ring-1 ring-primary/5 transition-all hover:shadow-md">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-tightest text-text-muted/80">
+                        Payout per unit
+                      </label>
+                      <div className="relative group">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-muted group-focus-within:text-primary transition-colors">
+                          ₹
+                        </span>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={draftPayout[r.staffId] ?? String(r.payoutPerOrder)}
+                          onChange={(e) =>
+                            setDraftPayout((prev) => ({
+                              ...prev,
+                              [r.staffId]: e.target.value,
+                            }))
+                          }
+                          className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt pl-6 pr-3 py-2 text-sm text-text transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
 
-                    <label className="mt-1 text-[11px] font-bold uppercase tracking-wider text-amber-900/80">
-                      Bonus tiers
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        draftMilestones[r.staffId] ??
-                        milestoneText(staffById.get(r.staffId)?.bonusMilestones ?? [])
-                      }
-                      onChange={(e) =>
-                        setDraftMilestones((prev) => ({
-                          ...prev,
-                          [r.staffId]: e.target.value,
-                        }))
-                      }
-                      className="box-border w-full min-w-0 max-w-full rounded-[var(--radius-sm)] border border-amber-300/80 bg-white px-2 py-1.5 text-sm text-amber-950 placeholder:text-amber-900/45"
-                      placeholder="5:50, 10:100, 15:150"
-                    />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-tightest text-text-muted/80">
+                        Bonus Tiers
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          draftMilestones[r.staffId] ??
+                          milestoneText(staffById.get(r.staffId)?.bonusMilestones ?? [])
+                        }
+                        onChange={(e) =>
+                          setDraftMilestones((prev) => ({
+                            ...prev,
+                            [r.staffId]: e.target.value,
+                          }))
+                        }
+                        className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt px-3 py-2 text-sm text-text transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 outline-none"
+                        placeholder="e.g. 5:50, 10:100"
+                      />
+                    </div>
 
                     <div className="flex min-w-0 flex-wrap gap-1.5">
                       {(() => {
@@ -261,39 +270,39 @@ function SalaryManagementPage() {
                           );
                           if (tiers.length === 0) {
                             return (
-                              <span className="text-xs text-amber-900/70">
-                                No bonus tiers set.
+                              <span className="text-[11px] font-medium text-text-muted italic">
+                                No active tiers
                               </span>
                             );
                           }
                           return tiers.map((m) => (
                             <span
                               key={`${r.staffId}-${m.orders}-${m.bonus}`}
-                              className="rounded-full border border-amber-300/80 bg-white px-2 py-1 text-[11px] font-semibold text-amber-900"
+                              className="rounded-md border border-primary-muted bg-primary-muted px-2 py-1 text-[10px] font-bold text-primary"
                             >
-                              {m.orders} → ₹{m.bonus}
+                              {m.orders} qty → ₹{m.bonus}
                             </span>
                           ));
                         } catch {
                           return (
-                            <span className="text-xs font-medium text-red-600">
-                              Invalid format. Use `5:50, 10:100, 15:150`
+                            <span className="text-[10px] font-bold text-error">
+                              Invalid format (Qty:Bonus)
                             </span>
                           );
                         }
                       })()}
                     </div>
 
-                    <p className="text-[11px] text-amber-900/70">
-                      Bonus is cumulative across reached tiers.
+                    <p className="text-[10px] leading-tight text-text-muted/60">
+                      Tier-based cumulative bonuses.
                     </p>
                     <Button
                       size="sm"
-                      className="w-full sm:w-auto"
+                      className="w-full shadow-sm shadow-primary/10"
                       onClick={() => void saveStaffRule(r.staffId)}
                       loading={savingId === r.staffId}
                     >
-                      Save rule
+                      Update Rule
                     </Button>
                   </div>
                 </div>
