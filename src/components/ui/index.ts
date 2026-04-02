@@ -7,6 +7,7 @@ export { ProgressBar } from "./ProgressBar";
 export { Select, type SelectOption } from "./Select";
 export { Table, type Column, type TableProps } from "./Table";
 export { Textarea } from "./Textarea";
+export { ToggleSwitch } from "./ToggleSwitch";
 export { Tooltip } from "./Tooltip";
 export {
   ManagementFilterPanel,

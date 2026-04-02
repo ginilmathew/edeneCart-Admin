@@ -4,10 +4,10 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectProducts, createProduct, updateProduct, deleteProduct } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
 import {
-  Badge,
   Card,
   CardHeader,
   Button,
+  ToggleSwitch,
   Table,
   Modal,
   Input,
@@ -37,6 +37,7 @@ function ProductManagementPage() {
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     void dispatch(fetchCategories());
@@ -150,6 +151,7 @@ function ProductManagementPage() {
 
   const toggleProductActive = useCallback(
     async (p: Product, next: boolean) => {
+      setTogglingActiveId(p.id);
       try {
         await dispatch(
           updateProduct({ id: p.id, patch: { isActive: next } }),
@@ -157,6 +159,8 @@ function ProductManagementPage() {
         toast.success(next ? "Product is active" : "Product hidden from staff");
       } catch (err) {
         toast.fromError(err, "Failed to update product");
+      } finally {
+        setTogglingActiveId(null);
       }
     },
     [dispatch],
@@ -257,19 +261,22 @@ function ProductManagementPage() {
         mobileLabel: "Status",
         render: (row: Product) => {
           const active = row.isActive !== false;
+          const busy = togglingActiveId === row.id;
           return (
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={active ? "success" : "muted"}>
+              <ToggleSwitch
+                checked={active}
+                disabled={busy}
+                onChange={(next) => void toggleProductActive(row, next)}
+                aria-label={
+                  active
+                    ? `In catalog: ${row.name}. Turn off to hide from staff.`
+                    : `Hidden: ${row.name}. Turn on to show in catalog.`
+                }
+              />
+              <span className="text-xs text-text-muted">
                 {active ? "Active" : "Inactive"}
-              </Badge>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => void toggleProductActive(row, !active)}
-              >
-                {active ? "Deactivate" : "Activate"}
-              </Button>
+              </span>
             </div>
           );
         },
@@ -304,7 +311,7 @@ function ProductManagementPage() {
         ),
       },
     ],
-    [openEdit, handleDelete, toggleProductActive]
+    [openEdit, handleDelete, toggleProductActive, togglingActiveId]
   );
 
   return (
