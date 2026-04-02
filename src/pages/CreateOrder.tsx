@@ -405,6 +405,7 @@ function CreateOrderPage() {
           const item = selectedProducts[i];
           const disc = parseFloat(item.discount) || 0;
           const isFirst = i === 0;
+          const isLast = i === selectedProducts.length - 1;
 
           await dispatch(
             createOrder({
@@ -433,6 +434,7 @@ function CreateOrderPage() {
                 : {}),
               notes: form.notes.trim() || undefined,
               status: "pending",
+              notifyCustomerEmail: isLast,
             })
           ).unwrap();
         }

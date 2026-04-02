@@ -267,6 +267,11 @@ export type CreateOrderPayload = Omit<
   deliveryMethodId?: string;
   /** All product ids in this multi-line order (first line only). */
   orderProductIds?: string[];
+  /**
+   * When false, API skips the customer confirmation email for this line.
+   * Use false on all but the last line of a multi-product order so one email is sent.
+   */
+  notifyCustomerEmail?: boolean;
 };
 
 export interface User {
