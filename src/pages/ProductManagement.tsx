@@ -263,21 +263,16 @@ function ProductManagementPage() {
           const active = row.isActive !== false;
           const busy = togglingActiveId === row.id;
           return (
-            <div className="flex flex-wrap items-center gap-2">
-              <ToggleSwitch
-                checked={active}
-                disabled={busy}
-                onChange={(next) => void toggleProductActive(row, next)}
-                aria-label={
-                  active
-                    ? `In catalog: ${row.name}. Turn off to hide from staff.`
-                    : `Hidden: ${row.name}. Turn on to show in catalog.`
-                }
-              />
-              <span className="text-xs text-text-muted">
-                {active ? "Active" : "Inactive"}
-              </span>
-            </div>
+            <ToggleSwitch
+              checked={active}
+              disabled={busy}
+              onChange={(next) => void toggleProductActive(row, next)}
+              aria-label={
+                active
+                  ? `In catalog: ${row.name}. Turn off to hide from staff.`
+                  : `Hidden: ${row.name}. Turn on to show in catalog.`
+              }
+            />
           );
         },
       },

@@ -6,6 +6,8 @@ import { endpoints } from "../api/endpoints";
 export type OrderListFilters = {
   dateFrom?: string;
   dateTo?: string;
+  /** Display order id (e.g. ORD-1005); API normalizes digits-only to ORD-{n}. */
+  orderId?: string;
 };
 
 export const fetchOrders = createAsyncThunk(
@@ -15,6 +17,8 @@ export const fetchOrders = createAsyncThunk(
       const params = new URLSearchParams();
       if (filters?.dateFrom) params.append("dateFrom", filters.dateFrom);
       if (filters?.dateTo) params.append("dateTo", filters.dateTo);
+      if (filters?.orderId?.trim())
+        params.append("orderId", filters.orderId.trim());
       const qs = params.toString();
       const path = qs ? `${endpoints.orders}?${qs}` : endpoints.orders;
       return await api.get<Order[]>(path);

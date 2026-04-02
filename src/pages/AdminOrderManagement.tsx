@@ -10,7 +10,11 @@ import {
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
-import { fetchOrders, updateOrder } from "../store/ordersSlice";
+import {
+  fetchOrders,
+  updateOrder,
+  type OrderListFilters,
+} from "../store/ordersSlice";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { fetchSettings, selectSettings } from "../store/settingsSlice";
@@ -92,8 +96,10 @@ function AdminOrderManagementPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [orderIdSearch, setOrderIdSearch] = useState("");
   const [appliedDateFrom, setAppliedDateFrom] = useState("");
   const [appliedDateTo, setAppliedDateTo] = useState("");
+  const lastServerFiltersRef = useRef<OrderListFilters | undefined>(undefined);
   const [filtersLoading, setFiltersLoading] = useState(false);
   const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
   const [bulkPdfLoading, setBulkPdfLoading] = useState(false);
@@ -419,12 +425,15 @@ function AdminOrderManagementPage() {
   const applyDateFilters = useCallback(async () => {
     setFiltersLoading(true);
     try {
-      await dispatch(
-        fetchOrders({
-          ...(dateFrom ? { dateFrom } : {}),
-          ...(dateTo ? { dateTo } : {}),
-        })
-      ).unwrap();
+      const filters: OrderListFilters = {
+        ...(dateFrom ? { dateFrom } : {}),
+        ...(dateTo ? { dateTo } : {}),
+        ...(orderIdSearch.trim() ? { orderId: orderIdSearch.trim() } : {}),
+      };
+      const payload =
+        Object.keys(filters).length > 0 ? filters : undefined;
+      lastServerFiltersRef.current = payload;
+      await dispatch(fetchOrders(payload)).unwrap();
       setAppliedDateFrom(dateFrom);
       setAppliedDateTo(dateTo);
       toast.success("Orders updated");
@@ -433,17 +442,19 @@ function AdminOrderManagementPage() {
     } finally {
       setFiltersLoading(false);
     }
-  }, [dispatch, dateFrom, dateTo]);
+  }, [dispatch, dateFrom, dateTo, orderIdSearch]);
 
   const clearDateFilters = useCallback(async () => {
     setDateFrom("");
     setDateTo("");
+    setOrderIdSearch("");
     setAppliedDateFrom("");
     setAppliedDateTo("");
+    lastServerFiltersRef.current = undefined;
     setFiltersLoading(true);
     try {
       await dispatch(fetchOrders(undefined)).unwrap();
-      toast.success("Showing all dates");
+      toast.success("Showing all orders");
     } catch (err) {
       toast.fromError(err, "Failed to load orders");
     } finally {
@@ -558,7 +569,9 @@ function AdminOrderManagementPage() {
         );
         const ok = results.filter((r) => r.status === "fulfilled").length;
         const fail = results.length - ok;
-        await dispatch(fetchOrders(undefined)).unwrap();
+        await dispatch(
+          fetchOrders(lastServerFiltersRef.current),
+        ).unwrap();
         if (fail === 0) {
           toast.success(
             `Updated ${ok} order line${ok === 1 ? "" : "s"} to ${next}`,
@@ -775,6 +788,19 @@ function AdminOrderManagementPage() {
         <div className="mb-4 space-y-2">
           <ResponsiveManagementFilters modalTitle="Order filters" triggerLabel="Filters">
           <ManagementFilterPanel>
+            <ManagementFilterField
+              label="Order ID"
+              className="lg:col-span-2 xl:col-span-2"
+            >
+              <input
+                type="search"
+                value={orderIdSearch}
+                onChange={(e) => setOrderIdSearch(e.target.value)}
+                placeholder="e.g. ORD-1005 or 1005"
+                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                aria-label="Search by display order id"
+              />
+            </ManagementFilterField>
             <ManagementFilterField label="From date">
               <input
                 type="date"
@@ -793,7 +819,7 @@ function AdminOrderManagementPage() {
                 aria-label="To date"
               />
             </ManagementFilterField>
-            <ManagementFilterField label="Server date range">
+            <ManagementFilterField label="Server filters">
               <div className="flex w-full flex-wrap gap-2">
                 <Button
                   type="button"
@@ -801,7 +827,7 @@ function AdminOrderManagementPage() {
                   onClick={() => void applyDateFilters()}
                   loading={filtersLoading}
                 >
-                  Apply dates
+                  Apply
                 </Button>
                 <Button
                   type="button"
@@ -810,7 +836,7 @@ function AdminOrderManagementPage() {
                   onClick={() => void clearDateFilters()}
                   disabled={filtersLoading}
                 >
-                  Clear dates
+                  Clear all
                 </Button>
               </div>
             </ManagementFilterField>
