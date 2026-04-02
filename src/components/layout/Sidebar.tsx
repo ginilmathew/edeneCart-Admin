@@ -25,6 +25,7 @@ import {
   ArchiveBoxIcon,
   ClockIcon,
   NewspaperIcon,
+  ChatBubbleLeftRightIcon,
   PresentationChartLineIcon,
   ShieldCheckIcon,
   IdentificationIcon,
@@ -69,6 +70,12 @@ const STAFF_NAV_SECTIONS: NavSection<StaffNavItem>[] = [
       { to: "/stock", label: "Product stock", end: true, icon: ArchiveBoxIcon },
       { to: "/recent-orders", label: "Recent orders", end: true, icon: ClockIcon },
       { to: "/blog", label: "Blog", end: true, icon: NewspaperIcon },
+      {
+        to: "/enquiries",
+        label: "Ask admin",
+        end: true,
+        icon: ChatBubbleLeftRightIcon,
+      },
     ],
   },
   {
@@ -153,6 +160,13 @@ const ADMIN_NAV_SECTIONS: NavSection<AdminNavItem>[] = [
     title: "Content",
     items: [
       { to: "/admin/blog", label: "Staff blog", end: true, icon: NewspaperIcon, permission: "blogs.view" },
+      {
+        to: "/admin/staff-enquiries",
+        label: "Staff enquiries",
+        end: true,
+        icon: ChatBubbleLeftRightIcon,
+        permission: "staff_enquiries.view",
+      },
     ],
   },
   {

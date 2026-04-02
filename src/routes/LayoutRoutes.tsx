@@ -93,6 +93,22 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/enquiries"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <Pages.StaffEnquiries />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/enquiries/:id"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <Pages.StaffEnquiryDetail />
+          </ProtectedRoute>
+        }
+      />
       {/* Admin shell: super_admin + guest (API enforces fine-grained permissions) */}
       <Route
         path="/admin"
@@ -286,6 +302,28 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
             requiredPermissions={["blogs.view"]}
           >
             <Pages.AdminBlogManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/staff-enquiries"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["staff_enquiries.view"]}
+          >
+            <Pages.AdminStaffEnquiries />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/staff-enquiries/:id"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["staff_enquiries.view"]}
+          >
+            <Pages.AdminStaffEnquiryDetail />
           </ProtectedRoute>
         }
       />

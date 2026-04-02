@@ -15,6 +15,7 @@ export interface CreateStaffPayload {
   payoutPerOrder?: number;
   bonusMilestones?: { orders: number; bonus: number }[];
   avatar?: string;
+  upiId?: string;
 }
 
 export interface UpdateStaffPayload {
@@ -27,6 +28,7 @@ export interface UpdateStaffPayload {
   payoutPerOrder?: number;
   bonusMilestones?: { orders: number; bonus: number }[];
   avatar?: string;
+  upiId?: string | null;
   extraPermissionSlugs?: string[];
 }
 
@@ -50,6 +52,7 @@ function normalizeStaff(row: Staff): Staff {
     extraPermissionSlugs: Array.isArray(row.extraPermissionSlugs)
       ? row.extraPermissionSlugs
       : [],
+    upiId: row.upiId?.trim() || null,
   };
 }
 

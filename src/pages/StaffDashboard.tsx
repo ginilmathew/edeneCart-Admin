@@ -151,31 +151,31 @@ function StaffDashboardPage() {
 
       {milestonesSorted.length > 0 && (
         <section
-          className="relative overflow-hidden rounded-2xl border-2 border-amber-500/90 bg-gradient-to-br from-amber-50 via-orange-50/90 to-amber-100/70 p-5 shadow-lg shadow-amber-900/10 sm:p-7"
+          className="relative overflow-hidden rounded-2xl border-2 border-primary/25 bg-gradient-to-br from-primary-muted via-surface to-primary-muted p-5 shadow-lg shadow-primary/10 sm:p-7"
           aria-labelledby="bonus-targets-heading"
         >
           <div
-            className="pointer-events-none absolute -right-6 -top-6 h-36 w-36 rounded-full bg-amber-300/25 blur-3xl"
+            className="pointer-events-none absolute -right-6 -top-6 h-36 w-36 rounded-full bg-primary/15 blur-3xl"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute -bottom-8 left-1/4 h-28 w-28 rounded-full bg-orange-400/20 blur-2xl"
+            className="pointer-events-none absolute -bottom-8 left-1/4 h-28 w-28 rounded-full bg-primary/10 blur-2xl"
             aria-hidden
           />
 
           <div className="relative flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-600/30">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-text-inverse shadow-md shadow-primary/35">
                 <TrophyIcon className="h-7 w-7" aria-hidden />
               </div>
               <div>
                 <h2
                   id="bonus-targets-heading"
-                  className="text-xl font-black tracking-tight text-amber-950 sm:text-2xl"
+                  className="text-xl font-black tracking-tight text-text-heading sm:text-2xl"
                 >
                   Your bonus targets
                 </h2>
-                <p className="mt-0.5 max-w-xl text-sm font-medium text-amber-900/80">
+                <p className="mt-0.5 max-w-xl text-sm font-medium text-text-muted">
                   Each completed order (quantity) moves you toward the next payout. Cancelled and
                   returned orders don&apos;t count.
                 </p>
@@ -183,42 +183,42 @@ function StaffDashboardPage() {
             </div>
             <Badge
               variant="default"
-              className="mt-2 w-fit shrink-0 border-amber-600/40 bg-amber-500/15 text-amber-950 sm:mt-0"
+              className="mt-2 w-fit shrink-0 border-primary/30 bg-primary-muted text-text-heading sm:mt-0"
             >
               Focus on your next tier
             </Badge>
           </div>
 
           <div className="relative mt-6 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-amber-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-800/70">
+            <div className="rounded-xl border border-border bg-surface/95 p-4 shadow-sm backdrop-blur-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                 Your progress
               </p>
-              <p className="mt-1 text-3xl font-black tabular-nums text-amber-950 sm:text-4xl">
+              <p className="mt-1 text-3xl font-black tabular-nums text-text-heading sm:text-4xl">
                 {stats.orderCount}
               </p>
-              <p className="mt-0.5 text-sm font-medium text-amber-900/70">total order qty</p>
+              <p className="mt-0.5 text-sm font-medium text-text-muted">total order qty</p>
             </div>
             {nextMilestone ? (
               <>
-                <div className="rounded-xl border-2 border-amber-500 bg-white p-4 shadow-md ring-2 ring-amber-400/30">
-                  <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-900">
-                    <ArrowTrendingUpIcon className="h-4 w-4 text-amber-600" aria-hidden />
+                <div className="rounded-xl border-2 border-primary/50 bg-surface p-4 shadow-md ring-2 ring-primary/20">
+                  <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-heading">
+                    <ArrowTrendingUpIcon className="h-4 w-4 text-primary" aria-hidden />
                     Next target
                   </p>
-                  <p className="mt-1 text-3xl font-black tabular-nums text-amber-950 sm:text-4xl">
+                  <p className="mt-1 text-3xl font-black tabular-nums text-text-heading sm:text-4xl">
                     {nextMilestone.orders}
                   </p>
-                  <p className="mt-0.5 text-sm font-semibold text-amber-900/80">orders to hit this tier</p>
+                  <p className="mt-0.5 text-sm font-semibold text-text-muted">orders to hit this tier</p>
                 </div>
-                <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-500 to-orange-600 p-4 text-white shadow-md">
-                  <p className="text-xs font-bold uppercase tracking-wider text-amber-50/90">
+                <div className="rounded-xl border border-primary-dark/20 bg-gradient-to-br from-primary to-primary-dark p-4 text-text-inverse shadow-md">
+                  <p className="text-xs font-bold uppercase tracking-wider text-text-inverse/85">
                     Bonus when you hit it
                   </p>
                   <p className="mt-1 text-3xl font-black tabular-nums sm:text-4xl">
                     {formatCurrency(nextMilestone.bonus)}
                   </p>
-                  <p className="mt-2 rounded-lg bg-black/10 px-2 py-1.5 text-center text-sm font-bold">
+                  <p className="mt-2 rounded-lg bg-black/15 px-2 py-1.5 text-center text-sm font-bold text-text-inverse">
                     {ordersToNext === 0
                       ? "You’ve reached this tier — keep going!"
                       : `${ordersToNext} more order qty to unlock`}
@@ -226,9 +226,9 @@ function StaffDashboardPage() {
                 </div>
               </>
             ) : (
-              <div className="sm:col-span-2 rounded-xl border border-green-200 bg-green-50/90 p-4 shadow-sm">
-                <p className="text-sm font-bold text-green-900">All milestones achieved</p>
-                <p className="mt-1 text-sm text-green-800/90">
+              <div className="sm:col-span-2 rounded-xl border border-primary/25 bg-primary-muted/80 p-4 shadow-sm">
+                <p className="text-sm font-bold text-text-heading">All milestones achieved</p>
+                <p className="mt-1 text-sm text-text-muted">
                   You&apos;ve passed every tier. Keep creating orders — your totals still grow.
                 </p>
               </div>
@@ -236,31 +236,31 @@ function StaffDashboardPage() {
           </div>
 
           {nextMilestone ? (
-            <div className="relative mt-6 rounded-xl border border-amber-200/60 bg-white/80 p-4 backdrop-blur-sm">
+            <div className="relative mt-6 rounded-xl border border-border bg-surface/90 p-4 backdrop-blur-sm">
               <ProgressBar
                 value={stats.orderCount}
                 max={nextMilestone.orders}
                 label="Progress to next bonus"
-                className="[&>div:last-child]:h-3.5 [&>div:last-child>div]:rounded-full [&>div:last-child>div]:bg-gradient-to-r [&>div:last-child>div]:from-amber-500 [&>div:last-child>div]:to-orange-500"
+                className="[&>div:last-child]:h-3.5 [&>div:last-child>div]:rounded-full [&>div:last-child>div]:bg-gradient-to-r [&>div:last-child>div]:from-primary [&>div:last-child>div]:to-primary-hover"
               />
-              <p className="mt-3 text-center text-sm font-semibold text-amber-950">
+              <p className="mt-3 text-center text-sm font-semibold text-text-heading">
                 Earnings so far (incl. bonuses earned):{" "}
-                <span className="tabular-nums text-base font-black text-amber-900">
+                <span className="tabular-nums text-base font-black text-primary">
                   {formatCurrency(stats.totalEarnings)}
                 </span>
               </p>
             </div>
           ) : (
-            <p className="relative mt-4 text-center text-sm font-medium text-amber-900/80">
+            <p className="relative mt-4 text-center text-sm font-medium text-text-muted">
               Earnings so far:{" "}
-              <span className="font-black tabular-nums text-amber-950">
+              <span className="font-black tabular-nums text-text-heading">
                 {formatCurrency(stats.totalEarnings)}
               </span>
             </p>
           )}
 
-          <div className="relative mt-6 border-t border-amber-200/80 pt-5">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-amber-900/70">
+          <div className="relative mt-6 border-t border-border pt-5">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted">
               All tiers (admin set)
             </p>
             <ul className="grid gap-2 sm:grid-cols-2">
@@ -276,15 +276,15 @@ function StaffDashboardPage() {
                     className={[
                       "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors",
                       reached
-                        ? "border-green-200 bg-green-50/80 text-green-900"
+                        ? "border-success/30 bg-success-bg/80 text-text-heading"
                         : isNext
-                          ? "border-amber-400 bg-amber-100/80 font-semibold text-amber-950 shadow-sm"
-                          : "border-amber-100/80 bg-white/60 text-amber-900/75",
+                          ? "border-primary/45 bg-primary-muted font-semibold text-text-heading shadow-sm"
+                          : "border-border bg-surface-alt/90 text-text",
                     ].join(" ")}
                   >
                     {reached ? (
                       <CheckCircleIcon
-                        className="h-6 w-6 shrink-0 text-green-600"
+                        className="h-6 w-6 shrink-0 text-success"
                         aria-hidden
                       />
                     ) : (
@@ -292,8 +292,8 @@ function StaffDashboardPage() {
                         className={[
                           "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black",
                           isNext
-                            ? "bg-amber-500 text-white"
-                            : "bg-amber-200/80 text-amber-800",
+                            ? "bg-primary text-text-inverse"
+                            : "bg-border text-text-muted",
                         ].join(" ")}
                         aria-hidden
                       >
@@ -302,18 +302,18 @@ function StaffDashboardPage() {
                     )}
                     <div className="min-w-0 flex-1">
                       <span className="font-bold tabular-nums">{m.orders}</span>
-                      <span className="text-amber-900/70"> orders</span>
-                      <span className="mx-1.5 text-amber-700/50">→</span>
-                      <span className="font-black tabular-nums text-amber-950">
+                      <span className="text-text-muted"> orders</span>
+                      <span className="mx-1.5 text-text-muted">→</span>
+                      <span className="font-black tabular-nums text-text-heading">
                         {formatCurrency(m.bonus)}
                       </span>
                       {reached && (
-                        <span className="ml-2 text-xs font-bold uppercase text-green-700">
+                        <span className="ml-2 text-xs font-bold uppercase text-success">
                           Done
                         </span>
                       )}
                       {isNext && (
-                        <span className="ml-2 text-xs font-bold uppercase text-amber-800">
+                        <span className="ml-2 text-xs font-bold uppercase text-primary">
                           Current target
                         </span>
                       )}

@@ -37,3 +37,9 @@ export const AdminBlogManagement = lazy(
 );
 export const StaffBlog = lazy(() => import("../pages/StaffBlog"));
 export const StaffBlogPost = lazy(() => import("../pages/StaffBlogPost"));
+export const StaffEnquiries = lazy(() => import("../pages/StaffEnquiries"));
+export const StaffEnquiryDetail = lazy(() => import("../pages/StaffEnquiryDetail"));
+export const AdminStaffEnquiries = lazy(() => import("../pages/AdminStaffEnquiries"));
+export const AdminStaffEnquiryDetail = lazy(
+  () => import("../pages/AdminStaffEnquiryDetail"),
+);

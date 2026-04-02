@@ -273,6 +273,12 @@ function StaffProfilePage() {
             <dd className="font-medium">{staffProfile.phone || "—"}</dd>
           </div>
           <div>
+            <dt className="text-sm text-text-muted">UPI ID</dt>
+            <dd className="font-mono font-medium">
+              {staffProfile.upiId?.trim() || "—"}
+            </dd>
+          </div>
+          <div>
             <dt className="text-sm text-text-muted">Role</dt>
             <dd className="font-medium">
               {staffProfile.staffPositionName?.trim() ||

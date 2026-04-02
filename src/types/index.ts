@@ -125,6 +125,8 @@ export interface Staff {
   assignedNumberId?: string | null;
   assignedNumber?: string | null;
   avatar?: string;
+  /** UPI VPA for payouts (e.g. name@paytm). */
+  upiId?: string | null;
   /** Payout per order (e.g. 30) */
   payoutPerOrder: number;
   /** Bonuses: e.g. [{ orders: 10, bonus: 50 }, ...] */
@@ -429,4 +431,39 @@ export interface BlogComment {
   authorKind: "staff" | "admin";
   authorName: string;
   staffProfileId: string | null;
+}
+
+export type StaffEnquiryStatus = "open" | "resolved";
+
+export interface StaffEnquiryListRow {
+  id: string;
+  subject: string;
+  status: StaffEnquiryStatus;
+  createdAt: string;
+  updatedAt: string;
+  preview: string;
+  replyCount: number;
+  staffName?: string;
+  staffProfileId?: string;
+}
+
+export interface StaffEnquiryReply {
+  id: string;
+  body: string;
+  createdAt: string;
+  authorName: string;
+  isStaff: boolean;
+}
+
+export interface StaffEnquiryDetail {
+  id: string;
+  subject: string;
+  body: string;
+  status: StaffEnquiryStatus;
+  createdAt: string;
+  updatedAt: string;
+  staffProfileId?: string;
+  staffName?: string;
+  initialAuthorName: string;
+  replies: StaffEnquiryReply[];
 }

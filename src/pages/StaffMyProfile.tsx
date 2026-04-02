@@ -67,6 +67,12 @@ function StaffMyProfilePage() {
             <dd className="font-medium text-text-heading">{profile.phone || "—"}</dd>
           </div>
           <div>
+            <dt className="text-sm text-text-muted">UPI ID</dt>
+            <dd className="font-mono font-medium text-text-heading">
+              {profile.upiId?.trim() || "—"}
+            </dd>
+          </div>
+          <div>
             <dt className="text-sm text-text-muted">Joined</dt>
             <dd className="font-medium text-text-heading">
               {formatDate(profile.joinedDate)}

@@ -66,4 +66,12 @@ export const endpoints = {
   blogStaffLike: (postId: string) => `${V1}/blogs/staff/${postId}/like`,
   blogStaffComments: (postId: string) =>
     `${V1}/blogs/staff/${postId}/comments`,
+  staffEnquiriesMe: `${V1}/staff-enquiries/me`,
+  staffEnquiryMe: (id: string) => `${V1}/staff-enquiries/me/${id}`,
+  staffEnquiryMeReply: (id: string) =>
+    `${V1}/staff-enquiries/me/${id}/replies`,
+  staffEnquiriesAdmin: `${V1}/staff-enquiries/admin`,
+  staffEnquiryAdmin: (id: string) => `${V1}/staff-enquiries/admin/${id}`,
+  staffEnquiryAdminReply: (id: string) =>
+    `${V1}/staff-enquiries/admin/${id}/replies`,
 } as const;

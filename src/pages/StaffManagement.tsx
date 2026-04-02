@@ -50,6 +50,7 @@ const DEFAULT_BONUS_MILESTONES = [
 ];
 
 const PHONE_RE = /^[\d+\s().-]{7,25}$/;
+const UPI_RE = /^[\w.-]+@[\w.-]+$/i;
 
 function StaffManagementPage() {
   const dispatch = useAppDispatch();
@@ -64,6 +65,7 @@ function StaffManagementPage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
+  const [upiId, setUpiId] = useState("");
   const [joinedDate, setJoinedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [staffPositionId, setStaffPositionId] = useState("");
   const [assignedNumberId, setAssignedNumberId] = useState("");
@@ -163,6 +165,7 @@ function StaffManagementPage() {
     setName("");
     setUsername("");
     setPhone("");
+    setUpiId("");
     setJoinedDate(new Date().toISOString().slice(0, 10));
     setStaffPositionId(positions[0]?.id ?? "");
     setAssignedNumberId("");
@@ -175,6 +178,7 @@ function StaffManagementPage() {
       setEditStaff(s);
       setName(s.name);
       setPhone(s.phone);
+      setUpiId(s.upiId?.trim() ?? "");
       setJoinedDate(s.joinedDate?.slice(0, 10) ?? new Date().toISOString().slice(0, 10));
       setStaffPositionId(s.staffPositionId ?? positions[0]?.id ?? "");
       setAssignedNumberId(s.assignedNumberId ?? "");
@@ -215,6 +219,11 @@ function StaffManagementPage() {
         setError("Enter a valid phone number (7–25 characters)");
         return;
       }
+      const upiTrim = upiId.trim();
+      if (upiTrim && !UPI_RE.test(upiTrim)) {
+        setError("UPI ID should look like name@paytm or name@oksbi");
+        return;
+      }
       if (!staffPositionId) {
         setError("Select a role (add roles under Role management if empty)");
         return;
@@ -236,6 +245,7 @@ function StaffManagementPage() {
             isActive: true,
             payoutPerOrder: 30,
             bonusMilestones: DEFAULT_BONUS_MILESTONES,
+            ...(upiTrim ? { upiId: upiTrim } : {}),
           })
         ).unwrap();
         toast.success("Staff created");
@@ -259,6 +269,7 @@ function StaffManagementPage() {
       name,
       username,
       phone,
+      upiId,
       joinedDate,
       staffPositionId,
       assignedNumberId,
@@ -282,6 +293,11 @@ function StaffManagementPage() {
         setError("Enter a valid phone number (7–25 characters)");
         return;
       }
+      const upiTrim = upiId.trim();
+      if (upiTrim && !UPI_RE.test(upiTrim)) {
+        setError("UPI ID should look like name@paytm or name@oksbi");
+        return;
+      }
       if (!staffPositionId) {
         setError("Select a role");
         return;
@@ -294,6 +310,7 @@ function StaffManagementPage() {
           joinedDate: joinedDate || editStaff.joinedDate.slice(0, 10),
           staffPositionId,
           assignedNumberId: assignedNumberId || null,
+          upiId: upiTrim || null,
         };
         if (permCatalogLoaded) {
           patch.extraPermissionSlugs = [...draftExtraSlugs].sort();
@@ -319,6 +336,7 @@ function StaffManagementPage() {
       editStaff,
       name,
       phone,
+      upiId,
       joinedDate,
       staffPositionId,
       assignedNumberId,
@@ -447,6 +465,16 @@ function StaffManagementPage() {
         render: (row: Staff) => roleLabel(row),
       },
       { key: "phone", header: "Phone" },
+      {
+        key: "upiId",
+        header: "UPI",
+        render: (row: Staff) =>
+          row.upiId?.trim() ? (
+            <span className="font-mono text-sm">{row.upiId.trim()}</span>
+          ) : (
+            <span className="text-text-muted">—</span>
+          ),
+      },
       {
         key: "forgotPasswordRequest",
         header: "Forgot password request",
@@ -598,6 +626,13 @@ function StaffManagementPage() {
         onChange={(e) => setPhone(e.target.value)}
         placeholder="e.g. 9876543210 or +91 9876543210"
         autoComplete="tel"
+      />
+      <Input
+        label="UPI ID"
+        value={upiId}
+        onChange={(e) => setUpiId(e.target.value)}
+        placeholder="e.g. name@paytm (optional)"
+        autoComplete="off"
       />
       <Input
         label="Joined Date"
