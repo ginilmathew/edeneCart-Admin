@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router";
 import { ProtectedRoute } from "../components/auth";
+import { PageLoader } from "../components/ui";
 import type { User } from "../types";
 import * as Pages from "./lazyPages";
 
@@ -9,11 +10,7 @@ interface LayoutRoutesProps {
 }
 
 function RouteFallback() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center text-sm text-text-muted">
-      Loading…
-    </div>
-  );
+  return <PageLoader label="Loading…" />;
 }
 
 export function LayoutRoutes({ user }: LayoutRoutesProps) {

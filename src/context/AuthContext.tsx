@@ -71,7 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const me = normalizeUser(await api.get<User>(endpoints.authMe));
+      const me = normalizeUser(
+        await api.get<User>(endpoints.authMe, { silent: true }),
+      );
       setUser(me);
       localStorage.setItem(USER_KEY, JSON.stringify(me));
     } catch {

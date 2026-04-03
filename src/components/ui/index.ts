@@ -3,6 +3,7 @@ export { Button } from "./Button";
 export { Card, CardHeader } from "./Card";
 export { Input } from "./Input";
 export { Modal } from "./Modal";
+export { PageLoader } from "./PageLoader";
 export { ProgressBar } from "./ProgressBar";
 export { Select, type SelectOption } from "./Select";
 export { Table, type Column, type TableProps } from "./Table";

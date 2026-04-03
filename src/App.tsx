@@ -12,6 +12,7 @@ import {
   fetchCustomers,
   fetchSettings,
 } from "./store";
+import { ApiLoadingOverlay } from "./components/ApiLoadingOverlay";
 import { RootRoutes } from "./routes";
 
 type ThemeMode = "light" | "dark";
@@ -82,6 +83,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ApiLoadingOverlay />
         <AppWithData />
         <ToastContainer theme={themeMode} />
       </AuthProvider>
