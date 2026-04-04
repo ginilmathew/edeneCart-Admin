@@ -326,13 +326,7 @@ function CreateOrderPage() {
     const sorted = [...categories].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );
-    const opts: SelectOption[] = [
-      {
-        value: "",
-        label: detailsEnabled ? "All categories" : disabledHint,
-      },
-      ...sorted.map((c) => ({ value: c.id, label: c.name })),
-    ];
+    const opts: SelectOption[] = sorted.map((c) => ({ value: c.id, label: c.name }));
     if (catalogProducts.some((p) => !p.categoryId)) {
       opts.push({
         value: UNCATEGORIZED_KEY,
@@ -340,7 +334,7 @@ function CreateOrderPage() {
       });
     }
     return opts;
-  }, [categories, catalogProducts, detailsEnabled]);
+  }, [categories, catalogProducts]);
 
   const productsInCategory = useMemo(() => {
     if (!orderCategory) return catalogProducts;
@@ -527,97 +521,97 @@ function CreateOrderPage() {
           <section className="rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5">
             <h3 className="mb-3 text-base font-semibold text-text-heading">Customer details</h3>
             <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Customer Name *"
-              value={form.customerName}
-              onChange={(e) => update("customerName", e.target.value)}
-              error={errors.customerName}
-            />
-            <div className="w-full">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <label className="block text-sm font-medium text-text-heading">
-                  Phone Number *
-                </label>
-                {lookupLoading && (
-                  <span className="text-xs text-text-muted">Looking up…</span>
-                )}
-              </div>
               <Input
-                label=""
-                value={form.phone}
-                onChange={(e) =>
-                  update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
-                error={errors.phone}
-                placeholder="10 digits"
-                aria-label="Phone number"
+                label="Customer Name *"
+                value={form.customerName}
+                onChange={(e) => update("customerName", e.target.value)}
+                error={errors.customerName}
+              />
+              <div className="w-full">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="block text-sm font-medium text-text-heading">
+                    Phone Number *
+                  </label>
+                  {lookupLoading && (
+                    <span className="text-xs text-text-muted">Looking up…</span>
+                  )}
+                </div>
+                <Input
+                  label=""
+                  value={form.phone}
+                  onChange={(e) =>
+                    update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  error={errors.phone}
+                  placeholder="10 digits"
+                  aria-label="Phone number"
+                />
+              </div>
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Input
+                label="Flat/House/Building Name *"
+                value={form.flatBuilding}
+                onChange={(e) => update("flatBuilding", e.target.value)}
+                error={errors.flatBuilding}
+                disabled={!detailsEnabled}
+                placeholder="Flat/House/Building Name"
+              />
+              <Input
+                label="Area/Sector/Locality *"
+                value={form.areaSector}
+                onChange={(e) => update("areaSector", e.target.value)}
+                error={errors.areaSector}
+                disabled={!detailsEnabled}
+                placeholder="Area/Sector/Locality"
               />
             </div>
-            </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Flat/House/Building Name *"
-              value={form.flatBuilding}
-              onChange={(e) => update("flatBuilding", e.target.value)}
-              error={errors.flatBuilding}
-              disabled={!detailsEnabled}
-              placeholder="Flat/House/Building Name"
-            />
-            <Input
-              label="Area/Sector/Locality *"
-              value={form.areaSector}
-              onChange={(e) => update("areaSector", e.target.value)}
-              error={errors.areaSector}
-              disabled={!detailsEnabled}
-              placeholder="Area/Sector/Locality"
-            />
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Pincode *"
-              value={form.pincode}
-              onChange={(e) => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
-              error={errors.pincode}
-              disabled={!detailsEnabled}
-              placeholder="Pincode"
-            />
-            <Input
-              label="Post Office *"
-              value={form.postOffice}
-              onChange={(e) => update("postOffice", e.target.value)}
-              error={errors.postOffice}
-              disabled={!detailsEnabled}
-              placeholder="Post Office"
-            />
+              <Input
+                label="Pincode *"
+                value={form.pincode}
+                onChange={(e) => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+                error={errors.pincode}
+                disabled={!detailsEnabled}
+                placeholder="Pincode"
+              />
+              <Input
+                label="Post Office *"
+                value={form.postOffice}
+                onChange={(e) => update("postOffice", e.target.value)}
+                error={errors.postOffice}
+                disabled={!detailsEnabled}
+                placeholder="Post Office"
+              />
             </div>
             <div className="mt-4">
               <Input
-            label="Email *"
-            type="email"
-            value={form.email}
-            onChange={(e) => update("email", e.target.value)}
-            error={errors.email}
-            disabled={!detailsEnabled}
-            placeholder="Email "
+                label="Email *"
+                type="email"
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                error={errors.email}
+                disabled={!detailsEnabled}
+                placeholder="Email "
               />
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="State *"
-              value={form.state}
-              onChange={(e) => update("state", e.target.value)}
-              error={errors.state}
-              disabled={!detailsEnabled}
-              placeholder="State"
-            />
-            <Input
-              label="District *"
-              value={form.district}
-              onChange={(e) => update("district", e.target.value)}
-              error={errors.district}
-              disabled={!detailsEnabled}
-              placeholder="District"
-            />
+              <Input
+                label="State *"
+                value={form.state}
+                onChange={(e) => update("state", e.target.value)}
+                error={errors.state}
+                disabled={!detailsEnabled}
+                placeholder="State"
+              />
+              <Input
+                label="District *"
+                value={form.district}
+                onChange={(e) => update("district", e.target.value)}
+                error={errors.district}
+                disabled={!detailsEnabled}
+                placeholder="District"
+              />
             </div>
           </section>
           <section className="space-y-4 rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5">
@@ -907,11 +901,11 @@ function CreateOrderPage() {
           </section>
           <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-surface-alt/60 p-4 sm:p-5">
             <Select
-              label="Order Type *"
+              label="Payment Type"
               options={orderTypeOptions}
               value={form.orderType}
               onChange={(e) => update("orderType", e.target.value)}
-              placeholder="Order Type "
+              placeholder="Select Payment Type "
               error={errors.orderType}
               disabled={!detailsEnabled}
             />
@@ -940,14 +934,14 @@ function CreateOrderPage() {
             </p>
           </section>
           <section>
-          <Textarea
-            label="Notes (optional)"
-            value={form.notes}
-            onChange={(e) => update("notes", e.target.value)}
-            placeholder="Customization or customer requirements"
-            rows={3}
-            disabled={!detailsEnabled}
-          />
+            <Textarea
+              label="Notes (optional)"
+              value={form.notes}
+              onChange={(e) => update("notes", e.target.value)}
+              placeholder="Customization or customer requirements"
+              rows={3}
+              disabled={!detailsEnabled}
+            />
           </section>
           <div className="flex flex-col gap-2 pt-2 sm:flex-row">
             <Button type="submit" loading={submitting} className="sm:min-w-[140px]">

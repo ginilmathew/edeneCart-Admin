@@ -321,18 +321,18 @@ function ProductManagementPage() {
         />
         <div className="mb-4">
           <ResponsiveManagementFilters modalTitle="Product filters" triggerLabel="Filters">
-          <ManagementFilterPanel>
-            <ManagementFilterField label="Category" className="lg:col-span-2 xl:col-span-2">
-              <Select
-                label=""
-                fullWidth
-                options={categoryFilterOptions}
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                aria-label="Filter by category"
-              />
-            </ManagementFilterField>
-          </ManagementFilterPanel>
+            <ManagementFilterPanel>
+              <ManagementFilterField label="Category" className="lg:col-span-2 xl:col-span-2">
+                <Select
+                  label=""
+                  fullWidth
+                  options={categoryFilterOptions}
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  aria-label="Filter by category"
+                />
+              </ManagementFilterField>
+            </ManagementFilterPanel>
           </ResponsiveManagementFilters>
         </div>
         <Table
@@ -413,11 +413,11 @@ function ProductManagementPage() {
             onChange={(e) => setColor(e.target.value)}
             placeholder="e.g. Navy"
           />
-          {editingId && (
+          {/* {editingId && (
             <p className="text-xs text-text-muted">
               Product ID and SKU are assigned automatically and can be adjusted later via API if needed.
-            </p>
-          )}
+            </p>  
+          )} */}
           <div className="flex gap-2">
             <Button onClick={handleSave}>Save</Button>
             <Button variant="secondary" onClick={() => setModalOpen(false)}>

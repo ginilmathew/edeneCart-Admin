@@ -58,7 +58,10 @@ export const CardHeader = memo(function CardHeader({
           </p>
         ) : null}
       </div>
-      {action && <div className="shrink-0 sm:self-start">{action}</div>}
-    </div>
+      {action && (
+        <div className="shrink-0 sm:self-start ml-auto">
+          {action}
+        </div>
+      )}    </div>
   );
 });

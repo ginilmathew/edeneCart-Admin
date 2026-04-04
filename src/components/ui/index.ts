@@ -11,9 +11,9 @@ export { Textarea } from "./Textarea";
 export { ToggleSwitch } from "./ToggleSwitch";
 export { Tooltip } from "./Tooltip";
 export {
-  ManagementFilterPanel,
-  ManagementFilterField,
-  ManagementFilterLayoutProvider,
-  MANAGEMENT_NATIVE_CONTROL_CLASS,
+    ManagementFilterPanel,
+    ManagementFilterField,
+    ManagementFilterLayoutProvider,
+    MANAGEMENT_NATIVE_CONTROL_CLASS,
 } from "./ManagementFilterPanel";
 export { ResponsiveManagementFilters } from "./ResponsiveManagementFilters";

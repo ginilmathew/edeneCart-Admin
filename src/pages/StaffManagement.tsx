@@ -610,28 +610,36 @@ function StaffManagementPage() {
         label="Full Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="e.g. Priya Sharma"
+        placeholder="Enter the Full Name"
       />
       {!editStaff && (
         <Input
           label="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="e.g. priya.s (used for login)"
+          placeholder="Enter the Username"
         />
       )}
       <Input
         label="Phone number"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="e.g. 9876543210 or +91 9876543210"
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, "");
+
+          if (value.length <= 10) {
+            setPhone(value);
+          }
+        }}
+        maxLength={10}
+        placeholder="Enter the Phone Number"
+        pattern="[0-9]{10}"
         autoComplete="tel"
       />
       <Input
         label="UPI ID"
         value={upiId}
         onChange={(e) => setUpiId(e.target.value)}
-        placeholder="e.g. name@paytm (optional)"
+        placeholder="Enter the UPI ID"
         autoComplete="off"
       />
       <Input
@@ -652,9 +660,7 @@ function StaffManagementPage() {
         value={assignedNumberId}
         onChange={(e) => setAssignedNumberId(e.target.value)}
       />
-      <p className="text-xs text-text-muted">
-        Add numbers under Assigned numbers. Login access remains the standard staff account role.
-      </p>
+
     </>
   );
 

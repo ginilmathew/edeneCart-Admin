@@ -582,7 +582,7 @@ function AdminOrderManagementPage() {
       label: step.label,
       hint:
         step.next === "dispatch"
-          ? "Requires a tracking ID on each order — set it in the order detail first, or some lines may fail."
+          ? ""
           : undefined,
     };
   }, [selectedIds, filteredOrders]);
@@ -827,128 +827,128 @@ function AdminOrderManagementPage() {
         />
         <div className="mb-4 space-y-2">
           <ResponsiveManagementFilters modalTitle="Order filters" triggerLabel="Filters">
-          <ManagementFilterPanel>
-            <ManagementFilterField
-              label="Order ID"
-              className="lg:col-span-2 xl:col-span-2"
-            >
-              <input
-                type="search"
-                value={orderIdSearch}
-                onChange={(e) => setOrderIdSearch(e.target.value)}
-                placeholder="e.g. ORD-1005 or 1005"
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="Search by display order id"
-              />
-            </ManagementFilterField>
-            <ManagementFilterField label="From date">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="From date"
-              />
-            </ManagementFilterField>
-            <ManagementFilterField label="To date">
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="To date"
-              />
-            </ManagementFilterField>
-            <ManagementFilterField label="Server filters">
-              <div className="flex w-full flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void applyDateFilters()}
-                  loading={filtersLoading}
+            <ManagementFilterPanel>
+              <ManagementFilterField
+                label="Order ID"
+                className="lg:col-span-2 xl:col-span-2"
+              >
+                <input
+                  type="search"
+                  value={orderIdSearch}
+                  onChange={(e) => setOrderIdSearch(e.target.value)}
+                  placeholder="e.g. ORD-1005 or 1005"
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Search by display order id"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="From date">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="From date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="To date">
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="To date"
+                />
+              </ManagementFilterField>
+              <ManagementFilterField label="Server filters">
+                <div className="flex w-full flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => void applyDateFilters()}
+                    loading={filtersLoading}
+                  >
+                    Apply
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void clearDateFilters()}
+                    disabled={filtersLoading}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              </ManagementFilterField>
+              <ManagementFilterField label="Staff">
+                <select
+                  value={staffFilter}
+                  onChange={(e) => setStaffFilter(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Filter by staff"
                 >
-                  Apply
-                </Button>
+                  {staffOptions.map((opt) => (
+                    <option key={opt.value || "all-staff"} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </ManagementFilterField>
+              <ManagementFilterField label="Status">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Filter by order status"
+                >
+                  {ORDER_STATUS_FILTER_OPTIONS.map((opt) => (
+                    <option key={opt.value || "all-status"} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </ManagementFilterField>
+              <ManagementFilterField label="Product">
+                <select
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Filter by product"
+                >
+                  {productOptions.map((opt) => (
+                    <option key={opt.value || "all-products"} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </ManagementFilterField>
+              <ManagementFilterField label="Order type">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+                  aria-label="Filter by order type"
+                >
+                  {typeOptions.map((opt) => (
+                    <option key={opt.value || "all-types"} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </ManagementFilterField>
+              <ManagementFilterField label="Table filters">
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
-                  onClick={() => void clearDateFilters()}
-                  disabled={filtersLoading}
+                  className="w-full sm:w-auto"
+                  onClick={clearTableFilters}
+                  aria-label="Reset staff, status, product, and type filters to show all"
                 >
-                  Clear all
+                  Reset table filters
                 </Button>
-              </div>
-            </ManagementFilterField>
-            <ManagementFilterField label="Staff">
-              <select
-                value={staffFilter}
-                onChange={(e) => setStaffFilter(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="Filter by staff"
-              >
-                {staffOptions.map((opt) => (
-                  <option key={opt.value || "all-staff"} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </ManagementFilterField>
-            <ManagementFilterField label="Status">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="Filter by order status"
-              >
-                {ORDER_STATUS_FILTER_OPTIONS.map((opt) => (
-                  <option key={opt.value || "all-status"} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </ManagementFilterField>
-            <ManagementFilterField label="Product">
-              <select
-                value={productFilter}
-                onChange={(e) => setProductFilter(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="Filter by product"
-              >
-                {productOptions.map((opt) => (
-                  <option key={opt.value || "all-products"} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </ManagementFilterField>
-            <ManagementFilterField label="Order type">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                aria-label="Filter by order type"
-              >
-                {typeOptions.map((opt) => (
-                  <option key={opt.value || "all-types"} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </ManagementFilterField>
-            <ManagementFilterField label="Table filters">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="w-full sm:w-auto"
-                onClick={clearTableFilters}
-                aria-label="Reset staff, status, product, and type filters to show all"
-              >
-                Reset table filters
-              </Button>
-            </ManagementFilterField>
-          </ManagementFilterPanel>
+              </ManagementFilterField>
+            </ManagementFilterPanel>
           </ResponsiveManagementFilters>
           {(appliedDateFrom || appliedDateTo || appliedOrderId.trim()) && (
             <p className="text-xs text-text-muted">
@@ -963,47 +963,47 @@ function AdminOrderManagementPage() {
                 : "."}
             </p>
           )}
-        {showApiPagination && (
-          <div className="mb-3 flex flex-col gap-2 rounded-[var(--radius-md)] border border-border bg-surface-alt/50 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <span className="text-sm text-text-muted">
-              {listTotal.toLocaleString()} customer order
-              {listTotal === 1 ? "" : "s"} total (paged by order)
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={listPage <= 1 || filtersLoading}
-                onClick={() =>
-                  void loadOrders({
-                    page: listPage - 1,
-                    limit: ADMIN_ORDERS_PAGE_SIZE,
-                  })
-                }
-              >
-                Previous
-              </Button>
-              <span className="text-sm tabular-nums text-text-heading">
-                Page {listPage} of {totalPages}
+          {showApiPagination && (
+            <div className="mb-3 flex flex-col gap-2 rounded-[var(--radius-md)] border border-border bg-surface-alt/50 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <span className="text-sm text-text-muted">
+                {listTotal.toLocaleString()} customer order
+                {listTotal === 1 ? "" : "s"} total (paged by order)
               </span>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={listPage >= totalPages || filtersLoading}
-                onClick={() =>
-                  void loadOrders({
-                    page: listPage + 1,
-                    limit: ADMIN_ORDERS_PAGE_SIZE,
-                  })
-                }
-              >
-                Next
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={listPage <= 1 || filtersLoading}
+                  onClick={() =>
+                    void loadOrders({
+                      page: listPage - 1,
+                      limit: ADMIN_ORDERS_PAGE_SIZE,
+                    })
+                  }
+                >
+                  Previous
+                </Button>
+                <span className="text-sm tabular-nums text-text-heading">
+                  Page {listPage} of {totalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={listPage >= totalPages || filtersLoading}
+                  onClick={() =>
+                    void loadOrders({
+                      page: listPage + 1,
+                      limit: ADMIN_ORDERS_PAGE_SIZE,
+                    })
+                  }
+                >
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
         {selectedIds.size > 0 && (
           <div className="mb-2 flex flex-col gap-2 rounded-[var(--radius-md)] border border-border bg-surface-alt/50 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
@@ -1045,8 +1045,7 @@ function AdminOrderManagementPage() {
               loading={bulkPdfLoading}
               className="sm:ml-auto"
             >
-              Download selected PDF
-            </Button>
+              LABEL            </Button>
             <button
               type="button"
               className="text-sm font-medium text-primary underline hover:no-underline"

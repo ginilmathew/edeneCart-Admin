@@ -521,10 +521,7 @@ function DeliveryManagementPage() {
             onChange={(e) => setFeeCod(e.target.value)}
             placeholder="0"
           />
-          <p className="text-[11px] text-text-muted leading-relaxed">
-            On Create Order, the total uses the prepaid column when the order is Prepaid and the COD column when it is
-            COD. Quantity multiplies per unit the same way as before.
-          </p>
+
           <div className="flex gap-2">
             <Button type="button" onClick={() => void saveFee()}>
               Save
