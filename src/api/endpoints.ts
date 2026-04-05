@@ -37,6 +37,8 @@ export const endpoints = {
   staffSalaryPayments: `${V1}/staff/salary-payments`,
   staffEarningsById: (id: string) => `${V1}/staff/${id}/earnings`,
   staffMe: `${V1}/staff/me`,
+  staffMeBonusDailyLog: `${V1}/staff/me/bonus-daily-log`,
+  staffBonusDailyLog: `${V1}/staff/bonus-daily-log`,
   staffById: (id: string) => `${V1}/staff/${id}`,
   staffResetPassword: (id: string) => `${V1}/staff/${id}/reset-password`,
   staffRequestPasswordReset: `${V1}/staff/request-password-reset`,

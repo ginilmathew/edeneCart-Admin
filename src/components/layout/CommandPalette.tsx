@@ -20,6 +20,12 @@ const ITEMS: CommandItem[] = [
   { to: "/stock", label: "Product stock", roles: ["staff"], keywords: ["inventory"] },
   { to: "/recent-orders", label: "Recent orders", roles: ["staff"] },
   {
+    to: "/bonus-log",
+    label: "Bonus log",
+    roles: ["staff"],
+    keywords: ["bonus", "daily bonus", "tiers", "earnings log"],
+  },
+  {
     to: "/blog",
     label: "Blog",
     roles: ["staff"],
@@ -68,6 +74,13 @@ const ITEMS: CommandItem[] = [
       "pay button",
       "earnings",
     ],
+  },
+  {
+    to: "/admin/bonus-log",
+    label: "Staff bonus log",
+    roles: ["super_admin", "guest"],
+    permission: "staff.view",
+    keywords: ["bonus log", "daily bonus", "staff bonus", "tier history"],
   },
   {
     to: "/admin/profit",

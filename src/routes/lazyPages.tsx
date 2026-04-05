@@ -60,6 +60,9 @@ export const SalaryManagement = lazyRoute(() => import("../pages/SalaryManagemen
 export const StaffPayrollLedger = lazyRoute(
   () => import("../pages/StaffPayrollLedger"),
 );
+export const BonusDailyLogPage = lazyRoute(
+  () => import("../pages/BonusDailyLogPage"),
+);
 export const ProfitAnalytics = lazyRoute(() => import("../pages/ProfitAnalytics"));
 export const DeliveryManagement = lazyRoute(
   () => import("../pages/DeliveryManagement"),

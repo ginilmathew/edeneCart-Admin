@@ -73,10 +73,21 @@ function OrdersListPage() {
 
     const q = searchTerm.trim().toLowerCase();
     if (q) {
+      const qNoSpace = q.replace(/\s+/g, "");
       rows = rows.filter((row) => {
         const customer = (row.customerName ?? "").toLowerCase();
         const phone = String(row.phone ?? "").toLowerCase();
-        return customer.includes(q) || phone.includes(q);
+        const phoneCompact = phone.replace(/\s+/g, "");
+        const orderId = (row.orderId ?? "").toLowerCase();
+        const orderIdCompact = orderId.replace(/\s+/g, "");
+        return (
+          customer.includes(q) ||
+          phone.includes(q) ||
+          phoneCompact.includes(qNoSpace) ||
+          orderId.includes(q) ||
+          orderIdCompact.includes(qNoSpace) ||
+          row.id.toLowerCase().includes(q)
+        );
       });
     }
 
@@ -210,9 +221,9 @@ function OrdersListPage() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Customer name or phone"
+                  placeholder="Customer, phone, or order ID"
                   className={MANAGEMENT_NATIVE_CONTROL_CLASS}
-                  aria-label="Search by customer name or phone"
+                  aria-label="Search by customer name, phone, or order ID"
                 />
               </ManagementFilterField>
               <ManagementFilterField label="From date">

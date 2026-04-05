@@ -30,6 +30,7 @@ import {
   ShieldCheckIcon,
   IdentificationIcon,
   QrCodeIcon,
+  GiftIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
 import type { User } from "../../types";
@@ -69,6 +70,7 @@ const STAFF_NAV_SECTIONS: NavSection<StaffNavItem>[] = [
       { to: "/orders", label: "My Orders", end: true, icon: ClipboardDocumentListIcon },
       { to: "/stock", label: "Product stock", end: true, icon: ArchiveBoxIcon },
       { to: "/recent-orders", label: "Recent orders", end: true, icon: ClockIcon },
+      { to: "/bonus-log", label: "Bonus log", end: true, icon: GiftIcon },
       { to: "/blog", label: "Blog", end: true, icon: NewspaperIcon },
       {
         to: "/enquiries",
@@ -123,6 +125,13 @@ const ADMIN_NAV_SECTIONS: NavSection<AdminNavItem>[] = [
         label: "Payroll",
         end: true,
         icon: BanknotesIcon,
+        permission: "staff.view",
+      },
+      {
+        to: "/admin/bonus-log",
+        label: "Bonus log",
+        end: true,
+        icon: GiftIcon,
         permission: "staff.view",
       },
       {

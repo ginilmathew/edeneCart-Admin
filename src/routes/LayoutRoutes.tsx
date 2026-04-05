@@ -43,6 +43,14 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         }
       />
       <Route
+        path="/bonus-log"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <Pages.BonusDailyLogPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/orders"
         element={
           <ProtectedRoute allowedRoles={["staff"]}>
@@ -266,6 +274,17 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
             requiredPermissions={["staff.view"]}
           >
             <Pages.StaffPayrollLedger />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/bonus-log"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["staff.view"]}
+          >
+            <Pages.BonusDailyLogPage />
           </ProtectedRoute>
         }
       />

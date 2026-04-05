@@ -166,6 +166,23 @@ export interface StaffEarnings {
 }
 
 /** Recorded payout from GET /staff/salary-payments */
+/** One row per staff per UTC calendar day (from GET …/bonus-daily-log). */
+export interface StaffBonusDailyLogTier {
+  milestoneOrders: number;
+  bonus: number;
+}
+
+export interface StaffBonusDailyLogEntry {
+  staffId: string;
+  staffName: string;
+  date: string;
+  quantityTotal: number;
+  baseEarnings: number;
+  bonusTotal: number;
+  dayTotal: number;
+  tiers: StaffBonusDailyLogTier[];
+}
+
 export interface StaffSalaryPaymentRow {
   id: string;
   staffId: string;

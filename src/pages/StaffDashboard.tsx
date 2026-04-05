@@ -22,12 +22,6 @@ import {
   formatCurrency,
 } from "../lib/orderUtils";
 
-const todayStart = () => {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-};
-
 function StaffDashboardPage() {
   const orders = useAppSelector(selectOrders);
   const staffProfile = useAppSelector(selectStaffMe);
@@ -49,9 +43,17 @@ function StaffDashboardPage() {
 
   const stats = useMemo(() => {
     if (!staffProfile || !staffId) return null;
-    const todayOrders = orders.filter(
-      (o) => o.staffId === staffId && o.createdAt >= todayStart()
-    ).length;
+    const now = new Date();
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    dayEnd.setHours(23, 59, 59, 999);
+    const todayLines = orders.filter((o) => {
+      if (o.staffId !== staffId || o.status === "cancelled") return false;
+      const d = new Date(o.createdAt);
+      return d >= dayStart && d <= dayEnd;
+    });
+    const todayOrders = new Set(todayLines.map((o) => o.orderId)).size;
     const undelivered = orders.filter(
       (o) =>
         o.staffId === staffId &&
@@ -59,22 +61,24 @@ function StaffDashboardPage() {
           o.status === "packed" ||
           o.status === "dispatch")
     ).length;
-    const { total, orderCount } = computeEarningsForStaff(orders, staffProfile);
+    const todayEarn = computeEarningsForStaff(orders, staffProfile, {
+      range: { start: dayStart, end: dayEnd },
+    });
     const weekly = computeEarningsForStaff(orders, staffProfile, {
       weekOnly: true,
     }).total;
     return {
       todayOrders,
-      totalEarnings: total,
+      todayQty: todayEarn.orderCount,
+      todayTotalEarnings: todayEarn.total,
       undelivered,
       weeklyEarnings: weekly,
-      orderCount,
     };
   }, [orders, staffProfile, staffId]);
 
   const nextMilestone = useMemo(() => {
     if (!staffProfile || !stats) return null;
-    return getNextMilestone(staffProfile, stats.orderCount);
+    return getNextMilestone(staffProfile, stats.todayQty);
   }, [staffProfile, stats]);
 
   const milestonesSorted = useMemo(() => {
@@ -82,9 +86,9 @@ function StaffDashboardPage() {
     return [...staffProfile.bonusMilestones].sort((a, b) => a.orders - b.orders);
   }, [staffProfile]);
 
-  const ordersToNext = useMemo(() => {
+  const qtyToNext = useMemo(() => {
     if (!nextMilestone || !stats) return 0;
-    return Math.max(0, nextMilestone.orders - stats.orderCount);
+    return Math.max(0, nextMilestone.orders - stats.todayQty);
   }, [nextMilestone, stats]);
 
   if (meLoading) {
@@ -161,8 +165,16 @@ function StaffDashboardPage() {
               >
                 Today Earnings              </h2>
             </div>
-            <div className="rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-text-muted sm:text-xs">
-              Focus on your next tier
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+              <div className="rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-text-muted sm:text-xs">
+                Daily targets — progress resets each calendar day (your time)
+              </div>
+              <Link
+                to="/bonus-log"
+                className="text-[11px] font-bold text-primary hover:underline sm:text-xs"
+              >
+                Bonus log →
+              </Link>
             </div>
           </div>
 
@@ -172,10 +184,10 @@ function StaffDashboardPage() {
                 Progress
               </p>
               <p className="mt-1 text-2xl sm:text-3xl font-black tabular-nums text-text-heading">
-                {stats.orderCount}
+                {stats.todayQty}
               </p>
               <p className="mt-1 sm:mt-2 text-[10px] sm:text-[11px] font-medium text-text-muted leading-tight">
-                total qty
+                qty today
               </p>
             </div>
 
@@ -189,7 +201,7 @@ function StaffDashboardPage() {
                     {nextMilestone.orders}
                   </p>
                   <p className="mt-1 sm:mt-2 text-[10px] sm:text-[11px] font-medium text-text-muted leading-tight">
-                    orders to hit
+                    qty to hit
                   </p>
                 </div>
 
@@ -202,18 +214,18 @@ function StaffDashboardPage() {
                   </p>
                   <div className="mt-auto pt-2">
                     <p className="rounded-md bg-black/20 py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-bold text-white leading-tight">
-                      {ordersToNext === 0
+                      {qtyToNext === 0
                         ? "Reached!"
-                        : `${ordersToNext} more`}
+                        : `${qtyToNext} more`}
                     </p>
                   </div>
                 </div>
               </>
             ) : (
               <div className="col-span-2 rounded-2xl border border-primary/25 bg-primary-muted/80 p-3 sm:p-4 shadow-sm">
-                <p className="text-xs sm:text-sm font-bold text-text-heading">All milestones achieved</p>
+                <p className="text-xs sm:text-sm font-bold text-text-heading">All today&apos;s tiers achieved</p>
                 <p className="mt-1 text-[10px] sm:text-xs text-text-muted">
-                  You&apos;ve passed every tier. Keep creating orders — your totals still grow.
+                  You&apos;ve hit every milestone for today. Tomorrow starts fresh — keep up the momentum.
                 </p>
               </div>
             )}
@@ -222,23 +234,23 @@ function StaffDashboardPage() {
           {nextMilestone ? (
             <div className="mt-4 sm:mt-6 rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-sm">
               <ProgressBar
-                value={stats.orderCount}
+                value={stats.todayQty}
                 max={nextMilestone.orders}
-                label="Progress to next bonus"
+                label="Progress to next bonus (today)"
                 className="[&>div:last-child]:h-3.5 [&>div:last-child>div]:rounded-full [&>div:last-child>div]:bg-primary"
               />
               <p className="mt-4 text-center text-sm font-bold text-text-heading">
-                Earnings so far (incl. bonuses earned):{" "}
+                Today (base + bonuses):{" "}
                 <span className="tabular-nums text-base font-black text-primary">
-                  {formatCurrency(stats.totalEarnings)}
+                  {formatCurrency(stats.todayTotalEarnings)}
                 </span>
               </p>
             </div>
           ) : (
             <p className="relative mt-4 text-center text-sm font-medium text-text-muted">
-              Earnings so far:{" "}
+              Today (base + bonuses):{" "}
               <span className="font-black tabular-nums text-text-heading">
-                {formatCurrency(stats.totalEarnings)}
+                {formatCurrency(stats.todayTotalEarnings)}
               </span>
             </p>
           )}
@@ -249,7 +261,7 @@ function StaffDashboardPage() {
             </p>
             <ul className="flex flex-col gap-2">
               {milestonesSorted.map((m) => {
-                const reached = stats.orderCount >= m.orders;
+                const reached = stats.todayQty >= m.orders;
                 const isNext =
                   !reached &&
                   nextMilestone &&
@@ -284,7 +296,7 @@ function StaffDashboardPage() {
                     )}
                     <div className="min-w-0 flex-1 flex flex-wrap items-center gap-2">
                       <span className="font-bold tabular-nums">{m.orders}</span>
-                      <span className="text-text-muted">orders</span>
+                      <span className="text-text-muted">qty</span>
                       <span className="text-border">→</span>
                       <span className="font-black tabular-nums text-text-heading">
                         {formatCurrency(m.bonus)}
