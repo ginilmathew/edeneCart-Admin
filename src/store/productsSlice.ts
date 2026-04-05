@@ -1,109 +1,26 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Product } from "../types";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
+import { edenApi } from "./api/edenApi";
+import type { NewProductPayload } from "./api/edenApi";
+import type { RootState } from "./rootReducer";
 
-export type NewProductPayload = Pick<Product, "name" | "price"> & {
-  categoryId: string;
-  buyingPrice?: number;
-  stockQuantity?: number;
-  size?: string;
-  color?: string;
-};
+export type { NewProductPayload };
 
-export const fetchProducts = createAsyncThunk(
-  "products/fetchAll",
-  async (_, { rejectWithValue }) => {
-    try {
-      return await api.get<Product[]>(endpoints.products);
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+const selectProductsResult = edenApi.endpoints.getProducts.select(undefined);
 
-export const createProduct = createAsyncThunk(
-  "products/create",
-  async (payload: NewProductPayload, { rejectWithValue }) => {
-    try {
-      return await api.post<Product>(endpoints.products, payload);
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+export const selectProducts = (state: RootState) =>
+  selectProductsResult(state).data ?? [];
 
-export const updateProduct = createAsyncThunk(
-  "products/update",
-  async (
-    { id, patch }: { id: string; patch: Partial<Product> },
-    { rejectWithValue }
-  ) => {
-    try {
-      return await api.put<Product>(endpoints.productById(id), patch);
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+export const selectProductById = (state: RootState, id: string) =>
+  (selectProductsResult(state).data ?? []).find((p) => p.id === id);
 
-export const deleteProduct = createAsyncThunk(
-  "products/delete",
-  async (id: string, { rejectWithValue }) => {
-    try {
-      await api.delete(endpoints.productById(id));
-      return id;
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+export const fetchProducts = () =>
+  edenApi.endpoints.getProducts.initiate(undefined, { forceRefetch: true });
 
-interface ProductsState {
-  list: Product[];
-  loading: boolean;
-  error: string | null;
-}
+export const createProduct = (payload: NewProductPayload) =>
+  edenApi.endpoints.createProduct.initiate(payload);
 
-const initialState: ProductsState = {
-  list: [],
-  loading: false,
-  error: null,
-};
+export const updateProduct = (arg: { id: string; patch: Partial<Product> }) =>
+  edenApi.endpoints.updateProduct.initiate(arg);
 
-const productsSlice = createSlice({
-  name: "products",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchProducts.pending, (s) => {
-        s.loading = true;
-        s.error = null;
-      })
-      .addCase(fetchProducts.fulfilled, (s, a) => {
-        s.loading = false;
-        s.list = a.payload;
-      })
-      .addCase(fetchProducts.rejected, (s, a) => {
-        s.loading = false;
-        s.error = (a.payload as Error)?.message ?? "Failed to fetch products";
-      })
-      .addCase(createProduct.fulfilled, (s, a) => {
-        s.list.push(a.payload);
-      })
-      .addCase(updateProduct.fulfilled, (s, a) => {
-        const i = s.list.findIndex((p) => p.id === a.payload.id);
-        if (i !== -1) s.list[i] = a.payload;
-      })
-      .addCase(deleteProduct.fulfilled, (s, a) => {
-        s.list = s.list.filter((p) => p.id !== a.payload);
-      });
-  },
-});
-
-export const productsReducer = productsSlice.reducer;
-
-export const selectProducts = (state: { products: ProductsState }) => state.products.list;
-export const selectProductById = (state: { products: ProductsState }, id: string) =>
-  state.products.list.find((p) => p.id === id);
+export const deleteProduct = (id: string) =>
+  edenApi.endpoints.deleteProduct.initiate(id);

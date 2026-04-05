@@ -33,6 +33,11 @@ function resolveTheme(): ThemeMode {
 function DataLoader() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAuth();
+  /** Avoid re-running bootstrap when `user` is a new object reference with the same data (overwrites staff list and drops optimistic rows). */
+  const userId = user?.id ?? "";
+  const userRole = user?.role;
+  const permissionsKey = (user?.permissions ?? []).slice().sort().join("|");
+  const staffId = user?.staffId ?? "";
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     dispatch(fetchProducts());
@@ -49,7 +54,14 @@ function DataLoader() {
     if (user.role === "staff" && user.staffId) {
       void dispatch(fetchStaffMe());
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [
+    dispatch,
+    isAuthenticated,
+    userId,
+    userRole,
+    permissionsKey,
+    staffId,
+  ]);
   return null;
 }
 

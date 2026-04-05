@@ -1,6 +1,7 @@
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
 import type { Order } from "../types";
+import { store } from "../store";
+import { edenApi } from "../store/api/edenApi";
+import type { OrderListFilters } from "../store/api/edenApi";
 
 export type AdminOrdersQuery = {
   page?: number;
@@ -12,6 +13,21 @@ export type AdminOrdersQuery = {
 
 const DEFAULT_PAGE_SIZE = 15;
 
+function toOrderListFilters(q: AdminOrdersQuery): OrderListFilters {
+  const oid = q.orderId?.trim();
+  const narrowed = !!(q.dateFrom || q.dateTo || oid);
+  const filters: OrderListFilters = {
+    dateFrom: q.dateFrom,
+    dateTo: q.dateTo,
+    orderId: q.orderId,
+  };
+  if (!narrowed && q.page != null) {
+    filters.page = q.page;
+    filters.limit = q.limit ?? DEFAULT_PAGE_SIZE;
+  }
+  return filters;
+}
+
 /**
  * GET /orders with optional pagination. Omit `page` to fetch the full list (used when table filters are on).
  * Server also returns the full list when date or orderId filters apply.
@@ -19,21 +35,15 @@ const DEFAULT_PAGE_SIZE = 15;
 export async function fetchOrdersList(
   q: AdminOrdersQuery,
 ): Promise<{ items: Order[]; total: number }> {
-  const params = new URLSearchParams();
-  if (q.dateFrom) params.set("dateFrom", q.dateFrom);
-  if (q.dateTo) params.set("dateTo", q.dateTo);
-  const oid = q.orderId?.trim();
-  if (oid) params.set("orderId", oid);
-
-  const narrowed = !!(q.dateFrom || q.dateTo || oid);
-  if (!narrowed && q.page != null) {
-    params.set("page", String(q.page));
-    params.set("limit", String(q.limit ?? DEFAULT_PAGE_SIZE));
-  }
-
-  const qs = params.toString();
-  const path = qs ? `${endpoints.orders}?${qs}` : endpoints.orders;
-  return api.get<{ items: Order[]; total: number }>(path);
+  const filters = toOrderListFilters(q);
+  return store
+    .dispatch(
+      edenApi.endpoints.getOrders.initiate(filters, {
+        subscribe: false,
+        forceRefetch: true,
+      }),
+    )
+    .unwrap();
 }
 
 export const ADMIN_ORDERS_PAGE_SIZE = DEFAULT_PAGE_SIZE;

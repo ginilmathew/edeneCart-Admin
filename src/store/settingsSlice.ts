@@ -1,75 +1,20 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
-import type { AppSettings, PdfSize } from "../types";
+import type { PdfSize } from "../types";
+import { edenApi } from "./api/edenApi";
+import type { RootState } from "./rootReducer";
 
-export const fetchSettings = createAsyncThunk(
-  "settings/fetch",
-  async (_, { rejectWithValue }) => {
-    try {
-      return await api.get<AppSettings>(endpoints.settings);
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+const selectSettingsResult = edenApi.endpoints.getSettings.select(undefined);
 
-export const updateSettings = createAsyncThunk(
-  "settings/update",
-  async (
-    payload: {
-      defaultPdfSize?: PdfSize;
-      defaultSenderId?: string;
-      lowStockThreshold?: number;
-    },
-    { rejectWithValue }
-  ) => {
-    try {
-      return await api.patch<AppSettings>(endpoints.settings, payload);
-    } catch (e) {
-      return rejectWithValue(e);
-    }
-  }
-);
+export const selectSettings = (state: RootState) =>
+  selectSettingsResult(state).data ?? null;
 
-interface SettingsState {
-  value: AppSettings | null;
-  loading: boolean;
-  error: string | null;
-}
+export const selectSettingsLoading = (state: RootState) =>
+  selectSettingsResult(state).isLoading;
 
-const initialState: SettingsState = {
-  value: null,
-  loading: false,
-  error: null,
-};
+export const fetchSettings = () =>
+  edenApi.endpoints.getSettings.initiate(undefined, { forceRefetch: true });
 
-const settingsSlice = createSlice({
-  name: "settings",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchSettings.pending, (s) => {
-        s.loading = true;
-        s.error = null;
-      })
-      .addCase(fetchSettings.fulfilled, (s, a) => {
-        s.loading = false;
-        s.value = a.payload;
-      })
-      .addCase(fetchSettings.rejected, (s, a) => {
-        s.loading = false;
-        s.error = (a.payload as Error)?.message ?? "Failed to load settings";
-      })
-      .addCase(updateSettings.fulfilled, (s, a) => {
-        s.value = a.payload;
-      });
-  },
-});
-
-export const settingsReducer = settingsSlice.reducer;
-export const selectSettings = (state: { settings: SettingsState }) =>
-  state.settings.value;
-export const selectSettingsLoading = (state: { settings: SettingsState }) =>
-  state.settings.loading;
+export const updateSettings = (patch: {
+  defaultPdfSize?: PdfSize;
+  defaultSenderId?: string;
+  lowStockThreshold?: number;
+}) => edenApi.endpoints.updateSettings.initiate(patch);

@@ -127,22 +127,6 @@ function StaffManagementPage() {
     void dispatch(fetchAssignedNumbers());
   }, [dispatch]);
 
-  useEffect(() => {
-    const onFocus = () => {
-      void dispatch(fetchStaff());
-      void dispatch(fetchAssignedNumbers());
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [dispatch]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      void dispatch(fetchStaff());
-    }, 15000);
-    return () => window.clearInterval(timer);
-  }, [dispatch]);
-
   const positionOptions: SelectOption[] = useMemo(
     () => positions.map((p) => ({ value: p.id, label: p.name })),
     [positions]
@@ -250,6 +234,7 @@ function StaffManagementPage() {
         ).unwrap();
         toast.success("Staff created");
         setAddModalOpen(false);
+        await dispatch(fetchStaff()).unwrap();
         void dispatch(fetchAssignedNumbers());
         if (created.temporaryPassword) {
           setTempPasswordModal({
