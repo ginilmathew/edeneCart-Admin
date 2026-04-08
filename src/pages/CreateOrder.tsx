@@ -1,11 +1,11 @@
 import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
-import { createOrder } from "../store/ordersSlice";
+import { createOrder, selectOrders, updateOrder } from "../store/ordersSlice";
 import { Card, CardHeader, Button, Input, Modal, Select, Textarea } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
@@ -75,8 +75,10 @@ function productCategoryKey(p: Product): string {
 
 function CreateOrderPage() {
   const navigate = useNavigate();
+  const { id: editOrderId } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { user } = useAuth();
+  const orders = useAppSelector(selectOrders);
   const products = useAppSelector(selectProducts);
   /** Staff API returns only active; admin list includes inactive — exclude from new orders. */
   const catalogProducts = useMemo(
@@ -100,6 +102,11 @@ function CreateOrderPage() {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionForCart[]>([]);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [selectedDeliveryMethodId, setSelectedDeliveryMethodId] = useState("");
+  const editingOrder = useMemo(
+    () => (editOrderId ? orders.find((o) => o.id === editOrderId) ?? null : null),
+    [editOrderId, orders]
+  );
+  const isEditMode = Boolean(editOrderId);
 
   const phoneTrim = form.phone.trim();
   const detailsEnabled = phoneTrim.length === 10;
@@ -117,6 +124,45 @@ function CreateOrderPage() {
     void dispatch(fetchProducts());
     void dispatch(fetchCategories());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!editingOrder) return;
+    const { flat, area } = splitDeliveryAddress(editingOrder.deliveryAddress);
+    setForm({
+      customerName: editingOrder.customerName ?? "",
+      flatBuilding: flat,
+      areaSector: area,
+      phone: editingOrder.phone ?? "",
+      pincode: editingOrder.pincode ?? "",
+      postOffice: editingOrder.postOffice ?? "",
+      email: editingOrder.email ?? "",
+      state: editingOrder.state ?? "",
+      district: editingOrder.district ?? "",
+      orderType: editingOrder.orderType ?? "",
+      notes: editingOrder.notes ?? "",
+    });
+    setProductRows([
+      {
+        productId: editingOrder.productId,
+        name:
+          products.find((p) => p.id === editingOrder.productId)?.name ??
+          editingOrder.productName ??
+          "Product",
+        quantity: editingOrder.quantity,
+        discount:
+          editingOrder.discountAmount != null ? String(editingOrder.discountAmount) : "",
+      },
+    ]);
+    setSelectedDeliveryMethodId(editingOrder.deliveryMethodId ?? "");
+    setAddOn(
+      editingOrder.addOnAmount != null
+        ? {
+            amount: String(editingOrder.addOnAmount),
+            note: editingOrder.addOnNote ?? "",
+          }
+        : null
+    );
+  }, [editingOrder, products]);
 
   const cartProductIdsKey = useMemo(
     () =>
@@ -402,6 +448,49 @@ function CreateOrderPage() {
         const fullAddress = `${form.flatBuilding.trim()}, ${form.areaSector.trim()}`;
         const selectedProducts = productRows.filter((r) => r.quantity > 0);
 
+        if (isEditMode) {
+          if (!editingOrder) {
+            toast.error("Order not found for editing");
+            return;
+          }
+          if (editingOrder.status !== "pending") {
+            toast.error("Only pending orders can be edited");
+            return;
+          }
+          if (selectedProducts.length !== 1) {
+            toast.error("Edit mode supports one product line only");
+            return;
+          }
+          const item = selectedProducts[0];
+          const disc = parseFloat(item.discount) || 0;
+          await dispatch(
+            updateOrder({
+              id: editingOrder.id,
+              patch: {
+                customerName: form.customerName.trim(),
+                deliveryAddress: fullAddress,
+                phone: form.phone.trim(),
+                pincode: form.pincode.trim(),
+                postOffice: form.postOffice.trim(),
+                email: form.email.trim(),
+                state: form.state.trim(),
+                district: form.district.trim(),
+                orderType: form.orderType as OrderType,
+                productId: item.productId,
+                quantity: item.quantity,
+                discountAmount: disc > 0 ? disc : null,
+                addOnAmount: addOn?.amount ? parseFloat(addOn.amount) : null,
+                addOnNote: addOn?.note?.trim() ? addOn.note.trim() : null,
+                deliveryMethodId: selectedDeliveryMethodId || null,
+                notes: form.notes.trim() || undefined,
+              },
+            })
+          ).unwrap();
+          toast.success("Order updated successfully");
+          navigate("/orders");
+          return;
+        }
+
         // Fetch a single order ID to share across all items (Single Order support)
         const { orderId: commonOrderId } = await api.get<{ orderId: string }>(endpoints.orderNextDisplayId);
 
@@ -496,6 +585,8 @@ function CreateOrderPage() {
       navigate,
       addOn,
       selectedDeliveryMethodId,
+      isEditMode,
+      editingOrder,
     ]
   );
 
@@ -508,7 +599,7 @@ function CreateOrderPage() {
     <div className="mx-auto max-w-3xl px-1 sm:px-2">
       <Card>
         <CardHeader
-          title="Create Order"
+          title={isEditMode ? "Edit Order" : "Create Order"}
         // subtitle="Add customer details, choose products, then select delivery."
         />
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -946,7 +1037,7 @@ function CreateOrderPage() {
           </section>
           <div className="flex flex-col gap-2 pt-2 sm:flex-row">
             <Button type="submit" loading={submitting} className="sm:min-w-[140px]">
-              Create Order
+              {isEditMode ? "Update Order" : "Create Order"}
             </Button>
             <Button
               type="button"

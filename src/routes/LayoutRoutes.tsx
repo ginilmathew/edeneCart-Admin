@@ -67,6 +67,14 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         }
       />
       <Route
+        path="/orders/:id/edit"
+        element={
+          <ProtectedRoute allowedRoles={["staff"]}>
+            <Pages.CreateOrder />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/orders/:id"
         element={
           <ProtectedRoute allowedRoles={["staff"]}>

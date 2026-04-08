@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router";
+import { PencilIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
 import { useAppSelector } from "../store/hooks";
 import { selectOrders } from "../store/ordersSlice";
@@ -192,6 +193,27 @@ function OrdersListPage() {
             <span className="font-mono text-xs">{t}</span>
           ) : (
             "—"
+          );
+        },
+      },
+      {
+        key: "actions",
+        header: "Actions",
+        render: (row: OrdersListGroupedRow) => {
+          const canEdit = row._uniformStatus === "pending";
+          return canEdit ? (
+            <Link to={`/orders/${row.id}/edit`}>
+              <button
+                type="button"
+                className="rounded p-1.5 text-primary hover:bg-primary-muted"
+                aria-label={`Edit ${row.orderId}`}
+                title="Edit order"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+            </Link>
+          ) : (
+            <span className="text-text-muted">—</span>
           );
         },
       },
