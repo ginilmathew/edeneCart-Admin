@@ -130,7 +130,7 @@ function UserManagementPage() {
         render: (row: AdminUserRow) => (
           <div className="flex flex-col gap-0.5">
             <Badge variant="muted">{row.roleSlug}</Badge>
-            <span className="text-[11px] text-text-muted">{row.roleName}</span>
+            <span className="text-xs text-text-muted">{row.roleName}</span>
           </div>
         ),
       },
@@ -270,7 +270,7 @@ function UserManagementPage() {
                   .sort(([a], [b]) => a.localeCompare(b))
                   .map(([resource, perms]) => (
                     <div key={resource}>
-                      <h5 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                      <h5 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
                         {resource.replace(/_/g, " ")}
                       </h5>
                       <div className="flex flex-wrap gap-3">

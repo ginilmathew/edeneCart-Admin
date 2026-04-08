@@ -58,7 +58,7 @@ function AdminOrderBulkBarComponent({
             All selected: {bulkAdvanceAction.current}
           </span>
           {bulkAdvanceAction.hint ? (
-            <span className="text-[11px] text-text-muted max-w-md">
+            <span className="text-xs text-text-muted max-w-md">
               {bulkAdvanceAction.hint}
             </span>
           ) : null}

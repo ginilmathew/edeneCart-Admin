@@ -208,7 +208,7 @@ function SalaryManagementPage() {
                           );
                           if (tiers.length === 0) {
                             return (
-                              <span className="text-[11px] font-medium italic text-text-muted">
+                              <span className="text-xs font-medium italic text-text-muted">
                                 No tiers
                               </span>
                             );

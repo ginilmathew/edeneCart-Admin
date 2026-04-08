@@ -314,7 +314,7 @@ function CommandPaletteComponent({ open, onClose, user }: CommandPaletteProps) {
                   onClick={() => go(item.to)}
                 >
                   <span className="min-w-0 flex-1 font-medium">{item.label}</span>
-                  <span className="shrink-0 font-mono text-[11px] text-text-muted">{item.to}</span>
+                  <span className="shrink-0 font-mono text-xs text-text-muted">{item.to}</span>
                 </button>
               </li>
             ))

@@ -1012,7 +1012,7 @@ function CreateOrderPage() {
                 disabled={!detailsEnabled}
               />
             )}
-            <p className="text-[11px] text-text-muted leading-relaxed">
+            <p className="text-xs text-text-muted leading-relaxed">
               {!detailsEnabled
                 ? "Enter 10-digit phone above to enable order type and delivery."
                 : !cartProductIdsKey

@@ -166,12 +166,12 @@ function StaffDashboardPage() {
                 Today Earnings              </h2>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-              <div className="rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-text-muted sm:text-xs">
+              <div className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-muted sm:text-xs">
                 Daily targets — progress resets each calendar day (your time)
               </div>
               <Link
                 to="/bonus-log"
-                className="text-[11px] font-bold text-primary hover:underline sm:text-xs"
+                className="text-xs font-bold text-primary hover:underline sm:text-xs"
               >
                 Bonus log →
               </Link>
@@ -186,7 +186,7 @@ function StaffDashboardPage() {
               <p className="mt-1 text-2xl sm:text-3xl font-black tabular-nums text-text-heading">
                 {stats.todayQty}
               </p>
-              <p className="mt-1 sm:mt-2 text-[10px] sm:text-[11px] font-medium text-text-muted leading-tight">
+              <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-text-muted leading-tight">
                 qty today
               </p>
             </div>
@@ -200,7 +200,7 @@ function StaffDashboardPage() {
                   <p className="mt-1 text-2xl sm:text-3xl font-black tabular-nums text-text-heading">
                     {nextMilestone.orders}
                   </p>
-                  <p className="mt-1 sm:mt-2 text-[10px] sm:text-[11px] font-medium text-text-muted leading-tight">
+                  <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-text-muted leading-tight">
                     qty to hit
                   </p>
                 </div>
@@ -213,7 +213,7 @@ function StaffDashboardPage() {
                     {formatCurrency(nextMilestone.bonus)}
                   </p>
                   <div className="mt-auto pt-2">
-                    <p className="rounded-md bg-black/20 py-1 sm:py-1.5 text-center text-[10px] sm:text-[11px] font-bold text-white leading-tight">
+                    <p className="rounded-md bg-black/20 py-1 sm:py-1.5 text-center text-[10px] sm:text-xs font-bold text-white leading-tight">
                       {qtyToNext === 0
                         ? "Reached!"
                         : `${qtyToNext} more`}

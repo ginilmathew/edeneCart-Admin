@@ -855,7 +855,7 @@ function StaffManagementPage() {
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
                   Extra permissions
                 </h4>
-                <p className="mt-1 text-[11px] text-text-muted leading-relaxed">
+                <p className="mt-1 text-xs text-text-muted leading-relaxed">
                   Checked items are added on top of the shared <strong>staff</strong> role. The staff member must sign
                   out and sign back in for changes to apply.
                 </p>
@@ -871,7 +871,7 @@ function StaffManagementPage() {
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([resource, perms]) => (
                         <div key={resource}>
-                          <h5 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                          <h5 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
                             {resource.replace(/_/g, " ")}
                           </h5>
                           <div className="flex flex-wrap gap-3">
