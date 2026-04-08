@@ -60,10 +60,10 @@ function CustomerManagementPage() {
       {
         key: "deliveryAddress",
         header: "Address",
-        className: "min-w-0 max-w-[300px] align-top",
+        className: "min-w-0 max-w-[200px] align-top",
         render: (row: Customer) => (
           <span
-            className="line-clamp-2 max-w-full break-words text-left text-sm leading-snug text-text"
+            className="line-clamp-2 max-w-[200px] break-words text-left text-sm leading-snug text-text"
             title={row.deliveryAddress}
           >
             {row.deliveryAddress}
@@ -88,7 +88,6 @@ function CustomerManagementPage() {
       <Card>
         <CardHeader
           title="Customers"
-        // subtitle="Built from create-order details. Phone and email are unique; new orders update the same customer when phone or email matches."
         />
         <div className="mb-4 max-w-md">
           <Input
