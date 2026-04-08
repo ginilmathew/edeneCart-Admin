@@ -64,6 +64,7 @@ export function nextBulkStep(
   current: OrderStatus,
 ): { next: OrderStatus; label: string } | null {
   switch (current) {
+    case "scheduled":
     case "pending":
       return null;
     case "packed":

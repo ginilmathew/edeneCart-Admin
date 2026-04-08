@@ -136,6 +136,8 @@ export function orderStatusToBadgeVariant(
       return "info";
     case "packed":
       return "packed";
+    case "scheduled":
+      return "info";
     default:
       return "warning";
   }
@@ -143,5 +145,6 @@ export function orderStatusToBadgeVariant(
 
 export function formatOrderStatusLabel(status: OrderStatus | "mixed"): string {
   if (status === "mixed") return "Mixed";
+  if (status === "scheduled") return "Scheduled";
   return status.charAt(0).toUpperCase() + status.slice(1);
 }

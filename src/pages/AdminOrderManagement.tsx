@@ -245,7 +245,9 @@ function AdminOrderManagementPage() {
   }, [groupedOrders, detailId]);
 
   const discountEditable =
-    orderDetail?.status === "pending" || orderDetail?.status === "packed";
+    orderDetail?.status === "pending" ||
+    orderDetail?.status === "scheduled" ||
+    orderDetail?.status === "packed";
 
   const sortedOrderLines = useMemo((): Order[] => {
     if (!orderDetail) return [];
@@ -289,7 +291,13 @@ function AdminOrderManagementPage() {
   const persistTrackingFromBlur = useCallback(async () => {
     if (!detailId || !orderDetail) return;
     const o = listLinesRef.current.find((x) => x.id === detailId);
-    if (!o || (o.status !== "pending" && o.status !== "packed")) return;
+    if (
+      !o ||
+      (o.status !== "pending" &&
+        o.status !== "scheduled" &&
+        o.status !== "packed")
+    )
+      return;
     const localT = trackingDraft.trim();
     const serverT = (o.trackingId ?? "").trim();
     if (localT === serverT) return;

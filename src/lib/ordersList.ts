@@ -8,6 +8,7 @@ import { orderLineProductLabel, uniformOrderGroupStatus } from "./orderUtils";
 
 export const ORDER_STATUS_FILTER_OPTIONS: SelectOption[] = [
   { value: "", label: "All statuses" },
+  { value: "scheduled", label: "Scheduled" },
   { value: "pending", label: "Pending" },
   { value: "packed", label: "Packed" },
   { value: "dispatch", label: "Dispatch" },

@@ -387,6 +387,7 @@ function AdminOrderDetailModalComponent({
             ) : null}
           </dl>
           {orderDetail.status === "pending" ||
+          orderDetail.status === "scheduled" ||
           orderDetail.status === "packed" ? (
             <div className="rounded-[var(--radius-md)] border border-border bg-surface-alt p-3">
               <label
@@ -424,6 +425,7 @@ function AdminOrderDetailModalComponent({
               Close
             </Button>
             {orderDetail.status === "pending" ||
+            orderDetail.status === "scheduled" ||
             orderDetail.status === "packed" ? (
               <Button
                 variant="danger"

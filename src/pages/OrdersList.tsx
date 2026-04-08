@@ -200,7 +200,9 @@ function OrdersListPage() {
         key: "actions",
         header: "Actions",
         render: (row: OrdersListGroupedRow) => {
-          const canEdit = row._uniformStatus === "pending";
+          const canEdit =
+            row._uniformStatus === "pending" ||
+            row._uniformStatus === "scheduled";
           return canEdit ? (
             <Link to={`/orders/${row.id}/edit`}>
               <button

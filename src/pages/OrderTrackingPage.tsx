@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { getApiBaseUrl } from "../api/api-base-url";
 
-type OrderStatus = "pending" | "packed" | "dispatch" | "delivered" | "cancelled" | "returned";
+type OrderStatus =
+  | "scheduled"
+  | "pending"
+  | "packed"
+  | "dispatch"
+  | "delivered"
+  | "cancelled"
+  | "returned";
 
 interface TrackingItem {
   productName: string;
@@ -29,9 +36,11 @@ interface TrackingData {
   createdAt: string;
   statusSteps: string[];
   currentStep: number;
+  scheduledFor?: string | null;
 }
 
 const STATUS_META: Record<string, { label: string; icon: string; color: string }> = {
+  scheduled: { label: "Scheduled",      icon: "📅", color: "#8b5cf6" },
   pending:   { label: "Order Placed",   icon: "📋", color: "#6366f1" },
   packed:    { label: "Packed",         icon: "📦", color: "#f59e0b" },
   dispatch:  { label: "Dispatched",     icon: "🚚", color: "#3b82f6" },
@@ -110,6 +119,11 @@ export default function OrderTrackingPage() {
                 day: "numeric", month: "long", year: "numeric",
               })}
             </p>
+            {data.scheduledFor ? (
+              <p style={{ color: "#a78bfa", fontSize: 13, marginTop: 8, fontWeight: 600 }}>
+                Scheduled for: {data.scheduledFor}
+              </p>
+            ) : null}
           </div>
           <div style={{ ...styles.statusPill, background: statusInfo.color + "22", border: `1px solid ${statusInfo.color}55` }}>
             <span style={{ fontSize: 20 }}>{statusInfo.icon}</span>
@@ -125,7 +139,7 @@ export default function OrderTrackingPage() {
             <h2 style={styles.sectionTitle}>Shipment Progress</h2>
             <div style={styles.timeline}>
               {timelineSteps.map((step, idx) => {
-                const meta = STATUS_META[step];
+                const meta = STATUS_META[step] ?? STATUS_META.pending;
                 const done = idx <= data.currentStep;
                 const active = idx === data.currentStep;
                 return (

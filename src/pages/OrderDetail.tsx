@@ -7,7 +7,9 @@ import { Card, Badge, Button } from "../components/ui";
 import {
   formatDateTime,
   formatCurrency,
+  formatOrderStatusLabel,
   orderLineProductLabel,
+  orderStatusToBadgeVariant,
 } from "../lib/orderUtils";
 import { toast } from "../lib/toast";
 
@@ -50,14 +52,18 @@ function OrderDetailPage() {
     0
   );
   const grandTotal = totalSelling + totalDelivery;
-  const canCancel = currentOrder.status === "pending";
+  const canCancel =
+    currentOrder.status === "pending" || currentOrder.status === "scheduled";
 
   const cancelOrder = async () => {
     if (!canCancel || relatedItems.length === 0) return;
     setCancelling(true);
     try {
       const pendingLineIds = relatedItems
-        .filter((item) => item.status === "pending")
+        .filter(
+          (item) =>
+            item.status === "pending" || item.status === "scheduled",
+        )
         .map((item) => item.id);
       await Promise.all(
         pendingLineIds.map((lineId) =>
@@ -82,18 +88,10 @@ function OrderDetailPage() {
           <span className="mr-2 text-lg">←</span> Back to orders
         </Link>
         <Badge
-          variant={
-            currentOrder.status === "delivered"
-              ? "success"
-              : currentOrder.status === "cancelled"
-                ? "error"
-                : currentOrder.status === "dispatch"
-                  ? "info"
-                  : "warning"
-          }
+          variant={orderStatusToBadgeVariant(currentOrder.status)}
           className="px-4 py-1 text-xs font-bold uppercase tracking-wider"
         >
-          {currentOrder.status}
+          {formatOrderStatusLabel(currentOrder.status)}
         </Badge>
       </div>
       {canCancel ? (
@@ -119,6 +117,17 @@ function OrderDetailPage() {
               <p className="mt-2 text-sm font-medium text-gray-500 uppercase tracking-widest">
                 Placed on {formatDateTime(currentOrder.createdAt)}
               </p>
+              {relatedItems.some((i) => i.status === "scheduled") &&
+              (currentOrder.scheduledFor ?? relatedItems.find((i) => i.scheduledFor)?.scheduledFor) ? (
+                <p className="mt-1 text-sm font-semibold text-indigo-700">
+                  Scheduled for{" "}
+                  {(
+                    currentOrder.scheduledFor ??
+                    relatedItems.find((i) => i.scheduledFor)?.scheduledFor ??
+                    ""
+                  ).slice(0, 10)}
+                </p>
+              ) : null}
             </div>
             {currentOrder.trackingId && (
               <div className="flex flex-col items-end">

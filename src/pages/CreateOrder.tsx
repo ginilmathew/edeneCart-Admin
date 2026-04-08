@@ -200,11 +200,19 @@ function CreateOrderPage() {
   const [pasteModalOpen, setPasteModalOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const [pasteReading, setPasteReading] = useState(false);
+  const [scheduledForDate, setScheduledForDate] = useState("");
   const editingOrder = useMemo(
     () => (editOrderId ? orders.find((o) => o.id === editOrderId) ?? null : null),
     [editOrderId, orders]
   );
   const isEditMode = Boolean(editOrderId);
+
+  /** Earliest selectable schedule day (UTC calendar): tomorrow. */
+  const minScheduleDate = useMemo(() => {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
 
   const phoneTrim = form.phone.trim();
   const detailsEnabled = phoneTrim.length === 10;
@@ -224,7 +232,10 @@ function CreateOrderPage() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!editingOrder) return;
+    if (!editingOrder) {
+      setScheduledForDate("");
+      return;
+    }
     const { flat, area } = splitDeliveryAddress(editingOrder.deliveryAddress);
     setForm({
       customerName: editingOrder.customerName ?? "",
@@ -259,6 +270,11 @@ function CreateOrderPage() {
             note: editingOrder.addOnNote ?? "",
           }
         : null
+    );
+    setScheduledForDate(
+      editingOrder.scheduledFor
+        ? editingOrder.scheduledFor.slice(0, 10)
+        : "",
     );
   }, [editingOrder, products]);
 
@@ -533,9 +549,32 @@ function CreateOrderPage() {
       }
     }
 
+    const scheduleAllowed =
+      !isEditMode ||
+      editingOrder?.status === "pending" ||
+      editingOrder?.status === "scheduled";
+    if (scheduleAllowed && scheduledForDate.trim()) {
+      const y = scheduledForDate.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(y)) {
+        e.scheduledFor = "Invalid date";
+      } else {
+        const today = new Date().toISOString().slice(0, 10);
+        if (y <= today) e.scheduledFor = "Choose a date after today";
+      }
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
-  }, [form, productRows, detailsEnabled, unitPrice, selectedDeliveryMethodId]);
+  }, [
+    form,
+    productRows,
+    detailsEnabled,
+    unitPrice,
+    selectedDeliveryMethodId,
+    isEditMode,
+    editingOrder?.status,
+    scheduledForDate,
+  ]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -551,8 +590,11 @@ function CreateOrderPage() {
             toast.error("Order not found for editing");
             return;
           }
-          if (editingOrder.status !== "pending") {
-            toast.error("Only pending orders can be edited");
+          if (
+            editingOrder.status !== "pending" &&
+            editingOrder.status !== "scheduled"
+          ) {
+            toast.error("Only pending or scheduled orders can be edited");
             return;
           }
           if (selectedProducts.length !== 1) {
@@ -561,6 +603,15 @@ function CreateOrderPage() {
           }
           const item = selectedProducts[0];
           const disc = parseFloat(item.discount) || 0;
+          const s = scheduledForDate.trim();
+          const schedulePatch =
+            editingOrder.status === "pending" || editingOrder.status === "scheduled"
+              ? s
+                ? { scheduledFor: s }
+                : editingOrder.status === "scheduled"
+                  ? { scheduledFor: null }
+                  : {}
+              : {};
           await dispatch(
             updateOrder({
               id: editingOrder.id,
@@ -581,6 +632,7 @@ function CreateOrderPage() {
                 addOnNote: addOn?.note?.trim() ? addOn.note.trim() : null,
                 deliveryMethodId: selectedDeliveryMethodId || null,
                 notes: form.notes.trim() || undefined,
+                ...schedulePatch,
               },
             })
           ).unwrap();
@@ -593,6 +645,8 @@ function CreateOrderPage() {
         const { orderId: commonOrderId } = await api.get<{ orderId: string }>(endpoints.orderNextDisplayId);
 
         let lastCreatedLine: Order | undefined;
+
+        const scheduleYmd = scheduledForDate.trim();
 
         for (let i = 0; i < selectedProducts.length; i++) {
           const item = selectedProducts[i];
@@ -634,7 +688,9 @@ function CreateOrderPage() {
                 ? { deliveryMethodId: selectedDeliveryMethodId }
                 : {}),
               notes: form.notes.trim() || undefined,
-              status: "pending",
+              ...(isFirst && scheduleYmd
+                ? { scheduledFor: scheduleYmd }
+                : { status: "pending" }),
               // One confirmation email after the whole order is created (API debounces / last line schedules).
               notifyCustomerEmail: isLastLine,
             })
@@ -685,6 +741,7 @@ function CreateOrderPage() {
       selectedDeliveryMethodId,
       isEditMode,
       editingOrder,
+      scheduledForDate,
     ]
   );
 
@@ -855,6 +912,33 @@ function CreateOrderPage() {
                 placeholder="District"
               />
             </div>
+            {detailsEnabled &&
+            (!isEditMode ||
+              editingOrder?.status === "pending" ||
+              editingOrder?.status === "scheduled") ? (
+              <div className="mt-4">
+                <Input
+                  label={
+                    isEditMode && editingOrder?.status === "scheduled"
+                      ? "Scheduled delivery date"
+                      : "Schedule delivery (optional)"
+                  }
+                  type="date"
+                  value={scheduledForDate}
+                  onChange={(e) => {
+                    setScheduledForDate(e.target.value);
+                    setErrors((er) => ({ ...er, scheduledFor: "" }));
+                  }}
+                  error={errors.scheduledFor}
+                  min={minScheduleDate}
+                />
+                <p className="mt-1 text-xs text-text-muted">
+                  {isEditMode && editingOrder?.status === "scheduled"
+                    ? "Change the date to reschedule. Clear the date and save to mark the order pending now."
+                    : "Leave empty to place the order as pending today. Choose a future date for a scheduled order (confirmation email is sent when it becomes pending)."}
+                </p>
+              </div>
+            ) : null}
             </div>
           </section>
           <section className={`relative space-y-4 rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5 transition-all duration-300 ${!detailsEnabled ? "opacity-50 grayscale select-none" : ""}`}>

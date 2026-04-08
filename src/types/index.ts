@@ -4,6 +4,7 @@ export type OrderType = "cod" | "prepaid";
 export type PdfSize = "thermal" | "a4";
 
 export type OrderStatus =
+  | "scheduled"
   | "pending"
   | "packed"
   | "dispatch"
@@ -284,6 +285,8 @@ export interface Order {
   deliveryFee?: number | null;
   deliveryMethodName?: string | null;
   status: OrderStatus;
+  /** Fulfilment calendar date while status is `scheduled` (YYYY-MM-DD). */
+  scheduledFor?: string | null;
   /** Courier / shipment tracking reference when set */
   trackingId?: string | null;
   createdAt: string; // ISO date
@@ -307,7 +310,10 @@ export type CreateOrderPayload = Omit<
   | "deliveryMethodId"
   | "deliveryFee"
   | "deliveryMethodName"
+  | "status"
 > & {
+  /** Defaults to pending on the API when omitted; use with scheduledFor for scheduled lines. */
+  status?: OrderStatus;
   discountAmount?: number;
   addOnAmount?: number;
   addOnNote?: string;
@@ -320,6 +326,8 @@ export type CreateOrderPayload = Omit<
    * Use false on all but the last line of a multi-product order so one email is sent.
    */
   notifyCustomerEmail?: boolean;
+  /** When set (future YYYY-MM-DD), order line is created as scheduled; confirmation email is deferred. */
+  scheduledFor?: string;
 };
 
 export interface User {

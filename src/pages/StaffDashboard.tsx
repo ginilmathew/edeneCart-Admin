@@ -57,7 +57,8 @@ function StaffDashboardPage() {
     const undelivered = orders.filter(
       (o) =>
         o.staffId === staffId &&
-        (o.status === "pending" ||
+        (o.status === "scheduled" ||
+          o.status === "pending" ||
           o.status === "packed" ||
           o.status === "dispatch")
     ).length;
