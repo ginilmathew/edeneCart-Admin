@@ -18,7 +18,7 @@ import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 import type { StaffEarnings, StaffSalaryPaymentRow } from "../types";
 import { toast } from "../lib/toast";
-import { formatCurrency } from "../lib/orderUtils";
+import { formatCurrency, formatDateTime } from "../lib/orderUtils";
 import { useAuth } from "../context/AuthContext";
 import { hasPermission } from "../lib/permissions";
 import {
@@ -30,16 +30,6 @@ import {
 
 /** Pay is only offered when period total reaches at least this amount (₹). */
 const MIN_PAY_TOTAL = 30;
-
-function formatPaidAt(iso: string) {
-  return new Date(iso).toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function StaffPayrollLedgerPage() {
   const dispatch = useAppDispatch();
@@ -380,7 +370,7 @@ function StaffPayrollLedgerPage() {
                       <div className="space-y-0.5">
                         <Badge variant="success">Paid</Badge>
                         <p className="text-[10px] text-text-muted">
-                          {formatPaidAt(r.periodPayment.paidAt)}
+                          {formatDateTime(r.periodPayment.paidAt)}
                           {r.periodPayment.paidByName
                             ? ` · ${r.periodPayment.paidByName}`
                             : ""}
@@ -447,7 +437,7 @@ function StaffPayrollLedgerPage() {
               {
                 key: "paidAt",
                 header: "Paid at",
-                render: (p: StaffSalaryPaymentRow) => formatPaidAt(p.paidAt),
+                render: (p: StaffSalaryPaymentRow) => formatDateTime(p.paidAt),
               },
               { key: "staffName", header: "Staff" },
               {

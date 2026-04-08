@@ -67,6 +67,23 @@ export function getNextMilestone(
   return null;
 }
 
+/** Indian Standard Time for all user-visible dates/times. */
+export const APP_TIMEZONE = "Asia/Kolkata";
+
+const dateInIST: Intl.DateTimeFormatOptions = {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: APP_TIMEZONE,
+};
+
+const dateTimeInIST12h: Intl.DateTimeFormatOptions = {
+  ...dateInIST,
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+};
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -76,21 +93,21 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-IN", dateInIST);
+}
+
+/** e.g. 8 April 2026 — IST calendar date. */
+export function formatDateLong(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
+    day: "numeric",
+    month: "long",
     year: "numeric",
+    timeZone: APP_TIMEZONE,
   });
 }
 
 export function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(dateStr).toLocaleString("en-IN", dateTimeInIST12h);
 }
 
 /** Prefer API `productName`, then live catalog; never show raw UUIDs. */

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { getApiBaseUrl } from "../api/api-base-url";
+import { formatDateLong } from "../lib/orderUtils";
 
 type OrderStatus =
   | "scheduled"
@@ -115,9 +116,7 @@ export default function OrderTrackingPage() {
             <p style={styles.labelSm}>ORDER ID</p>
             <h1 style={styles.orderId}>{data.orderId}</h1>
             <p style={{ color: "#a1a1aa", fontSize: 13, marginTop: 4 }}>
-              Placed on {new Date(data.createdAt).toLocaleDateString("en-IN", {
-                day: "numeric", month: "long", year: "numeric",
-              })}
+              Placed on {formatDateLong(data.createdAt)}
             </p>
             {data.scheduledFor ? (
               <p style={{ color: "#a78bfa", fontSize: 13, marginTop: 8, fontWeight: 600 }}>

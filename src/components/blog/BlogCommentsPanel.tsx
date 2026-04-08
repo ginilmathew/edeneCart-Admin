@@ -3,17 +3,8 @@ import { api } from "../../api/client";
 import { endpoints } from "../../api/endpoints";
 import { Button, Textarea, Badge } from "../ui";
 import { toast } from "../../lib/toast";
+import { formatDateTime } from "../../lib/orderUtils";
 import type { BlogComment } from "../../types";
-
-function formatBlogDate(iso: string) {
-  return new Date(iso).toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function commentsByParent(comments: BlogComment[]) {
   const map = new Map<string | null, BlogComment[]>();
@@ -131,7 +122,7 @@ function BlogCommentsPanelInner({
                 {c.authorKind === "admin" ? "Admin" : "Staff"}
               </Badge>
               <span className="text-xs text-text-muted">
-                {formatBlogDate(c.createdAt)}
+                {formatDateTime(c.createdAt)}
               </span>
             </div>
             <p className="mt-1 whitespace-pre-wrap text-sm text-text">{c.body}</p>

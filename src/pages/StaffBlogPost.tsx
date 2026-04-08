@@ -11,6 +11,7 @@ import { endpoints } from "../api/endpoints";
 import { Card, CardHeader, Button } from "../components/ui";
 import { BlogCommentsPanel } from "../components/blog/BlogCommentsPanel";
 import { toast } from "../lib/toast";
+import { formatDateTime } from "../lib/orderUtils";
 import {
   LS_STAFF_BLOG_LAST_SEEN,
   dispatchNotificationsRefresh,
@@ -119,13 +120,7 @@ function StaffBlogPostPage() {
         <div className="space-y-3 px-4 py-5 md:px-6">
           <h1 className="text-2xl font-bold text-text-heading">{post.title}</h1>
           <p className="text-sm text-text-muted">
-            {new Date(post.publishedAt).toLocaleString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
+            {formatDateTime(post.publishedAt)}{" "}
             · By {post.authorName}
           </p>
           <div

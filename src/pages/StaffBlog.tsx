@@ -9,17 +9,8 @@ import {
   LS_STAFF_BLOG_LAST_SEEN,
   dispatchNotificationsRefresh,
 } from "../lib/header-notifications";
+import { formatDateTime } from "../lib/orderUtils";
 import type { BlogFeedItem } from "../types";
-
-function formatBlogDate(iso: string) {
-  return new Date(iso).toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function StaffBlogPage() {
   const [items, setItems] = useState<BlogFeedItem[]>([]);
@@ -75,7 +66,7 @@ function StaffBlogPage() {
                     <h2 className="text-lg font-semibold text-text-heading">
                       {p.title}
                     </h2>
-                    <Badge variant="muted">{formatBlogDate(p.publishedAt)}</Badge>
+                    <Badge variant="muted">{formatDateTime(p.publishedAt)}</Badge>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-text-muted">
                     {p.excerpt}
