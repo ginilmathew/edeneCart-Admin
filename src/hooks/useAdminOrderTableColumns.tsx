@@ -94,7 +94,7 @@ export function useAdminOrderTableColumns({
           </button>
         ),
       },
-      ...(showAdminEditColumn && getAdminOrderEditHref
+      ...(showAdminEditColumn
         ? [
             {
               key: "adminEdit",
@@ -103,7 +103,7 @@ export function useAdminOrderTableColumns({
               mobileLabel: "Edit",
               mobileHeaderEnd: true,
               render: (row: Order & { items?: Order[] }) => {
-                const href = getAdminOrderEditHref(row);
+                const href = getAdminOrderEditHref ? getAdminOrderEditHref(row) : null;
                 if (!href) {
                   return (
                     <span
