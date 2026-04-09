@@ -26,13 +26,13 @@ export type UseAdminOrderTableColumnsParams = {
   ) => void;
   onOpenDetail: (id: string) => void;
   /**
-   * When set, show an Edit control beside Order ID for eligible single-line orders
-   * (pending / scheduled / packed) and when the user may update orders.
+   * When set, show an **Edit** column for eligible single-line orders
+   * (pending / scheduled / packed) when the user has `orders.update`.
    */
   getAdminOrderEditHref?: (
     row: Order & { items?: Order[] },
   ) => string | null;
-  /** When false, hide the Edit control next to Order ID (default: true). */
+  /** When false, hide the Edit column (default: true). */
   showAdminEditColumn?: boolean;
 };
 
@@ -83,37 +83,53 @@ export function useAdminOrderTableColumns({
         key: "orderId",
         header: "Order ID",
         mobileCardTitle: true,
-        className: "md:min-w-[11rem] md:whitespace-nowrap",
-        render: (row: Order & { items?: Order[] }) => {
-          const editHref =
-            showAdminEditColumn && getAdminOrderEditHref
-              ? getAdminOrderEditHref(row)
-              : null;
-          return (
-            <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
-              <button
-                type="button"
-                onClick={() => onOpenDetail(row.id)}
-                className="w-fit shrink-0 text-left font-medium text-primary hover:underline"
-              >
-                {row.orderId}
-              </button>
-              {editHref ? (
-                <Link
-                  to={editHref}
-                  className="inline-flex w-fit shrink-0 items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/15"
-                  title="Edit order"
-                  aria-label={`Edit order ${row.orderId}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <PencilIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  Edit
-                </Link>
-              ) : null}
-            </div>
-          );
-        },
+        className: "md:min-w-[9.5rem] md:whitespace-nowrap",
+        render: (row: Order) => (
+          <button
+            type="button"
+            onClick={() => onOpenDetail(row.id)}
+            className="font-medium text-primary hover:underline"
+          >
+            {row.orderId}
+          </button>
+        ),
       },
+      ...(showAdminEditColumn && getAdminOrderEditHref
+        ? [
+            {
+              key: "adminEdit",
+              header: "Edit",
+              className: "w-[7.5rem] md:whitespace-nowrap",
+              mobileLabel: "Edit",
+              mobileHeaderEnd: true,
+              render: (row: Order & { items?: Order[] }) => {
+                const href = getAdminOrderEditHref(row);
+                if (!href) {
+                  return (
+                    <span
+                      className="text-text-muted text-xs"
+                      title="Edit is only for single-line orders in Pending, Scheduled, or Packed."
+                    >
+                      —
+                    </span>
+                  );
+                }
+                return (
+                  <Link
+                    to={href}
+                    className="inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
+                    title="Edit order"
+                    aria-label={`Edit order ${row.orderId}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <PencilIcon className="h-4 w-4 shrink-0" aria-hidden />
+                    Edit
+                  </Link>
+                );
+              },
+            } as Column<Order>,
+          ]
+        : []),
       {
         key: "createdAt",
         header: "Date",
