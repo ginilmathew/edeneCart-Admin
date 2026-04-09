@@ -427,8 +427,9 @@ function CreateOrderPage() {
       hydratedOrderIdRef.current = null;
       return;
     }
-    /* Only fully hydrate when the *order* changes — not every time the products catalog updates. */
-    if (hydratedOrderIdRef.current === editingOrder.id) return;
+    /* Only fully hydrate when the *order* changes — not every time the products catalog updates.
+     * Allow re-hydration if productRows is empty (e.g. cleared by a race condition reset). */
+    if (hydratedOrderIdRef.current === editingOrder.id && productRows.length > 0) return;
     hydratedOrderIdRef.current = editingOrder.id;
 
     setProductSearch("");
@@ -475,13 +476,31 @@ function CreateOrderPage() {
         ? editingOrder.scheduledFor.slice(0, 10)
         : "",
     );
-  }, [editingOrder, products]);
+  }, [editingOrder, products, productRows.length]);
 
-  /** Once the products catalog arrives, patch product names + category into already-hydrated rows. */
+  /** Once the products catalog arrives, patch product names + category into already-hydrated rows.
+   * If rows are somehow lost in edit mode, restore the primary row from the order. */
   useEffect(() => {
-    if (!isEditMode || products.length === 0) return;
+    if (!editOrderId || products.length === 0) return;
+
     setProductRows((prev) => {
-      if (prev.length === 0) return prev;
+      // 1. Restore if missing
+      if (prev.length === 0 && editingOrder) {
+        return [
+          {
+            productId: editingOrder.productId,
+            name:
+              products.find((p) => p.id === editingOrder.productId)?.name ??
+              editingOrder.productName ??
+              "Product",
+            quantity: editingOrder.quantity,
+            discount:
+              editingOrder.discountAmount != null ? String(editingOrder.discountAmount) : "",
+          },
+        ];
+      }
+
+      // 2. Patch names if they changed or were fallback
       let changed = false;
       const next = prev.map((row) => {
         const catalogP = products.find((p) => p.id === row.productId);
@@ -491,19 +510,20 @@ function CreateOrderPage() {
         }
         return row;
       });
-      if (!changed) return prev;
-      return next;
+      return changed ? next : prev;
     });
-    /* Also resolve category for the first product in the cart. */
+
+    // 3. Robust category resolution
     setProductRows((prev) => {
-      if (prev.length === 0) return prev;
-      const firstP = products.find((p) => p.id === prev[0].productId);
-      if (firstP) {
-        setOrderCategory(productCategoryKey(firstP));
+      if (prev.length > 0 && !orderCategory) {
+        const firstP = products.find((p) => p.id === prev[0].productId);
+        if (firstP) {
+          setOrderCategory(productCategoryKey(firstP));
+        }
       }
       return prev;
     });
-  }, [products, isEditMode]);
+  }, [products, editOrderId, editingOrder, orderCategory]);
 
   const cartProductIdsKey = useMemo(
     () =>
