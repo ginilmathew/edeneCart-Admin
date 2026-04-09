@@ -417,12 +417,20 @@ function CreateOrderPage() {
     void dispatch(fetchCategories());
   }, [dispatch]);
 
+  /** Track last hydrated order so the layout effect only sets form+rows once per order. */
+  const hydratedOrderIdRef = useRef<string | null>(null);
+
   /** Layout: hydrate edit form before paint and before other effects (delivery fees) read stale `form.orderType`. */
   useLayoutEffect(() => {
     if (!editingOrder) {
       setScheduledForDate("");
+      hydratedOrderIdRef.current = null;
       return;
     }
+    /* Only fully hydrate when the *order* changes — not every time the products catalog updates. */
+    if (hydratedOrderIdRef.current === editingOrder.id) return;
+    hydratedOrderIdRef.current = editingOrder.id;
+
     setProductSearch("");
     setIsDropdownOpen(false);
     const lineProduct = products.find((p) => p.id === editingOrder.productId);
@@ -468,6 +476,34 @@ function CreateOrderPage() {
         : "",
     );
   }, [editingOrder, products]);
+
+  /** Once the products catalog arrives, patch product names + category into already-hydrated rows. */
+  useEffect(() => {
+    if (!isEditMode || products.length === 0) return;
+    setProductRows((prev) => {
+      if (prev.length === 0) return prev;
+      let changed = false;
+      const next = prev.map((row) => {
+        const catalogP = products.find((p) => p.id === row.productId);
+        if (catalogP && catalogP.name !== row.name) {
+          changed = true;
+          return { ...row, name: catalogP.name };
+        }
+        return row;
+      });
+      if (!changed) return prev;
+      return next;
+    });
+    /* Also resolve category for the first product in the cart. */
+    setProductRows((prev) => {
+      if (prev.length === 0) return prev;
+      const firstP = products.find((p) => p.id === prev[0].productId);
+      if (firstP) {
+        setOrderCategory(productCategoryKey(firstP));
+      }
+      return prev;
+    });
+  }, [products, isEditMode]);
 
   const cartProductIdsKey = useMemo(
     () =>
