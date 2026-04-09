@@ -386,13 +386,6 @@ function CreateOrderPage() {
     if (isEditMode) void dispatch(fetchOrders());
   }, [dispatch, isEditMode]);
 
-  /** Earliest selectable schedule day (UTC calendar): tomorrow. */
-  const minScheduleDate = useMemo(() => {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() + 1);
-    return d.toISOString().slice(0, 10);
-  }, []);
-
   /** Last 10 digits — used so edit mode unlocks before form.phone is copied from the order (mobile race). */
   const normalizedPhone10 = useMemo(() => {
     const fromForm = form.phone.replace(/\D/g, "");
