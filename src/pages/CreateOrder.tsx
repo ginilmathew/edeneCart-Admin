@@ -672,7 +672,6 @@ function CreateOrderPage() {
                   ? { scheduledFor: null }
                   : {}
               : {};
-          /** Staff: API forbids sending `discountAmount` or `deliveryMethodId` at all (even null). */
           const patch: Partial<Order> = {
             customerName: form.customerName.trim(),
             deliveryAddress: fullAddress,
@@ -685,15 +684,13 @@ function CreateOrderPage() {
             orderType: form.orderType as OrderType,
             productId: item.productId,
             quantity: item.quantity,
+            discountAmount: disc > 0 ? disc : null,
+            deliveryMethodId: selectedDeliveryMethodId || null,
             addOnAmount: addOn?.amount ? parseFloat(addOn.amount) : null,
             addOnNote: addOn?.note?.trim() ? addOn.note.trim() : null,
             notes: form.notes.trim() || undefined,
             ...schedulePatch,
           };
-          if (user.role !== "staff") {
-            patch.discountAmount = disc > 0 ? disc : null;
-            patch.deliveryMethodId = selectedDeliveryMethodId || null;
-          }
           await dispatch(
             updateOrder({
               id: editingOrder.id,
