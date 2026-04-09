@@ -1,4 +1,12 @@
-import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react";
+import {
+  memo,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { ArrowLeftIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
@@ -61,34 +69,148 @@ function extractPhoneDigits(blob: string): string {
   return m && /^[6-9]\d{9}$/.test(m[1]) ? m[1] : "";
 }
 
+/** Strip WhatsApp / forward noise from a single line (timestamp brackets, sender labels). */
+function stripWhatsAppLinePrefix(line: string): string {
+  return line
+    .replace(/^\[[^\]]{4,120}\]\s*[^:]*:\s*/i, "")
+    .replace(/^\[[^\]]+\]\s*[^\n]*?Whatsapp\s*:\s*/i, "")
+    .trim();
+}
+
+/** True if line starts a *LABEL : value block (WhatsApp bold labels). */
+function isStarLabelLine(line: string): boolean {
+  return /^\*+\s*[a-zA-Z]{2,}[\w\s]*\s*[:：]/.test(line.trim());
+}
+
 /**
  * Fill customer fields from a WhatsApp / notes paste (name, phone, address, pincode, email).
- * User can still edit after applying.
+ * Handles *NAME :, *ADDRES :, *PINCODE :, "District - …", "Post - …", and strips metadata lines.
  */
 function parsePastedCustomerDetails(text: string): Partial<typeof INITIAL> {
   const out: Partial<typeof INITIAL> = {};
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  const rawLines = text.split(/\r?\n/).map((l) => stripWhatsAppLinePrefix(l.trim()));
+
+  const lines = rawLines.filter((l) => {
+    if (!l) return false;
+    if (/^\|+$/.test(l)) return false;
+    if (/^\[[^\]]+\]\s*.*whatsapp/i.test(l)) return false;
+    if (/^[^\d\w\s@*.,\-–—/:()&]+$/u.test(l) && l.length <= 6) return false;
+    return true;
+  });
+
   const blob = lines.join("\n");
+
+  const labelField =
+    /^\*+\s*(name|namae|address|addr|addres|delivery|pincode|pin|state|district|post\s*office|post)\s*[:：]\s*(.*)$/i;
+
+  const consumed = new Set<number>();
+
+  for (let i = 0; i < lines.length; i++) {
+    if (consumed.has(i)) continue;
+
+    const dm = lines[i].match(/^district\s*[-–—]\s*(.+)$/i);
+    if (dm) {
+      out.district = dm[1].trim();
+      consumed.add(i);
+      continue;
+    }
+    const pm = lines[i].match(/^post\s*[-–—]\s*(.+)$/i);
+    if (pm) {
+      out.postOffice = pm[1].trim();
+      consumed.add(i);
+      continue;
+    }
+
+    const m = lines[i].match(labelField);
+    if (!m) continue;
+
+    const rawKey = m[1].toLowerCase().replace(/\s+/g, "");
+    let rest = (m[2] ?? "").trim();
+
+    const takeContinuation = (): string[] => {
+      const acc: string[] = [];
+      if (rest) acc.push(rest);
+      let j = i + 1;
+      while (j < lines.length) {
+        const nl = lines[j];
+        if (!nl) {
+          j++;
+          continue;
+        }
+        if (labelField.test(nl)) break;
+        if (/^district\s*[-–—]/i.test(nl) || /^post\s*[-–—]/i.test(nl)) break;
+        if (isStarLabelLine(nl)) break;
+        acc.push(nl);
+        consumed.add(j);
+        j++;
+      }
+      return acc;
+    };
+
+    if (rawKey === "name" || rawKey === "namae") {
+      const parts = takeContinuation();
+      const nameVal = parts.join(" ").replace(/\s+/g, " ").trim();
+      if (nameVal) out.customerName = nameVal;
+      consumed.add(i);
+      continue;
+    }
+
+    if (
+      rawKey.includes("address") ||
+      rawKey === "addr" ||
+      rawKey === "addres" ||
+      rawKey === "delivery"
+    ) {
+      const parts = takeContinuation();
+      let addr = parts.join(", ").replace(/\s+/g, " ").trim();
+      addr = addr.replace(/\b(Tamil Nadu|Kerala|Karnataka|Maharashtra|Gujarat|Delhi|India)\s+(\d{6})\b/gi, "$1");
+      if (addr) {
+        const sp = splitDeliveryAddress(addr);
+        out.flatBuilding = sp.flat || addr;
+        out.areaSector = sp.area;
+      }
+      consumed.add(i);
+      continue;
+    }
+
+    if (rawKey === "pincode" || rawKey === "pin") {
+      const six = (rest + blob).match(/\b(\d{6})\b/);
+      if (six) out.pincode = six[1];
+      consumed.add(i);
+      continue;
+    }
+
+    if (rawKey === "state") {
+      if (rest) out.state = rest;
+      consumed.add(i);
+      continue;
+    }
+
+    if (rawKey === "district") {
+      if (rest) out.district = rest;
+      consumed.add(i);
+      continue;
+    }
+
+    if (rawKey === "post" || rawKey === "postoffice") {
+      if (rest) out.postOffice = rest;
+      consumed.add(i);
+      continue;
+    }
+  }
 
   const phone = extractPhoneDigits(blob);
   if (phone) out.phone = phone;
 
-  const pinM = blob.match(/\b(\d{6})\b/);
-  if (pinM) out.pincode = pinM[1];
+  if (!out.pincode) {
+    const pinM = blob.match(/\b(\d{6})\b/);
+    if (pinM) out.pincode = pinM[1];
+  }
 
   const emailM = blob.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
   if (emailM) out.email = emailM[0];
 
-  let work = [...lines];
-
-  const nameLabel = work.findIndex((l) => /^name\s*[:：.-]\s*\S/i.test(l));
-  if (nameLabel >= 0) {
-    out.customerName = work[nameLabel].replace(/^name\s*[:：.-]\s*/i, "").trim();
-    work.splice(nameLabel, 1);
-  }
+  let work = lines.filter((_, idx) => !consumed.has(idx));
 
   work = work.filter((l) => {
     if (/^phone\s*[:：.-]/i.test(l) || /^mobile\s*[:：.-]/i.test(l)) return false;
@@ -101,12 +223,17 @@ function parsePastedCustomerDetails(text: string): Partial<typeof INITIAL> {
 
   work = work.filter((l) => {
     const t = l.trim();
+    if (out.pincode && t === out.pincode) return false;
     if (/^\d{6}$/.test(t)) return false;
     return true;
   });
 
-  const addrLabelIdx = work.findIndex((l) =>
-    /^(address|addr|delivery|shipping)\s*[:：.-]/i.test(l),
+  work = work
+    .map((l) => l.replace(/^\*+\s*[a-zA-Z][^:：\n]{0,56}[:：]\s*/i, "").trim())
+    .filter(Boolean);
+
+  const addrLabelIdx = work.findIndex((ln) =>
+    /^(address|addr|delivery|shipping)\s*[:：.-]/i.test(ln),
   );
   if (addrLabelIdx >= 0) {
     const raw = work[addrLabelIdx].replace(
@@ -114,21 +241,24 @@ function parsePastedCustomerDetails(text: string): Partial<typeof INITIAL> {
       "",
     );
     work.splice(addrLabelIdx, 1);
-    if (raw.trim()) {
-      work.unshift(raw.trim());
+    if (raw.trim()) work.unshift(raw.trim());
+  }
+
+  if (!out.customerName && work[0] && !/^\d/.test(work[0]) && !/@/.test(work[0])) {
+    const maybeName = work[0];
+    if (!maybeName.includes(",") || maybeName.length < 40) {
+      out.customerName = maybeName;
+      work = work.slice(1);
     }
   }
 
-  if (!out.customerName && work[0]) {
-    out.customerName = work[0];
-    work = work.slice(1);
-  }
-
-  const addrStr = work.join(", ").replace(/\s+/g, " ").trim();
-  if (addrStr) {
-    const { flat, area } = splitDeliveryAddress(addrStr);
-    out.flatBuilding = flat || addrStr;
-    out.areaSector = area;
+  if (!out.flatBuilding && !out.areaSector) {
+    const addrStr = work.join(", ").replace(/\s+/g, " ").trim();
+    if (addrStr) {
+      const { flat, area } = splitDeliveryAddress(addrStr);
+      out.flatBuilding = flat || addrStr;
+      out.areaSector = area;
+    }
   }
 
   return out;
@@ -292,7 +422,8 @@ function CreateOrderPage() {
     void dispatch(fetchCategories());
   }, [dispatch]);
 
-  useEffect(() => {
+  /** Layout: hydrate edit form before paint and before other effects (delivery fees) read stale `form.orderType`. */
+  useLayoutEffect(() => {
     if (!editingOrder) {
       setScheduledForDate("");
       return;
@@ -357,6 +488,11 @@ function CreateOrderPage() {
    * First product(s) in the cart fetch immediately; later changes wait 400ms after activity stops. */
   const [debouncedDeliveryCartKey, setDebouncedDeliveryCartKey] = useState("");
   const deliveryCartWasEmptyRef = useRef(true);
+
+  useEffect(() => {
+    deliveryCartWasEmptyRef.current = true;
+  }, [editOrderId]);
+
   useEffect(() => {
     if (!cartProductIdsKey) {
       setDebouncedDeliveryCartKey("");
@@ -383,7 +519,8 @@ function CreateOrderPage() {
     }
     if (form.orderType !== "prepaid" && form.orderType !== "cod") {
       setDeliveryOptions([]);
-      setSelectedDeliveryMethodId("");
+      /** Edit hydrate can lag one frame; don’t wipe courier from the order before type is applied. */
+      if (!isEditMode) setSelectedDeliveryMethodId("");
       return;
     }
     const ids = debouncedDeliveryCartKey.split(",").filter(Boolean);
@@ -406,7 +543,7 @@ function CreateOrderPage() {
       .catch(() => {
         if (!cancelled) {
           setDeliveryOptions([]);
-          setSelectedDeliveryMethodId("");
+          if (!isEditMode) setSelectedDeliveryMethodId("");
         }
       })
       .finally(() => {
@@ -1445,7 +1582,7 @@ function CreateOrderPage() {
             />
             {!pasteText && (
               <span className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400">
-                Paste the adress here
+                Paste the address or WhatsApp message here
               </span>
             )}
           </div>
