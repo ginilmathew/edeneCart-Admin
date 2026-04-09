@@ -26,13 +26,13 @@ export type UseAdminOrderTableColumnsParams = {
   ) => void;
   onOpenDetail: (id: string) => void;
   /**
-   * When set, show an Edit link for eligible single-line orders (pending / scheduled / packed).
-   * Column is still rendered when omitted (cells show —).
+   * When set, show an Edit control beside Order ID for eligible single-line orders
+   * (pending / scheduled / packed) and when the user may update orders.
    */
   getAdminOrderEditHref?: (
     row: Order & { items?: Order[] },
   ) => string | null;
-  /** When false, omit the Edit column entirely (default: true). */
+  /** When false, hide the Edit control next to Order ID (default: true). */
   showAdminEditColumn?: boolean;
 };
 
@@ -83,49 +83,37 @@ export function useAdminOrderTableColumns({
         key: "orderId",
         header: "Order ID",
         mobileCardTitle: true,
-        className: "md:min-w-[9.5rem] md:whitespace-nowrap",
-        render: (row: Order) => (
-          <button
-            type="button"
-            onClick={() => onOpenDetail(row.id)}
-            className="font-medium text-primary hover:underline"
-          >
-            {row.orderId}
-          </button>
-        ),
+        className: "md:min-w-[11rem] md:whitespace-nowrap",
+        render: (row: Order & { items?: Order[] }) => {
+          const editHref =
+            showAdminEditColumn && getAdminOrderEditHref
+              ? getAdminOrderEditHref(row)
+              : null;
+          return (
+            <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
+              <button
+                type="button"
+                onClick={() => onOpenDetail(row.id)}
+                className="w-fit shrink-0 text-left font-medium text-primary hover:underline"
+              >
+                {row.orderId}
+              </button>
+              {editHref ? (
+                <Link
+                  to={editHref}
+                  className="inline-flex w-fit shrink-0 items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/15"
+                  title="Edit order"
+                  aria-label={`Edit order ${row.orderId}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <PencilIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Edit
+                </Link>
+              ) : null}
+            </div>
+          );
+        },
       },
-      ...(showAdminEditColumn
-        ? [
-            {
-              key: "edit",
-              header: "Edit",
-              className: "w-14",
-              mobileHeaderEnd: true,
-              mobileLabel: "Edit",
-              render: (row: Order & { items?: Order[] }) => {
-                const href = getAdminOrderEditHref?.(row);
-                if (!href) {
-                  return (
-                    <span className="text-text-muted" title="Not editable">
-                      —
-                    </span>
-                  );
-                }
-                return (
-                  <Link
-                    to={href}
-                    className="inline-flex items-center justify-center rounded-[var(--radius-sm)] p-1.5 text-primary hover:bg-primary-muted"
-                    title="Edit order"
-                    aria-label={`Edit order ${row.orderId}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <PencilIcon className="h-5 w-5" aria-hidden />
-                  </Link>
-                );
-              },
-            } as Column<Order>,
-          ]
-        : []),
       {
         key: "createdAt",
         header: "Date",
