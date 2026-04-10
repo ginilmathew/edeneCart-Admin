@@ -351,6 +351,14 @@ function CreateOrderPage() {
   const [pasteText, setPasteText] = useState("");
   const [pasteReading, setPasteReading] = useState(false);
   const [scheduledForDate, setScheduledForDate] = useState("");
+  /** When true, show date picker and send `scheduledFor` on create / patch. */
+  const [scheduleOrder, setScheduleOrder] = useState(false);
+  /** Earliest selectable fulfilment date (tomorrow UTC) — matches API scheduledFor rules. */
+  const minScheduleDateYmd = useMemo(() => {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
   /** Full row from GET /orders/:id — list cache can omit fields; always fetch on edit. */
   const [editOrderDetail, setEditOrderDetail] = useState<Order | null>(null);
   const editingOrder = useMemo(() => {
@@ -359,6 +367,13 @@ function CreateOrderPage() {
     return orders.find((o) => o.id === editOrderId) ?? null;
   }, [editOrderId, orders, editOrderDetail]);
   const isEditMode = Boolean(editOrderId);
+  const scheduleAllowed = useMemo(
+    () =>
+      !isEditMode ||
+      editingOrder?.status === "pending" ||
+      editingOrder?.status === "scheduled",
+    [isEditMode, editingOrder?.status],
+  );
 
   useEffect(() => {
     if (!editOrderId) {
@@ -421,6 +436,7 @@ function CreateOrderPage() {
   useLayoutEffect(() => {
     if (!editingOrder) {
       setScheduledForDate("");
+      setScheduleOrder(false);
       hydratedOrderIdRef.current = null;
       return;
     }
@@ -472,6 +488,10 @@ function CreateOrderPage() {
       editingOrder.scheduledFor
         ? editingOrder.scheduledFor.slice(0, 10)
         : "",
+    );
+    setScheduleOrder(
+      Boolean(editingOrder.scheduledFor?.trim()) ||
+        editingOrder.status === "scheduled",
     );
   }, [editingOrder, products, productRows.length]);
 
@@ -828,13 +848,11 @@ function CreateOrderPage() {
       }
     }
 
-    const scheduleAllowed =
-      !isEditMode ||
-      editingOrder?.status === "pending" ||
-      editingOrder?.status === "scheduled";
-    if (scheduleAllowed && scheduledForDate.trim()) {
+    if (scheduleAllowed && scheduleOrder) {
       const y = scheduledForDate.trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(y)) {
+      if (!y) {
+        e.scheduledFor = "Choose a schedule date";
+      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(y)) {
         e.scheduledFor = "Invalid date";
       } else {
         const today = new Date().toISOString().slice(0, 10);
@@ -850,9 +868,9 @@ function CreateOrderPage() {
     detailsEnabled,
     unitPrice,
     selectedDeliveryMethodId,
-    isEditMode,
-    editingOrder?.status,
+    scheduleAllowed,
     scheduledForDate,
+    scheduleOrder,
   ]);
 
   const handleSubmit = useCallback(
@@ -892,7 +910,7 @@ function CreateOrderPage() {
           }
           const item = selectedProducts[0];
           const disc = parseFloat(item.discount) || 0;
-          const s = scheduledForDate.trim();
+          const s = scheduleOrder ? scheduledForDate.trim() : "";
           const schedulePatch =
             editingOrder.status === "pending" || editingOrder.status === "scheduled"
               ? s
@@ -936,7 +954,7 @@ function CreateOrderPage() {
 
         let lastCreatedLine: Order | undefined;
 
-        const scheduleYmd = scheduledForDate.trim();
+        const scheduleYmd = scheduleOrder ? scheduledForDate.trim() : "";
 
         for (let i = 0; i < selectedProducts.length; i++) {
           const item = selectedProducts[i];
@@ -1034,6 +1052,7 @@ function CreateOrderPage() {
       isEditMode,
       editingOrder,
       scheduledForDate,
+      scheduleOrder,
     ]
   );
 
@@ -1541,6 +1560,53 @@ function CreateOrderPage() {
                       : "Delivery total uses the prepaid or COD fee you configured for each product × quantity."}
             </p>
           </section>
+          {scheduleAllowed && (
+            <section
+              className={`relative space-y-3 rounded-xl border border-border bg-surface-alt/30 p-4 sm:p-5 transition-all duration-300 ${!detailsEnabled ? "opacity-50 grayscale select-none" : ""}`}
+            >
+              {!detailsEnabled && (
+                <div
+                  className="absolute inset-0 z-10 cursor-not-allowed"
+                  title="Enter 10-digit phone first"
+                />
+              )}
+              <h3 className="text-base font-semibold text-text-heading">Schedule</h3>
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-border text-primary focus:ring-primary"
+                  checked={scheduleOrder}
+                  disabled={!detailsEnabled}
+                  onChange={(ev) => {
+                    const on = ev.target.checked;
+                    setScheduleOrder(on);
+                    if (!on) {
+                      setScheduledForDate("");
+                      setErrors((er) => ({ ...er, scheduledFor: "" }));
+                    }
+                  }}
+                />
+                <span className="text-sm leading-snug text-text">
+                  Schedule this order for a future fulfilment date (confirmation email is sent when
+                  the order moves to pending).
+                </span>
+              </label>
+              {scheduleOrder && (
+                <Input
+                  type="date"
+                  label="Fulfil on *"
+                  min={minScheduleDateYmd}
+                  value={scheduledForDate}
+                  onChange={(ev) => {
+                    setScheduledForDate(ev.target.value);
+                    setErrors((er) => ({ ...er, scheduledFor: "" }));
+                  }}
+                  error={errors.scheduledFor}
+                  disabled={!detailsEnabled}
+                />
+              )}
+            </section>
+          )}
           <section className={`relative transition-all duration-300 ${!detailsEnabled ? "opacity-50 grayscale select-none" : ""}`}>
             {!detailsEnabled && <div className="absolute inset-0 z-10 cursor-not-allowed" title="Enter 10-digit phone first" />}
             <Textarea

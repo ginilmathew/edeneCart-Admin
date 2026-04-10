@@ -20,6 +20,27 @@ export function isInWeek(orderDate: string, weekStart: Date, weekEnd: Date): boo
   return d >= weekStart && d <= weekEnd;
 }
 
+/** UTC calendar day (YYYY-MM-DD), aligned with payroll API DATE(created_at). */
+function utcDayFromOrderCreatedAt(createdAt: string): string {
+  return new Date(createdAt).toISOString().slice(0, 10);
+}
+
+function milestoneBonusForQuantity(
+  quantityCount: number,
+  milestones: { orders: number; bonus: number }[],
+): number {
+  const sorted = [...milestones].sort((a, b) => a.orders - b.orders);
+  let bonus = 0;
+  for (const m of sorted) {
+    if (quantityCount >= m.orders) bonus += m.bonus;
+  }
+  return bonus;
+}
+
+/**
+ * Base pay uses total quantity in the window; milestone bonuses are evaluated per UTC day
+ * (tiers reset each day) and summed — same rules as GET /staff/earnings.
+ */
 export function computeEarningsForStaff(
   orders: Order[],
   staff: Staff,
@@ -43,10 +64,16 @@ export function computeEarningsForStaff(
   }
   const orderCount = list.reduce((sum, o) => sum + Math.max(0, Number(o.quantity) || 0), 0);
   const orderEarnings = orderCount * staff.payoutPerOrder;
+  const milestones = staff.bonusMilestones ?? [];
+  const qtyByUtcDay = new Map<string, number>();
+  for (const o of list) {
+    const day = utcDayFromOrderCreatedAt(o.createdAt);
+    const q = Math.max(0, Number(o.quantity) || 0);
+    qtyByUtcDay.set(day, (qtyByUtcDay.get(day) ?? 0) + q);
+  }
   let bonus = 0;
-  const milestones = [...staff.bonusMilestones].sort((a, b) => a.orders - b.orders);
-  for (const m of milestones) {
-    if (orderCount >= m.orders) bonus += m.bonus;
+  for (const dayQty of qtyByUtcDay.values()) {
+    bonus += milestoneBonusForQuantity(dayQty, milestones);
   }
   return {
     orderEarnings,
