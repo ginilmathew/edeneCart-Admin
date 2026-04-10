@@ -275,6 +275,24 @@ export const edenApi = createApi({
         { type: "Order", id: "LIST" },
       ],
     }),
+    bulkUpdateOrderStatus: builder.mutation<
+      {
+        updated: number;
+        failed: number;
+        errors: { id: string; message: string }[];
+      },
+      { ids: string[]; status: Order["status"] }
+    >({
+      query: (body) => ({
+        url: endpoints.ordersBulkUpdateStatus,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_r, _e, arg) => [
+        { type: "Order", id: "LIST" },
+        ...arg.ids.map((id) => ({ type: "Order" as const, id })),
+      ],
+    }),
     deleteOrder: builder.mutation<void, string>({
       query: (id) => ({
         url: endpoints.orderById(id),

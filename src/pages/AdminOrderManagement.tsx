@@ -8,7 +8,7 @@ import {
   useRef,
 } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { updateOrder } from "../store/ordersSlice";
+import { bulkUpdateOrderStatus, updateOrder } from "../store/ordersSlice";
 import {
   ADMIN_ORDERS_PAGE_SIZE,
   fetchOrdersList,
@@ -667,26 +667,29 @@ function AdminOrderManagementPage() {
       if (unique.length === 0) return;
       setBulkStatusLoading(true);
       try {
-        const results = await Promise.allSettled(
-          unique.map((id) =>
-            dispatch(updateOrder({ id, patch: { status: next } })).unwrap(),
-          ),
-        );
-        const ok = results.filter((r) => r.status === "fulfilled").length;
-        const fail = results.length - ok;
+        const res = await dispatch(
+          bulkUpdateOrderStatus({ ids: unique, status: next }),
+        ).unwrap();
         await loadOrders(lastQueryRef.current);
-        if (fail === 0) {
+        if (res.failed === 0) {
           toast.success(
-            `Updated ${ok} order line${ok === 1 ? "" : "s"} to ${next}`,
+            `Updated ${res.updated} order line${res.updated === 1 ? "" : "s"} to ${next}`,
           );
           clearRowSelection();
-        } else {
+        } else if (res.updated === 0) {
+          const first = res.errors[0]?.message;
           toast.error(
-            `${ok} line(s) set to ${next}; ${fail} failed. Check tracking and other rules per order.`,
+            first ??
+              `None of the ${res.failed} line(s) could be moved to ${next}. Check tracking and rules per order.`,
+          );
+        } else {
+          toast.warning(
+            `${res.updated} line(s) set to ${next}; ${res.failed} failed. ${res.errors[0]?.message ? `Example: ${res.errors[0].message}` : "Check tracking and other rules per order."}`,
+            { autoClose: 8000 },
           );
         }
       } catch (err) {
-        toast.fromError(err, "Failed to refresh orders after bulk update");
+        toast.fromError(err, "Bulk status update failed");
       } finally {
         setBulkStatusLoading(false);
       }

@@ -25,5 +25,10 @@ export const createOrder = (payload: CreateOrderPayload) =>
 export const updateOrder = (arg: { id: string; patch: Partial<Order> }) =>
   edenApi.endpoints.updateOrder.initiate(arg);
 
+export const bulkUpdateOrderStatus = (arg: {
+  ids: string[];
+  status: Order["status"];
+}) => edenApi.endpoints.bulkUpdateOrderStatus.initiate(arg);
+
 export const deleteOrder = (id: string) =>
   edenApi.endpoints.deleteOrder.initiate(id);
