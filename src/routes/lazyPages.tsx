@@ -85,3 +85,6 @@ export const AdminStaffEnquiries = lazyRoute(
 export const AdminStaffEnquiryDetail = lazyRoute(
   () => import("../pages/AdminStaffEnquiryDetail"),
 );
+export const PostOfficeManagement = lazyRoute(
+  () => import("../pages/PostOfficeManagement"),
+);

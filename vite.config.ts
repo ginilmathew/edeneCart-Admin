@@ -11,6 +11,21 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // India Post (CEPT) — must be registered before the generic /v1/api rule.
+      "/v1/api/india-post": {
+        target: "https://test.cept.gov.in",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => {
+          if (path.includes("/login-test")) {
+            return "/beextcustomer/v1/access/login";
+          }
+          if (path.includes("/tracking/bulk")) {
+            return "/beextcustomer/v1/tracking/bulk";
+          }
+          return path;
+        },
+      },
       // When VITE_API_BASE_URL is unset, use relative /v1/api and this proxy to the Nest app.
       "/v1/api": {
         target: "http://localhost:3000",

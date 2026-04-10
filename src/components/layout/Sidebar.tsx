@@ -31,6 +31,7 @@ import {
   IdentificationIcon,
   QrCodeIcon,
   GiftIcon,
+  BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "../ui";
 import type { User } from "../../types";
@@ -104,6 +105,13 @@ const ADMIN_NAV_SECTIONS: NavSection<AdminNavItem>[] = [
         end: true,
         icon: QrCodeIcon,
         permission: "orders.update",
+      },
+      {
+        to: "/admin/post-office",
+        label: "India Post",
+        end: true,
+        icon: BuildingOffice2Icon,
+        permission: "orders.view",
       },
       { to: "/admin/senders", label: "Senders", end: true, icon: TruckIcon, permission: "senders.view" },
       { to: "/admin/delivery", label: "Delivery", end: true, icon: PaperAirplaneIcon, permission: "deliveries.view" },

@@ -76,4 +76,7 @@ export const endpoints = {
   staffEnquiryAdmin: (id: string) => `${V1}/staff-enquiries/admin/${id}`,
   staffEnquiryAdminReply: (id: string) =>
     `${V1}/staff-enquiries/admin/${id}/replies`,
+  /** India Post (CEP) — proxied by edenCartapi; credentials from body or server env. */
+  indiaPostLoginTest: `${V1}/india-post/login-test`,
+  indiaPostTrackingBulk: `${V1}/india-post/tracking/bulk`,
 } as const;

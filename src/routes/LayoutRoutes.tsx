@@ -209,6 +209,17 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         }
       />
       <Route
+        path="/admin/post-office"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["orders.view"]}
+          >
+            <Pages.PostOfficeManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/customers"
         element={
           <ProtectedRoute

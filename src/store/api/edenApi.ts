@@ -17,6 +17,15 @@ import type {
   StaffPosition,
 } from "../../types";
 import { baseQueryWithAuth } from "./baseQueryWithAuth";
+import { isIndiaPostDirectDevProxy } from "../../lib/india-post-dev-proxy";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+
+function indiaPostError(
+  status: number,
+  message: string,
+): { error: FetchBaseQueryError } {
+  return { error: { status, data: { message } } };
+}
 
 export type OrderListFilters = {
   dateFrom?: string;
@@ -629,6 +638,113 @@ export const edenApi = createApi({
         { type: "ProductDeliveryFee", id: "LIST" },
       ],
     }),
+
+    indiaPostLoginTest: builder.mutation<
+      unknown,
+      { username?: string; password?: string } | void
+    >({
+      async queryFn(arg, _api, _extraOptions, fetchWithBQ) {
+        if (!isIndiaPostDirectDevProxy()) {
+          const body = arg && typeof arg === "object" ? arg : {};
+          return fetchWithBQ({
+            url: endpoints.indiaPostLoginTest,
+            method: "POST",
+            body,
+          });
+        }
+        let username: string | undefined;
+        let password: string | undefined;
+        if (arg && typeof arg === "object") {
+          username = arg.username?.trim() || undefined;
+          password = arg.password || undefined;
+        }
+        if (!username || !password) {
+          username = import.meta.env.VITE_INDIA_POST_USERNAME?.trim();
+          password = import.meta.env.VITE_INDIA_POST_PASSWORD?.trim();
+        }
+        if (!username || !password) {
+          return indiaPostError(
+            400,
+            "Local Vite → CEPT proxy: enter India Post username and password, or set VITE_INDIA_POST_USERNAME and VITE_INDIA_POST_PASSWORD in the admin .env (API .env is not used for this path).",
+          );
+        }
+        const res = await fetch(endpoints.indiaPostLoginTest, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+        const text = await res.text();
+        let parsed: unknown;
+        try {
+          parsed = text ? JSON.parse(text) : null;
+        } catch {
+          parsed = { raw: text };
+        }
+        if (!res.ok) {
+          const o = parsed as { message?: unknown };
+          const msg =
+            typeof o?.message === "string" ? o.message : `HTTP ${String(res.status)}`;
+          return indiaPostError(res.status, msg);
+        }
+        const root = parsed as { success?: boolean; message?: string };
+        if (root && root.success === false) {
+          return indiaPostError(
+            400,
+            typeof root.message === "string" && root.message
+              ? root.message
+              : "India Post login failed",
+          );
+        }
+        return { data: parsed };
+      },
+    }),
+    indiaPostBulkTracking: builder.mutation<
+      unknown,
+      { bulk: string[]; accessToken?: string | null }
+    >({
+      async queryFn(arg, _api, _extraOptions, fetchWithBQ) {
+        if (!isIndiaPostDirectDevProxy()) {
+          return fetchWithBQ({
+            url: endpoints.indiaPostTrackingBulk,
+            method: "POST",
+            body: { bulk: arg.bulk },
+          });
+        }
+        const token = arg.accessToken?.trim();
+        if (!token) {
+          return indiaPostError(
+            400,
+            "Run Test connection first so we have an India Post access token (direct Vite → CEPT mode).",
+          );
+        }
+        const res = await fetch(endpoints.indiaPostTrackingBulk, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ bulk: arg.bulk }),
+        });
+        const text = await res.text();
+        let parsed: unknown;
+        try {
+          parsed = text ? JSON.parse(text) : null;
+        } catch {
+          parsed = { raw: text };
+        }
+        if (!res.ok) {
+          const o = parsed as { message?: unknown };
+          const msg =
+            typeof o?.message === "string" ? o.message : `HTTP ${String(res.status)}`;
+          return indiaPostError(res.status, msg);
+        }
+        return { data: parsed };
+      },
+    }),
   }),
 });
 
@@ -645,4 +761,6 @@ export const {
   useGetAssignedNumbersQuery,
   useGetDeliveryMethodsQuery,
   useGetProductDeliveryFeesQuery,
+  useIndiaPostLoginTestMutation,
+  useIndiaPostBulkTrackingMutation,
 } = edenApi;
