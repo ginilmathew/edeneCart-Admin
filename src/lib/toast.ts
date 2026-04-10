@@ -1,4 +1,5 @@
 import { toast as toastify, type ToastOptions } from "react-toastify";
+import { getApiErrorMessage } from "./api-error";
 
 const defaultOptions: ToastOptions = {
   position: "top-right",
@@ -9,10 +10,9 @@ const defaultOptions: ToastOptions = {
   draggable: true,
 };
 
+/** Works with `Error`, RTK Query `.unwrap()` rejections, and `fetch` API shapes. */
 export function getErrorMessage(error: unknown, fallback = "Request failed"): string {
-  if (error instanceof Error && error.message.trim()) return error.message;
-  if (typeof error === "string" && error.trim()) return error;
-  return fallback;
+  return getApiErrorMessage(error, fallback);
 }
 
 export const toast = {

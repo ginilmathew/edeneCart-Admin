@@ -10,6 +10,7 @@ import type { User } from "../types";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 import { getAccessToken, setAccessToken } from "../lib/auth-token";
+import { getApiErrorMessage } from "../lib/api-error";
 
 const USER_KEY = "edenecart_user";
 
@@ -103,9 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(USER_KEY, JSON.stringify(nu));
         return { ok: true };
       } catch (e) {
-        const message =
-          e instanceof Error ? e.message : "Sign in failed";
-        return { ok: false, message };
+        return { ok: false, message: getApiErrorMessage(e, "Sign in failed") };
       }
     },
     []

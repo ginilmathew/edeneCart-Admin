@@ -27,7 +27,7 @@ import {
 } from "../components/ui";
 import { staffJobRoleLabel } from "../lib/staffJobRoles";
 import { formatDate } from "../lib/orderUtils";
-import { toast } from "../lib/toast";
+import { getErrorMessage, toast } from "../lib/toast";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
@@ -243,7 +243,7 @@ function StaffManagementPage() {
           });
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to create staff";
+        const msg = getErrorMessage(err, "Failed to create staff");
         setError(msg);
         toast.fromError(err, "Failed to create staff");
       } finally {
@@ -310,7 +310,7 @@ function StaffManagementPage() {
         closeEdit();
         void dispatch(fetchAssignedNumbers());
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to update staff";
+        const msg = getErrorMessage(err, "Failed to update staff");
         setError(msg);
         toast.fromError(err, "Failed to update staff");
       } finally {
@@ -342,7 +342,7 @@ function StaffManagementPage() {
       void dispatch(fetchAssignedNumbers());
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Cannot delete (orders may exist)"
+        getErrorMessage(err, "Cannot delete (orders may exist)"),
       );
     } finally {
       setDeleteSubmitting(false);
@@ -377,7 +377,7 @@ function StaffManagementPage() {
         });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to reset password");
+      toast.error(getErrorMessage(err, "Failed to reset password"));
     } finally {
       setResetSubmitting(false);
     }
@@ -399,9 +399,7 @@ function StaffManagementPage() {
         });
       }
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to fulfill request"
-      );
+      toast.error(getErrorMessage(err, "Failed to fulfill request"));
     } finally {
       setFulfillSubmitting(false);
     }

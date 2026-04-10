@@ -7,6 +7,7 @@ import {
 import { getAccessToken } from "../../lib/auth-token";
 import { getApiBaseUrl } from "../../api/api-base-url";
 import { notifyApiLoading } from "../../api/api-loading";
+import { getApiErrorMessage } from "../../lib/api-error";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getApiBaseUrl(),
@@ -28,16 +29,7 @@ const rawBaseQuery = fetchBaseQuery({
 });
 
 function parseError(error: FetchBaseQueryError): Error {
-  if ("status" in error && error.status === "FETCH_ERROR") {
-    return new Error("Network error");
-  }
-  const data = "data" in error ? error.data : undefined;
-  if (data && typeof data === "object" && "message" in data) {
-    const m = (data as { message?: unknown }).message;
-    if (typeof m === "string") return new Error(m);
-    if (Array.isArray(m)) return new Error(m.join(", "));
-  }
-  return new Error("Request failed");
+  return new Error(getApiErrorMessage(error, "Request failed"));
 }
 
 export const baseQueryWithAuth: BaseQueryFn<

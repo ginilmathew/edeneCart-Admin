@@ -16,7 +16,7 @@ import { selectCategories, fetchCategories } from "../store/categoriesSlice";
 import { createOrder, fetchOrders, selectOrders, updateOrder } from "../store/ordersSlice";
 import { Card, CardHeader, Button, Input, Modal, Select, Textarea } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
-import { toast } from "../lib/toast";
+import { getErrorMessage, toast } from "../lib/toast";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 import type {
@@ -1033,7 +1033,7 @@ function CreateOrderPage() {
         toast.success(`Created ${selectedProducts.length} order(s) successfully!`);
         navigate(`/orders`);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to create order");
+        toast.error(getErrorMessage(err, "Failed to create order"));
       } finally {
         setSubmitting(false);
       }

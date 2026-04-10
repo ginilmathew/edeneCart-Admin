@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
 import { Card, CardHeader, Button, Input } from "../components/ui";
-import { toast } from "../lib/toast";
+import { getErrorMessage, toast } from "../lib/toast";
 
 function ChangePasswordPage() {
   const { user, isAuthenticated, refreshUser, logout } = useAuth();
@@ -47,7 +47,7 @@ function ChangePasswordPage() {
         });
         await afterSuccess();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to update password");
+        setError(getErrorMessage(err, "Failed to update password"));
       } finally {
         setSubmitting(false);
       }

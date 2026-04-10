@@ -8,6 +8,7 @@
 import { getAccessToken } from "../lib/auth-token";
 import { notifyApiLoading } from "./api-loading";
 import { getApiBaseUrl } from "./api-base-url";
+import { extractMessageFromResponseBody } from "../lib/api-error";
 
 const BASE_URL = getApiBaseUrl();
 
@@ -37,14 +38,12 @@ async function request<T>(path: string, options: ApiRequestInit = {}): Promise<T
       let message = res.statusText || "Request failed";
       if (text) {
         try {
-          const body = JSON.parse(text) as {
-            message?: string | string[];
-          };
-          if (typeof body.message === "string") message = body.message;
-          else if (Array.isArray(body.message))
-            message = body.message.join(", ");
+          const body = JSON.parse(text) as unknown;
+          const extracted = extractMessageFromResponseBody(body);
+          if (extracted) message = extracted;
         } catch {
-          /* use statusText */
+          const t = text.trim();
+          if (t) message = t.length > 800 ? `${t.slice(0, 800)}…` : t;
         }
       }
       const err = new Error(message);

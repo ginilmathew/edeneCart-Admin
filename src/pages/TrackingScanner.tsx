@@ -28,7 +28,7 @@ const ZxingOneDBarcodeScanner = lazy(() =>
     default: m.ZxingOneDBarcodeScanner,
   })),
 );
-import { toast } from "../lib/toast";
+import { getErrorMessage, toast } from "../lib/toast";
 import type { Order } from "../types";
 
 type QueueRow = {
@@ -324,7 +324,7 @@ function TrackingScannerPage() {
       await dispatch(fetchOrders()).unwrap();
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Save failed — check permissions"
+        getErrorMessage(e, "Save failed — check permissions"),
       );
     } finally {
       setSaveBusy(false);

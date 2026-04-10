@@ -25,7 +25,7 @@ function StaffMyProfilePage() {
         "Request sent. A super admin will reset your password and share a new temporary password with you."
       );
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not submit request");
+      toast.fromError(e, "Could not submit request");
     } finally {
       setRequesting(false);
     }

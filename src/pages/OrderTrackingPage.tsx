@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { getApiBaseUrl } from "../api/api-base-url";
+import { extractMessageFromResponseBody, getApiErrorMessage } from "../lib/api-error";
 import { formatDateLong } from "../lib/orderUtils";
 
 type OrderStatus =
@@ -60,14 +61,25 @@ export default function OrderTrackingPage() {
     if (!orderId) return;
     const base = getApiBaseUrl();
     fetch(`${base}/v1/api/orders/track/${encodeURIComponent(orderId)}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Order not found");
-        return r.json() as Promise<TrackingData>;
+      .then(async (r) => {
+        const text = await r.text();
+        if (!r.ok) {
+          let msg = r.statusText || "Order not found";
+          if (text.trim()) {
+            try {
+              const extracted = extractMessageFromResponseBody(JSON.parse(text));
+              if (extracted) msg = extracted;
+            } catch {
+              const t = text.trim();
+              if (t) msg = t.length > 300 ? `${t.slice(0, 300)}…` : t;
+            }
+          }
+          throw new Error(msg);
+        }
+        return JSON.parse(text) as TrackingData;
       })
       .then(setData)
-      .catch((e: unknown) =>
-        setError(e instanceof Error ? e.message : "Failed to load order"),
-      )
+      .catch((e: unknown) => setError(getApiErrorMessage(e, "Failed to load order")))
       .finally(() => setLoading(false));
   }, [orderId]);
 

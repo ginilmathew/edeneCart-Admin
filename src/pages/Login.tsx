@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card, Modal } from "../components/ui";
 import { api } from "../api/client";
 import { endpoints } from "../api/endpoints";
-import { toast } from "../lib/toast";
+import { getErrorMessage, toast } from "../lib/toast";
 
 function LoginPage() {
   const { login, isAuthenticated, user } = useAuth();
@@ -65,9 +65,7 @@ function LoginPage() {
         setForgotOpen(false);
         setForgotUsername("");
       } catch (err) {
-        setForgotError(
-          err instanceof Error ? err.message : "Something went wrong"
-        );
+        setForgotError(getErrorMessage(err, "Something went wrong"));
       } finally {
         setForgotSubmitting(false);
       }
