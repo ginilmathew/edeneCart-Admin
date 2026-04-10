@@ -147,7 +147,7 @@ function OrdersListPage() {
           if (names.length === 1) return names[0];
           return (
             <div className="flex flex-col gap-0.5">
-              <span className="font-semibold text-xs text-indigo-600">{names.length} items</span>
+              <span className="font-semibold text-xs text-primary">{names.length} items</span>
               <span className="text-[10px] text-text-muted truncate max-w-[12rem]">
                 {names.join(", ")}
               </span>

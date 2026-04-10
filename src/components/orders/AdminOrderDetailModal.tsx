@@ -186,7 +186,7 @@ function AdminOrderDetailModalComponent({
                           <td className="px-3 py-2 text-center font-bold text-gray-600">
                             {item.quantity}
                           </td>
-                          <td className="px-3 py-2 text-right font-black text-indigo-600">
+                          <td className="px-3 py-2 text-right font-black text-primary">
                             ₹{safeMoney(item.sellingAmount).toFixed(2)}
                           </td>
                         </tr>
@@ -203,7 +203,7 @@ function AdminOrderDetailModalComponent({
                           <td className="px-3 py-2 text-center font-bold text-gray-600">
                             {orderDetail.quantity}
                           </td>
-                          <td className="px-3 py-2 text-right font-black text-indigo-600">
+                          <td className="px-3 py-2 text-right font-black text-primary">
                             ₹{safeMoney(orderDetail.sellingAmount).toFixed(2)}
                           </td>
                         </tr>
@@ -217,7 +217,7 @@ function AdminOrderDetailModalComponent({
                         >
                           Items subtotal
                         </td>
-                        <td className="px-3 py-2 text-right font-black text-indigo-700">
+                        <td className="px-3 py-2 text-right font-black text-primary-dark">
                           ₹{safeMoney(orderDetail.sellingAmount).toFixed(2)}
                         </td>
                       </tr>

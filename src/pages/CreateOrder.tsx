@@ -1462,7 +1462,7 @@ function CreateOrderPage() {
                         <div className="text-[10px] font-medium uppercase tracking-wide text-gray-400 md:hidden">
                           Line total
                         </div>
-                        <div className="text-lg font-bold tabular-nums text-indigo-600 md:text-xl">
+                        <div className="text-lg font-bold tabular-nums text-primary md:text-xl">
                           {formatRupee(subtotal)}
                         </div>
                       </div>
@@ -1476,7 +1476,7 @@ function CreateOrderPage() {
                       Grand Total
                     </span>
                     {addOn && (
-                      <span className="text-xs font-medium text-indigo-600">
+                      <span className="text-xs font-medium text-primary">
                         Incl. Add-on: {addOn.note} (+{formatRupee(parseFloat(addOn.amount))})
                       </span>
                     )}

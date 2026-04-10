@@ -119,7 +119,7 @@ function OrderDetailPage() {
               </p>
               {relatedItems.some((i) => i.status === "scheduled") &&
               (currentOrder.scheduledFor ?? relatedItems.find((i) => i.scheduledFor)?.scheduledFor) ? (
-                <p className="mt-1 text-sm font-semibold text-indigo-700">
+                <p className="mt-1 text-sm font-semibold text-primary-dark">
                   Scheduled for{" "}
                   {(
                     currentOrder.scheduledFor ??
@@ -132,7 +132,7 @@ function OrderDetailPage() {
             {currentOrder.trackingId && (
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tracking Number</span>
-                <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded font-mono text-sm font-bold border border-indigo-100">
+                <span className="bg-primary-muted text-primary-dark px-3 py-1 rounded font-mono text-sm font-bold border border-border">
                   {currentOrder.trackingId}
                 </span>
               </div>
@@ -157,7 +157,7 @@ function OrderDetailPage() {
                   </div>
                   <div>
                     <dt className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order Type</dt>
-                    <dd className="font-bold text-indigo-600 tracking-wide">{currentOrder.orderType.toUpperCase()}</dd>
+                    <dd className="font-bold text-primary tracking-wide">{currentOrder.orderType.toUpperCase()}</dd>
                   </div>
                 </div>
                 {currentOrder.email && (
@@ -205,7 +205,7 @@ function OrderDetailPage() {
                         <td className="px-6 py-4 text-center font-bold text-gray-700">
                           {item.quantity}
                         </td>
-                        <td className="px-6 py-4 text-right font-black tabular-nums text-indigo-700">
+                        <td className="px-6 py-4 text-right font-black tabular-nums text-primary-dark">
                           {formatCurrency(item.sellingAmount)}
                         </td>
                       </tr>
