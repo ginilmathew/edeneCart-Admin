@@ -46,7 +46,5 @@ ehthumbs.db
 coverage/
 .nyc_output/
 
-# Optional: uncomment if you don't want lockfiles in the repo
+# npm lockfile — this repo uses Yarn (`yarn.lock` should stay committed)
 package-lock.json
-yarn.lock
-pnpm-lock.yaml
