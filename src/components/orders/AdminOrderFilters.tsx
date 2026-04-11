@@ -31,6 +31,9 @@ export type AdminOrderFiltersProps = {
   typeFilter: string;
   onTypeFilterChange: (v: string) => void;
   typeOptions: SelectOption[];
+  deliveryFilter: string;
+  onDeliveryFilterChange: (v: string) => void;
+  deliveryOptions: SelectOption[];
   onResetTableFilters: () => void;
   appliedDateFrom: string;
   appliedDateTo: string;
@@ -59,6 +62,9 @@ function AdminOrderFiltersComponent(props: AdminOrderFiltersProps) {
     typeFilter,
     onTypeFilterChange,
     typeOptions,
+    deliveryFilter,
+    onDeliveryFilterChange,
+    deliveryOptions,
     onResetTableFilters,
     appliedDateFrom,
     appliedDateTo,
@@ -177,6 +183,23 @@ function AdminOrderFiltersComponent(props: AdminOrderFiltersProps) {
               ))}
             </select>
           </ManagementFilterField>
+          <ManagementFilterField label="Delivery type">
+            <select
+              value={deliveryFilter}
+              onChange={(e) => onDeliveryFilterChange(e.target.value)}
+              className={MANAGEMENT_NATIVE_CONTROL_CLASS}
+              aria-label="Filter by delivery method"
+            >
+              {deliveryOptions.map((opt) => (
+                <option
+                  key={opt.value || "all-delivery"}
+                  value={opt.value}
+                >
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </ManagementFilterField>
           <ManagementFilterField label="Table filters">
             <Button
               type="button"
@@ -184,7 +207,7 @@ function AdminOrderFiltersComponent(props: AdminOrderFiltersProps) {
               size="sm"
               className="w-full sm:w-auto"
               onClick={onResetTableFilters}
-              aria-label="Reset staff, status, product, and type filters to show all"
+              aria-label="Reset staff, status, product, order type, and delivery filters to show all"
             >
               Reset table filters
             </Button>

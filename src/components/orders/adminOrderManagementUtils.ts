@@ -1,5 +1,8 @@
 import type { Order, OrderStatus } from "../../types";
 
+/** Select value for "lines with no delivery method" in admin order filters. */
+export const ADMIN_DELIVERY_FILTER_NONE = "__none__";
+
 export function safeMoney(v: unknown): number {
   if (v == null) return 0;
   const n = typeof v === "number" ? v : parseFloat(String(v));
@@ -89,6 +92,7 @@ export function groupOrdersForAdminList(
     staffId: string;
     status: string;
     orderType: string;
+    deliveryMethodId: string;
   },
 ): GroupedAdminOrder[] {
   let list = [...listLines].sort(
@@ -107,6 +111,15 @@ export function groupOrdersForAdminList(
   }
   if (filters.orderType) {
     list = list.filter((o) => o.orderType === filters.orderType);
+  }
+  if (filters.deliveryMethodId) {
+    if (filters.deliveryMethodId === ADMIN_DELIVERY_FILTER_NONE) {
+      list = list.filter((o) => !o.deliveryMethodId);
+    } else {
+      list = list.filter(
+        (o) => o.deliveryMethodId === filters.deliveryMethodId,
+      );
+    }
   }
 
   const groups = new Map<string, Order[]>();

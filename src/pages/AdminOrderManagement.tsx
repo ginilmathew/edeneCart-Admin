@@ -16,6 +16,10 @@ import {
 } from "../lib/fetch-admin-orders";
 import { selectStaff } from "../store/staffSlice";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
+import {
+  fetchDeliveryMethods,
+  selectDeliveryMethods,
+} from "../store/deliveriesSlice";
 import { fetchSettings, selectSettings } from "../store/settingsSlice";
 import { Card, CardHeader, Table } from "../components/ui";
 import { toast } from "../lib/toast";
@@ -27,6 +31,7 @@ import { AdminOrderFilters } from "../components/orders/AdminOrderFilters";
 import { AdminOrderMobileSelectAll } from "../components/orders/AdminOrderMobileSelectAll";
 import { AdminOrderPagination } from "../components/orders/AdminOrderPagination";
 import {
+  ADMIN_DELIVERY_FILTER_NONE,
   groupOrdersForAdminList,
   orderLineIds,
   rowUniformStatus,
@@ -51,12 +56,14 @@ function AdminOrderManagementPage() {
   const loadSeqRef = useRef(0);
   const staff = useAppSelector(selectStaff);
   const products = useAppSelector(selectProducts);
+  const deliveryMethods = useAppSelector(selectDeliveryMethods);
   const settings = useAppSelector(selectSettings);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState("");
   const [staffFilter, setStaffFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [deliveryFilter, setDeliveryFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [serverSearch, setServerSearch] = useState("");
@@ -90,8 +97,14 @@ function AdminOrderManagementPage() {
 
   const hasTableFilters = useMemo(
     () =>
-      !!(productFilter || staffFilter || statusFilter || typeFilter),
-    [productFilter, staffFilter, statusFilter, typeFilter],
+      !!(
+        productFilter ||
+        staffFilter ||
+        statusFilter ||
+        typeFilter ||
+        deliveryFilter
+      ),
+    [productFilter, staffFilter, statusFilter, typeFilter, deliveryFilter],
   );
 
   const appliedServerQuery = useCallback((): AdminOrdersQuery => {
@@ -165,8 +178,16 @@ function AdminOrderManagementPage() {
         staffId: staffFilter,
         status: statusFilter,
         orderType: typeFilter,
+        deliveryMethodId: deliveryFilter,
       }),
-    [listLines, productFilter, staffFilter, statusFilter, typeFilter],
+    [
+      listLines,
+      productFilter,
+      staffFilter,
+      statusFilter,
+      typeFilter,
+      deliveryFilter,
+    ],
   );
 
   const filteredOrders = groupedOrders;
@@ -274,6 +295,10 @@ function AdminOrderManagementPage() {
 
   useEffect(() => {
     void dispatch(fetchSettings());
+  }, [dispatch]);
+
+  useEffect(() => {
+    void dispatch(fetchDeliveryMethods());
   }, [dispatch]);
 
   useEffect(() => {
@@ -530,7 +555,8 @@ function AdminOrderManagementPage() {
         productFilter ||
         staffFilter ||
         statusFilter ||
-        typeFilter
+        typeFilter ||
+        deliveryFilter
       );
       if (tableOn) {
         await loadOrders({});
@@ -558,6 +584,7 @@ function AdminOrderManagementPage() {
     staffFilter,
     statusFilter,
     typeFilter,
+    deliveryFilter,
   ]);
 
   const clearDateFilters = useCallback(async () => {
@@ -572,7 +599,8 @@ function AdminOrderManagementPage() {
       productFilter ||
       staffFilter ||
       statusFilter ||
-      typeFilter
+      typeFilter ||
+      deliveryFilter
     );
     if (tableOn) {
       await loadOrders({});
@@ -580,7 +608,14 @@ function AdminOrderManagementPage() {
       await loadOrders({ page: 1, limit: ADMIN_ORDERS_PAGE_SIZE });
     }
     toast.success("Showing all orders");
-  }, [loadOrders, productFilter, staffFilter, statusFilter, typeFilter]);
+  }, [
+    loadOrders,
+    productFilter,
+    staffFilter,
+    statusFilter,
+    typeFilter,
+    deliveryFilter,
+  ]);
 
   const downloadPdf = useCallback(
     async (
@@ -608,6 +643,7 @@ function AdminOrderManagementPage() {
     setStatusFilter("");
     setProductFilter("");
     setTypeFilter("");
+    setDeliveryFilter("");
   }, []);
 
   const downloadSelectedPdf = useCallback(async () => {
@@ -737,6 +773,20 @@ function AdminOrderManagementPage() {
     [],
   );
 
+  const deliveryOptions = useMemo(
+    () => [
+      { value: "", label: "All delivery types" },
+      {
+        value: ADMIN_DELIVERY_FILTER_NONE,
+        label: "No delivery method",
+      },
+      ...[...deliveryMethods]
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+        .map((m) => ({ value: m.id, label: m.name })),
+    ],
+    [deliveryMethods],
+  );
+
   const getAdminOrderEditHref = useCallback(
     (row: Order & { items?: Order[] }) => {
       if (!hasPermission(user, "orders.update")) return null;
@@ -826,6 +876,9 @@ function AdminOrderManagementPage() {
           typeFilter={typeFilter}
           onTypeFilterChange={setTypeFilter}
           typeOptions={typeOptions}
+          deliveryFilter={deliveryFilter}
+          onDeliveryFilterChange={setDeliveryFilter}
+          deliveryOptions={deliveryOptions}
           onResetTableFilters={clearTableFilters}
           appliedDateFrom={appliedDateFrom}
           appliedDateTo={appliedDateTo}
