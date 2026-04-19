@@ -168,7 +168,7 @@ function SalaryManagementPage() {
                               [s.id]: e.target.value,
                             }))
                           }
-                          className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt py-2 pl-6 pr-3 text-sm text-text outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10"
+                          className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt py-2 pl-6 pr-3 text-sm text-text outline-none transition-all focus:border-primary focus:bg-white dark:focus:bg-surface-alt focus:ring-2 focus:ring-primary/10"
                           placeholder="0.00"
                         />
                       </div>
@@ -192,7 +192,7 @@ function SalaryManagementPage() {
                             [s.id]: e.target.value,
                           }))
                         }
-                        className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt px-3 py-2 text-sm text-text outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10"
+                        className="box-border w-full min-w-0 max-w-full rounded-lg border border-border bg-surface-alt px-3 py-2 text-sm text-text outline-none transition-all focus:border-primary focus:bg-white dark:focus:bg-surface-alt focus:ring-2 focus:ring-primary/10"
                         placeholder="e.g. 5:50, 10:100"
                       />
                     </div>

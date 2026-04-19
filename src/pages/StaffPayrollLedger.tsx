@@ -425,7 +425,6 @@ function StaffPayrollLedgerPage() {
       <Card>
         <CardHeader
           title="Payment history"
-          subtitle="Recorded payouts for the same period filters above (up to 250 rows). Staff filter applies here."
         />
         {paymentsLoading ? (
           <p className="px-4 py-6 text-sm text-text-muted md:px-6">
