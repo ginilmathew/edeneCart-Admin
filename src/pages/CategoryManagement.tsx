@@ -33,6 +33,17 @@ function CategoryManagementPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.description || "").toLowerCase().includes(q)
+    );
+  }, [categories, searchQuery]);
 
   useEffect(() => {
     if (!imageFile) {
@@ -194,11 +205,23 @@ function CategoryManagementPage() {
           // subtitle="Create categories here first, then assign products to them in Product Management."
           action={<Button onClick={openAdd}>Add category</Button>}
         />
+        <div className="mb-4">
+          <Input
+            label=""
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         <Table
           columns={columns}
-          data={categories}
+          data={filteredCategories}
           keyExtractor={(c) => c.id}
-          emptyMessage="No categories yet. Add one before creating products."
+          emptyMessage={
+            searchQuery
+              ? "No categories match your search."
+              : "No categories yet. Add one before creating products."
+          }
         />
       </Card>
 
