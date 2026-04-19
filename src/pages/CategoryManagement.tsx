@@ -120,24 +120,25 @@ function CategoryManagementPage() {
 
   const columns = useMemo(
     () => [
+      {
+        key: "imageUrl",
+        header: "Image",
+        render: (row: Category) =>
+          row.imageUrl ? (
+            <img
+              src={row.imageUrl}
+              alt=""
+              className="h-10 w-10 rounded object-cover border border-border shadow-sm"
+            />
+          ) : (
+            "—"
+          ),
+      },
       { key: "name", header: "Name" },
       {
         key: "description",
         header: "Description",
-        render: (row: Category) => (
-          <div className="flex items-center gap-3">
-            {row.imageUrl && (
-              <img
-                src={row.imageUrl}
-                alt=""
-                className="h-8 w-8 rounded object-cover border border-border"
-              />
-            )}
-            <span className="truncate max-w-[200px]">
-              {row.description?.trim() || "—"}
-            </span>
-          </div>
-        ),
+        render: (row: Category) => row.description?.trim() || "—",
       },
       {
         key: "actions",
