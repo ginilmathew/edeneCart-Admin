@@ -27,6 +27,8 @@ import type {
   OrderType,
   Product,
 } from "../types";
+import { LuClipboardList } from "react-icons/lu";
+
 
 interface ProductRow {
   productId: string;
@@ -491,7 +493,7 @@ function CreateOrderPage() {
     );
     setScheduleOrder(
       Boolean(editingOrder.scheduledFor?.trim()) ||
-        editingOrder.status === "scheduled",
+      editingOrder.status === "scheduled",
     );
   }, [editingOrder, products, productRows.length]);
 
@@ -1133,10 +1135,10 @@ function CreateOrderPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                className="shrink-0 self-start sm:self-auto"
+                className="shrink-0 self-start cursor-pointer sm:self-auto"
                 onClick={() => setPasteModalOpen(true)}
               >
-                Paste from clipboard
+                <LuClipboardList />
               </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -1586,10 +1588,7 @@ function CreateOrderPage() {
                     }
                   }}
                 />
-                <span className="text-sm leading-snug text-text">
-                  Schedule this order for a future fulfilment date (confirmation email is sent when
-                  the order moves to pending).
-                </span>
+
               </label>
               {scheduleOrder && (
                 <Input
@@ -1700,19 +1699,23 @@ function CreateOrderPage() {
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
+          <div className="flex flex-wrap gap-2 justify-end">
+
+            <Button className="cursor-pointer"
+              type="button" onClick={applyPaste}>
+              Apply to form
+            </Button>
+            {/* <Button
               type="button"
+              className="cursor-pointer"
               variant="secondary"
               loading={pasteReading}
               onClick={() => void readClipboard()}
             >
               Read from clipboard
-            </Button>
-            <Button type="button" onClick={applyPaste}>
-              Apply to form
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setPasteModalOpen(false)}>
+            </Button> */}
+            <Button className="cursor-pointer"
+              type="button" variant="secondary" onClick={() => setPasteModalOpen(false)}>
               Cancel
             </Button>
           </div>
