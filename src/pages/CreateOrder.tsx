@@ -1138,7 +1138,7 @@ function CreateOrderPage() {
                 className="shrink-0 self-start cursor-pointer sm:self-auto"
                 onClick={() => setPasteModalOpen(true)}
               >
-                <LuClipboardList />
+                Paste From Clipboard
               </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
