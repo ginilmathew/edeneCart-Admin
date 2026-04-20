@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
+import Cropper from "react-easy-crop";
 import { PencilIcon, TrashIcon, XMarkIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -11,6 +12,42 @@ import {
 import { Card, CardHeader, Button, Table, Modal, Input, Tooltip } from "../components/ui";
 import { toast } from "../lib/toast";
 import type { Banner } from "../types";
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.addEventListener("load", () => resolve(img));
+    img.addEventListener("error", reject);
+    img.setAttribute("crossOrigin", "anonymous");
+    img.src = url;
+  });
+
+async function getCroppedImg(imageSrc: string, crop: any) {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = crop.width;
+  canvas.height = crop.height;
+
+  ctx?.drawImage(
+    image,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
+    0,
+    0,
+    crop.width,
+    crop.height
+  );
+
+  return new Promise<File>((resolve) => {
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      resolve(new File([blob], "cropped.jpeg", { type: "image/jpeg" }));
+    }, "image/jpeg");
+  });
+}
 
 function BannerManagementPage() {
   const dispatch = useAppDispatch();
@@ -28,6 +65,27 @@ function BannerManagementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingBanner, setViewingBanner] = useState<Banner | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  const ASPECT = 22 / 5; // based on your layout
+
+  const onCropComplete = useCallback((_: any, croppedPixels: any) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
+
+  const handleCropSave = useCallback(async () => {
+    if (!rawImage || !croppedAreaPixels) return;
+
+    const croppedFile = await getCroppedImg(rawImage, croppedAreaPixels);
+    setImageFile(croppedFile);
+
+    setCropModalOpen(false);
+    setRawImage(null);
+  }, [rawImage, croppedAreaPixels]);
 
   const filteredBanners = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -339,9 +397,12 @@ function BannerManagementPage() {
                     accept="image/*"
                     className="hidden"
                     onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) setImageFile(f);
-                      e.target.value = "";
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      const url = URL.createObjectURL(file);
+                      setRawImage(url);
+                      setCropModalOpen(true);
                     }}
                   />
                 </label>
@@ -393,6 +454,35 @@ function BannerManagementPage() {
             </div>
           </div>
         )}
+      </Modal>
+      <Modal
+        isOpen={cropModalOpen}
+        onClose={() => setCropModalOpen(false)}
+        title="Crop Banner"
+        size="lg"
+      >
+        <div className="relative w-full h-[400px] bg-black">
+          {rawImage && (
+            <Cropper
+              image={rawImage}
+              crop={crop}
+              zoom={zoom}
+              aspect={ASPECT}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+            />
+          )}
+        </div>
+
+        <div className="flex justify-between mt-4">
+          <Button variant="secondary" onClick={() => setCropModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleCropSave}>
+            Crop & Use Image
+          </Button>
+        </div>
       </Modal>
     </div>
   );
