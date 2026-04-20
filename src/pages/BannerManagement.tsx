@@ -178,11 +178,10 @@ function BannerManagementPage() {
         render: (row: Banner) => (
           <button
             onClick={() => toggleActive(row)}
-            className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${
-              row.isActive 
-                ? "bg-pp-success/10 text-pp-success border border-pp-success/20" 
-                : "bg-gray-100 text-gray-400 border border-gray-200"
-            }`}
+            className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${row.isActive
+              ? "bg-pp-success/10 text-pp-success border border-pp-success/20"
+              : "bg-gray-100 text-gray-400 border border-gray-200"
+              }`}
           >
             {row.isActive ? "Active" : "Inactive"}
           </button>
@@ -274,7 +273,7 @@ function BannerManagementPage() {
               onChange={(e) => setOrder(Number(e.target.value))}
             />
           </div>
-          
+
           <Input
             label="Description"
             value={description}
@@ -304,7 +303,7 @@ function BannerManagementPage() {
 
           <div className="space-y-3 rounded-[var(--radius-md)] border border-border bg-surface-muted/40 p-3">
             <p className="text-sm font-medium text-text">Banner Image *</p>
-            
+
             {editingId && banners.find(b => b.id === editingId)?.imageUrl && (
               <div className="group relative w-fit">
                 <img
@@ -321,7 +320,7 @@ function BannerManagementPage() {
                   <img
                     src={imagePreviewUrl}
                     alt="Preview"
-                    className="h-32 w-64 rounded border border-border object-cover"
+                    className="h-30 w-64 rounded border border-border object-cover"
                   />
                   <button
                     type="button"
@@ -332,7 +331,7 @@ function BannerManagementPage() {
                   </button>
                 </div>
               ) : (
-                <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-border bg-surface-muted/20 hover:bg-surface-muted/40 transition-colors">
+                <label className="flex h-30 w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-border bg-surface-muted/20 hover:bg-surface-muted/40 transition-colors">
                   <span className="text-2xl font-bold text-primary">+ Upload Banner Image</span>
                   <span className="text-xs text-text-muted">Recommended: 1800x600 px (Ideal) or 1200x400 px (Minimum)</span>
                   <input
