@@ -316,6 +316,7 @@ export interface Order {
   emailConfirmationScheduled?: boolean;
   /** Set on POST /orders: API has full SMTP credentials; if false, no email is actually sent. */
   outboundEmailReady?: boolean;
+  platform?: string;
 }
 
 /** Payload for POST /orders; total is computed from product price on the server. */
