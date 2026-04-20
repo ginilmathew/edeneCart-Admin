@@ -334,7 +334,7 @@ function BannerManagementPage() {
               ) : (
                 <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-border bg-surface-muted/20 hover:bg-surface-muted/40 transition-colors">
                   <span className="text-2xl font-bold text-primary">+ Upload Banner Image</span>
-                  <span className="text-xs text-text-muted">Recommended: 1200x450 or 3:1 aspect ratio</span>
+                  <span className="text-xs text-text-muted">Recommended: 1800x600 px (Ideal) or 1200x400 px (Minimum)</span>
                   <input
                     type="file"
                     accept="image/*"
