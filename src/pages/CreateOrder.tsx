@@ -13,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectProducts, fetchProducts } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
+import { selectSubcategories, fetchSubcategories } from "../store/subcategoriesSlice";
 import { createOrder, fetchOrders, selectOrders, updateOrder } from "../store/ordersSlice";
 import { Card, CardHeader, Button, Input, Modal, Select, Textarea } from "../components/ui";
 import type { SelectOption } from "../components/ui/Select";
@@ -351,6 +352,7 @@ function CreateOrderPage() {
     [products],
   );
   const categories = useAppSelector(selectCategories);
+  const subcategories = useAppSelector(selectSubcategories);
   const [form, setForm] = useState(INITIAL);
   const [productRows, setProductRows] = useState<ProductRow[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -361,6 +363,7 @@ function CreateOrderPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [orderCategory, setOrderCategory] = useState("");
+  const [orderSubcategory, setOrderSubcategory] = useState("");
   const [addOn, setAddOn] = useState<{ amount: string; note: string } | null>(null);
   const [isAddOnModalOpen, setIsAddOnModalOpen] = useState(false);
   const [tempAddOn, setTempAddOn] = useState({ amount: "", note: "" });
@@ -447,6 +450,7 @@ function CreateOrderPage() {
   useEffect(() => {
     void dispatch(fetchProducts());
     void dispatch(fetchCategories());
+    void dispatch(fetchSubcategories());
   }, [dispatch]);
 
   /** Track last hydrated order so the layout effect only sets form+rows once per order. */
@@ -469,6 +473,7 @@ function CreateOrderPage() {
     setIsDropdownOpen(false);
     const lineProduct = products.find((p) => p.id === editingOrder.productId);
     setOrderCategory(lineProduct ? productCategoryKey(lineProduct) : "");
+    setOrderSubcategory(lineProduct?.subcategoryId ?? "");
     const { flat, area } = splitDeliveryAddress(editingOrder.deliveryAddress);
     setForm({
       customerName: editingOrder.customerName ?? "",
@@ -557,6 +562,7 @@ function CreateOrderPage() {
         const firstP = products.find((p) => p.id === prev[0].productId);
         if (firstP) {
           setOrderCategory(productCategoryKey(firstP));
+          setOrderSubcategory(firstP.subcategoryId ?? "");
         }
       }
       return prev;
@@ -813,12 +819,29 @@ function CreateOrderPage() {
     return opts;
   }, [categories, catalogProducts]);
 
+  const filteredSubcategories = useMemo(() => {
+    if (!orderCategory || orderCategory === UNCATEGORIZED_KEY) return [];
+    return subcategories.filter((s) => s.categoryId === orderCategory);
+  }, [subcategories, orderCategory]);
+
+  const subcategoryOptions: SelectOption[] = useMemo(
+    () => [
+      { value: "", label: "All subcategories" },
+      ...filteredSubcategories.map((s) => ({ value: s.id, label: s.name })),
+    ],
+    [filteredSubcategories]
+  );
+
   const productsInCategory = useMemo(() => {
-    if (!orderCategory) return catalogProducts;
-    return catalogProducts.filter(
-      (p) => productCategoryKey(p) === orderCategory,
-    );
-  }, [catalogProducts, orderCategory]);
+    let filtered = catalogProducts;
+    if (orderCategory) {
+      filtered = filtered.filter((p) => productCategoryKey(p) === orderCategory);
+    }
+    if (orderSubcategory) {
+      filtered = filtered.filter((p) => p.subcategoryId === orderSubcategory);
+    }
+    return filtered;
+  }, [catalogProducts, orderCategory, orderSubcategory]);
 
   const validate = useCallback((): boolean => {
     const e: Record<string, string> = {};
@@ -1280,6 +1303,7 @@ function CreateOrderPage() {
               value={orderCategory}
               onChange={(e) => {
                 setOrderCategory(e.target.value);
+                setOrderSubcategory("");
                 setErrors((er) => ({ ...er, products: "" }));
                 setIsDropdownOpen(false);
                 setProductSearch("");
@@ -1287,6 +1311,22 @@ function CreateOrderPage() {
               placeholder={!detailsEnabled ? disabledHint : "All categories"}
               disabled={!detailsEnabled}
             />
+
+            {orderCategory && subcategoryOptions.length > 1 && (
+              <Select
+                label="Subcategory filter (optional)"
+                options={subcategoryOptions}
+                value={orderSubcategory}
+                onChange={(e) => {
+                  setOrderSubcategory(e.target.value);
+                  setErrors((er) => ({ ...er, products: "" }));
+                  setIsDropdownOpen(false);
+                  setProductSearch("");
+                }}
+                placeholder={!detailsEnabled ? disabledHint : "All subcategories"}
+                disabled={!detailsEnabled}
+              />
+            )}
 
             <div className="relative">
               <label className="mb-1 block text-sm font-medium text-text-heading">

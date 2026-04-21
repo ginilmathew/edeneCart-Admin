@@ -16,6 +16,7 @@ import type {
   Sender,
   Staff,
   StaffPosition,
+  Subcategory,
 } from "../../types";
 import { baseQueryWithAuth } from "./baseQueryWithAuth";
 import { isIndiaPostDirectDevProxy } from "../../lib/india-post-dev-proxy";
@@ -41,6 +42,7 @@ export type OrderListPayload = { items: Order[]; total: number };
 
 export type NewProductPayload = Pick<Product, "name" | "price"> & {
   categoryId: string;
+  subcategoryId: string;
   buyingPrice?: number;
   stockQuantity?: number;
   size?: string;
@@ -122,6 +124,7 @@ export const edenApi = createApi({
     "DeliveryMethod",
     "ProductDeliveryFee",
     "Banner",
+    "Subcategory",
   ],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -139,6 +142,7 @@ export const edenApi = createApi({
         const fd = new FormData();
         fd.append("name", body.name);
         fd.append("categoryId", body.categoryId);
+        if (body.subcategoryId) fd.append("subcategoryId", body.subcategoryId);
         fd.append("price", String(body.price));
         if (body.description != null && body.description !== "") {
           fd.append("description", body.description);
@@ -269,6 +273,54 @@ export const edenApi = createApi({
       invalidatesTags: (_r, _e, id) => [
         { type: "Category", id },
         { type: "Category", id: "LIST" },
+      ],
+    }),
+    getSubcategories: builder.query<Subcategory[], void>({
+      query: () => endpoints.subcategories,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Subcategory", id: "LIST" },
+              ...r.map((s) => ({ type: "Subcategory" as const, id: s.id })),
+            ]
+          : [{ type: "Subcategory", id: "LIST" }],
+    }),
+    createSubcategory: builder.mutation<
+      Subcategory,
+      Pick<Subcategory, "name" | "categoryId"> & { description?: string }
+    >({
+      query: (body) => ({
+        url: endpoints.subcategories,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Subcategory", id: "LIST" }],
+    }),
+    updateSubcategory: builder.mutation<
+      Subcategory,
+      {
+        id: string;
+        patch: Partial<Pick<Subcategory, "name" | "description" | "categoryId">>;
+      }
+    >({
+      query: ({ id, patch }) => ({
+        url: endpoints.subcategoryById(id),
+        method: "PATCH",
+        body: patch,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Subcategory", id },
+        { type: "Subcategory", id: "LIST" },
+      ],
+    }),
+    deleteSubcategory: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.subcategoryById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Subcategory", id },
+        { type: "Subcategory", id: "LIST" },
       ],
     }),
     getBanners: builder.query<Banner[], void>({

@@ -19,6 +19,14 @@ export interface Category {
   imageUrl?: string | null;
 }
 
+export interface Subcategory {
+  id: string;
+  name: string;
+  description?: string;
+  categoryId: string;
+  category?: Category;
+}
+
 export interface Banner {
   id: string;
   title: string;
@@ -68,6 +76,8 @@ export interface Product {
   createdAt?: string;
   categoryId?: string;
   categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
   sku?: string;
   /** Selling / catalog price */
   price: number;

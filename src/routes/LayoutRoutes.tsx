@@ -250,6 +250,17 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         }
       />
       <Route
+        path="/admin/subcategories"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["categories.view"]}
+          >
+            <Pages.SubcategoryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/banners"
         element={
           <ProtectedRoute
