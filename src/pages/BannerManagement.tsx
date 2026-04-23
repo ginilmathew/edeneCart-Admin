@@ -71,7 +71,7 @@ function BannerManagementPage() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
-  const ASPECT = 22 / 5; // based on your layout
+  const ASPECT = 1440 / 470; // based on webapp banner layout (1440px wide, 470px tall)
 
   const onCropComplete = useCallback((_: any, croppedPixels: any) => {
     setCroppedAreaPixels(croppedPixels);
@@ -391,7 +391,7 @@ function BannerManagementPage() {
               ) : (
                 <label className="flex h-30 w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-border bg-surface-muted/20 hover:bg-surface-muted/40 transition-colors">
                   <span className="text-2xl font-bold text-primary">+ Upload Banner Image</span>
-                  <span className="text-xs text-text-muted">Recommended: 1800x600 px (Ideal) or 1200x400 px (Minimum)</span>
+                  <span className="text-xs text-text-muted">Recommended: 1440x470 px (Ideal)</span>
                   <input
                     type="file"
                     accept="image/*"

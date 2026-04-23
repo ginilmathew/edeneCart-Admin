@@ -299,11 +299,9 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
             EC
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[11px] uppercase tracking-[0.22em] text-sidebar-text/70">
-              2026 Admin
-            </p>
+
             <span className="truncate text-base font-semibold tracking-tight text-sidebar-text-active">
-              EdeneCart
+              PilliPot
             </span>
           </div>
         </div>

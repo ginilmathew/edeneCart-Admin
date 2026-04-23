@@ -92,7 +92,7 @@ function LoginPage() {
             EC
           </div>
           <p className="text-xs font-semibold uppercase tracking-[0.26em] text-primary">
-            EdeneCart Admin
+            PilliPot Admin
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-text-heading sm:text-[2rem]">
             Command your operations
