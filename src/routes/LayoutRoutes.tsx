@@ -261,6 +261,17 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         }
       />
       <Route
+        path="/admin/offers"
+        element={
+          <ProtectedRoute
+            allowedRoles={["super_admin", "guest"]}
+            requiredPermissions={["products.view"]}
+          >
+            <Pages.OfferManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/banners"
         element={
           <ProtectedRoute

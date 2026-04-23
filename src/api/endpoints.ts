@@ -90,4 +90,6 @@ export const endpoints = {
   /** India Post (CEP) — proxied by edenCartapi; credentials from body or server env. */
   indiaPostLoginTest: `${V1}/india-post/login-test`,
   indiaPostTrackingBulk: `${V1}/india-post/tracking/bulk`,
+  productOffers: `${V1}/admin/offers`,
+  productOfferById: (id: string) => `${V1}/admin/offers/${id}`,
 } as const;

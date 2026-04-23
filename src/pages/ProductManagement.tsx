@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
-import { PencilIcon, TrashIcon, XMarkIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, XMarkIcon, EyeIcon, TagIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectProducts, createProduct, updateProduct, deleteProduct } from "../store/productsSlice";
 import { selectCategories, fetchCategories } from "../store/categoriesSlice";
@@ -21,6 +21,7 @@ import {
 import type { SelectOption } from "../components/ui/Select";
 import { toast } from "../lib/toast";
 import type { Product } from "../types";
+import { ProductOffersModal } from "../components/products/ProductOffersModal";
 
 const UNCATEGORIZED_FILTER = "__none__";
 
@@ -73,6 +74,7 @@ function ProductManagementPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+  const [offeringProduct, setOfferingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     void dispatch(fetchCategories());
@@ -453,6 +455,16 @@ function ProductManagementPage() {
                 aria-label="View product"
               >
                 <EyeIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip content="Offers" side="top">
+              <button
+                type="button"
+                onClick={() => setOfferingProduct(row)}
+                className="rounded-[var(--radius-md)] p-2 text-text-muted hover:bg-primary-muted hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label="Manage offers"
+              >
+                <TagIcon className="h-4 w-4" />
               </button>
             </Tooltip>
             <Tooltip content="Edit" side="top">
@@ -862,12 +874,28 @@ function ProductManagementPage() {
               </div>
             )}
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end gap-2 pt-2">
+              <Button 
+                variant="secondary" 
+                icon={<TagIcon className="h-4 w-4" />}
+                onClick={() => {
+                  setOfferingProduct(viewingProduct);
+                  setViewingProduct(null);
+                }}
+              >
+                Manage Offers
+              </Button>
               <Button onClick={() => setViewingProduct(null)}>Close</Button>
             </div>
           </div>
         )}
+        {/* ... (rest of viewing modal content) */}
       </Modal>
+
+      <ProductOffersModal
+        product={offeringProduct}
+        onClose={() => setOfferingProduct(null)}
+      />
     </div>
   );
 }

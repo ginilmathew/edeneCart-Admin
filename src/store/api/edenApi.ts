@@ -13,6 +13,7 @@ import type {
   PdfSize,
   Product,
   ProductDeliveryFee,
+  ProductOffer,
   Sender,
   Staff,
   StaffPosition,
@@ -125,6 +126,7 @@ export const edenApi = createApi({
     "ProductDeliveryFee",
     "Banner",
     "Subcategory",
+    "Offer",
   ],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -803,12 +805,56 @@ export const edenApi = createApi({
         r
           ? [
               { type: "ProductDeliveryFee", id: "LIST" },
-              ...r.map((f) => ({
-                type: "ProductDeliveryFee" as const,
-                id: f.id,
-              })),
+              ...r.map((f) => ({ type: "ProductDeliveryFee" as const, id: f.id })),
             ]
           : [{ type: "ProductDeliveryFee", id: "LIST" }],
+    }),
+
+    getProductOffers: builder.query<ProductOffer[], string | undefined>({
+      query: (productId) =>
+        productId ? `${endpoints.productOffers}?productId=${productId}` : endpoints.productOffers,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Offer" as const, id: "LIST" },
+              ...r.map((o) => ({ type: "Offer" as const, id: o.id })),
+            ]
+          : [{ type: "Offer", id: "LIST" }],
+    }),
+    createProductOffer: builder.mutation<
+      ProductOffer,
+      Partial<ProductOffer> & Pick<ProductOffer, "productId" | "title">
+    >({
+      query: (body) => ({
+        url: endpoints.productOffers,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Offer", id: "LIST" }],
+    }),
+    updateProductOffer: builder.mutation<
+      ProductOffer,
+      { id: string; patch: Partial<ProductOffer> }
+    >({
+      query: ({ id, patch }) => ({
+        url: endpoints.productOfferById(id),
+        method: "PATCH",
+        body: patch,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Offer", id },
+        { type: "Offer", id: "LIST" },
+      ],
+    }),
+    deleteProductOffer: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.productOfferById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Offer", id },
+        { type: "Offer", id: "LIST" },
+      ],
     }),
     createProductDeliveryFee: builder.mutation<
       ProductDeliveryFee,
@@ -981,6 +1027,10 @@ export const {
   useGetAssignedNumbersQuery,
   useGetDeliveryMethodsQuery,
   useGetProductDeliveryFeesQuery,
+  useGetProductOffersQuery,
+  useCreateProductOfferMutation,
+  useUpdateProductOfferMutation,
+  useDeleteProductOfferMutation,
   useIndiaPostLoginTestMutation,
   useIndiaPostBulkTrackingMutation,
 } = edenApi;

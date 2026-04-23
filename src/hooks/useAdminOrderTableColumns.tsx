@@ -132,6 +132,7 @@ export function useAdminOrderTableColumns({
       {
         key: "createdAt",
         header: "Date",
+        className: "whitespace-nowrap md:min-w-[8rem]",
         render: (row: Order) => formatDate(row.createdAt),
       },
       { key: "customerName", header: "Customer" },

@@ -90,6 +90,19 @@ export interface Product {
   isActive?: boolean;
 }
 
+export interface ProductOffer {
+  id: string;
+  productId: string;
+  title: string;
+  description?: string;
+  code?: string;
+  minQuantity: number;
+  discountPercentage: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ProfitGranularity = "day" | "week" | "month" | "year";
 
 export interface ProfitStatusSlice {
