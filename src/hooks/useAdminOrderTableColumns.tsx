@@ -135,10 +135,15 @@ export function useAdminOrderTableColumns({
         className: "whitespace-nowrap md:min-w-[8rem]",
         render: (row: Order) => formatDate(row.createdAt),
       },
-      { key: "customerName", header: "Customer" },
+      { 
+        key: "customerName", 
+        header: "Customer",
+        className: "md:min-w-[12rem]"
+      },
       {
         key: "productId",
         header: "Products",
+        className: "md:min-w-[15rem]",
         render: (row: Order & { items?: Order[] }) => {
           const lines: Order[] =
             row.items?.length ? row.items : [];
