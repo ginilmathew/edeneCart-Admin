@@ -24,6 +24,7 @@ export const endpoints = {
   productDeliveryFeeById: (id: string) => `${V1}/product-delivery-fees/${id}`,
   productDeliveryFeesForCart: `${V1}/product-delivery-fees/for-cart`,
   customers: `${V1}/customers`,
+  customersBulkImport: `${V1}/customers/bulk-import`,
   customerLookupPhone: (phone: string) =>
     `${V1}/customers/lookup-phone?phone=${encodeURIComponent(phone)}`,
   orders: `${V1}/orders`,

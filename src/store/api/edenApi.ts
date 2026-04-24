@@ -587,6 +587,14 @@ export const edenApi = createApi({
       query: () => endpoints.customers,
       providesTags: [{ type: "Customer", id: "LIST" }],
     }),
+    bulkImportCustomers: builder.mutation<{ imported: number, errors: string[] }, any[]>({
+      query: (customers) => ({
+        url: endpoints.customersBulkImport,
+        method: "POST",
+        body: { customers },
+      }),
+      invalidatesTags: [{ type: "Customer", id: "LIST" }],
+    }),
 
     getSenders: builder.query<Sender[], void>({
       query: () => endpoints.senders,
@@ -1021,6 +1029,7 @@ export const {
   useGetStaffQuery,
   useGetStaffMeQuery,
   useGetCustomersQuery,
+  useBulkImportCustomersMutation,
   useGetSendersQuery,
   useGetSettingsQuery,
   useGetStaffPositionsQuery,
