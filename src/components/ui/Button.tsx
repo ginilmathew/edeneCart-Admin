@@ -1,4 +1,5 @@
 import { memo, type ButtonHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -45,15 +46,13 @@ function ButtonComponent({
     <button
       type="button"
       disabled={disabled || loading}
-      className={[
-        "inline-flex touch-manipulation items-center justify-center gap-2 font-medium transition-all duration-150 ease-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:shadow-[var(--shadow-focus)]",
+      className={cn(
+        "inline-flex touch-manipulation items-center justify-center gap-2 whitespace-nowrap font-medium transition-all duration-150 ease-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:shadow-[var(--shadow-focus)]",
         variantClasses[variant],
         sizeClasses[size],
         fullWidth ? "w-full" : "",
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
       {...rest}
     >
       {loading ? (

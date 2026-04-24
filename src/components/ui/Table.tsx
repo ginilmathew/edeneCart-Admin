@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from "react";
+import { cn } from "../../lib/utils";
 
 export interface Column<T> {
   key: string;
@@ -113,10 +114,10 @@ function TableComponent<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={
-                  "whitespace-nowrap px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted first:pl-4 last:pr-4 md:px-4 md:py-[1.125rem] " +
-                  (col.className ?? "")
-                }
+                className={cn(
+                  "whitespace-nowrap px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted first:pl-4 last:pr-4 md:px-4 md:py-[1.125rem]",
+                  col.className
+                )}
               >
                 {col.header}
               </th>
@@ -132,10 +133,10 @@ function TableComponent<T>({
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={
-                    "px-3 py-3.5 align-top text-sm text-text first:pl-4 last:pr-4 md:px-4 md:py-4 " +
-                    (col.className ?? "")
-                  }
+                  className={cn(
+                    "px-3 py-3.5 align-top text-sm text-text first:pl-4 last:pr-4 md:px-4 md:py-4",
+                    col.className
+                  )}
                 >
                   {cellContent(row, col)}
                 </td>

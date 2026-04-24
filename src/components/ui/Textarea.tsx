@@ -1,4 +1,5 @@
 import { memo, forwardRef, type TextareaHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -21,13 +22,13 @@ const TextareaComponent = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={textareaId}
-          className={[
-            "min-h-[72px] w-full rounded-[var(--radius-md)] border border-border bg-surface px-2.5 py-2 text-xs text-text shadow-sm transition-colors placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0 sm:min-h-[80px] md:px-3 md:py-2.5 md:text-sm",
-            error ? "border-error" : "border-border",
+          className={cn(
+            "min-h-[88px] w-full rounded-[var(--radius-md)] border border-border bg-surface-elevated/85 px-3 py-2.5 text-sm text-text shadow-sm transition-all placeholder:text-text-muted focus:outline-none",
+            error
+              ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)]"
+              : "border-border focus:border-primary focus:shadow-[var(--shadow-focus)]",
             className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          )}
           aria-invalid={!!error}
           {...rest}
         />

@@ -1,4 +1,5 @@
 import { memo, forwardRef, type InputHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -24,16 +25,14 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={[
+            className={cn(
               "h-11 w-full rounded-[var(--radius-md)] border border-border bg-surface-elevated/85 text-sm text-text shadow-sm transition-all placeholder:text-text-muted focus:outline-none md:h-11",
               endNode ? "pl-3 pr-10" : "px-3",
               error
                 ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)]"
                 : "border-border focus:border-primary focus:shadow-[var(--shadow-focus)]",
               className,
-            ]
-              .filter(Boolean)
-              .join(" ")}
+            )}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             {...rest}

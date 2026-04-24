@@ -1,4 +1,5 @@
 import { memo, type HTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: "none" | "sm" | "md" | "lg";
@@ -19,13 +20,11 @@ function CardComponent({
 }: CardProps) {
   return (
     <div
-      className={[
-        "rounded-[var(--radius-xl)] border border-border/90 bg-surface shadow-[var(--shadow-card)] transition-shadow duration-200 ease-out md:rounded-[var(--radius-2xl)]",
+      className={cn(
+        "rounded-[var(--radius-xl)] border border-border/90 bg-surface shadow-[var(--shadow-card)] backdrop-blur-sm transition-shadow duration-200 ease-out md:rounded-[var(--radius-2xl)]",
         paddingMap[padding],
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
       {...rest}
     >
       {children}
@@ -71,5 +70,48 @@ export const CardHeader = memo(function CardHeaderInner({
         <div className="ml-auto shrink-0 sm:self-start">{action}</div>
       )}
     </div>
+  );
+});
+
+export const CardTitle = memo(function CardTitle({
+  className = "",
+  ...rest
+}: HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={cn("text-lg font-semibold tracking-tight text-text-heading md:text-xl", className)}
+      {...rest}
+    />
+  );
+});
+
+export const CardDescription = memo(function CardDescription({
+  className = "",
+  ...rest
+}: HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn("text-sm leading-relaxed text-text-muted md:text-[0.9375rem]", className)}
+      {...rest}
+    />
+  );
+});
+
+export const CardContent = memo(function CardContent({
+  className = "",
+  ...rest
+}: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("space-y-4", className)} {...rest} />;
+});
+
+export const CardFooter = memo(function CardFooter({
+  className = "",
+  ...rest
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4", className)}
+      {...rest}
+    />
   );
 });

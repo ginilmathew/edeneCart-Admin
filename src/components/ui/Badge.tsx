@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { cn } from "../../lib/utils";
 
 type Variant =
   | "default"
@@ -30,11 +31,11 @@ interface BadgeProps {
 function BadgeComponent({ children, variant = "default", className = "" }: BadgeProps) {
   return (
     <span
-      className={[
+      className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold leading-none tracking-tight",
         variantClasses[variant],
         className,
-      ].join(" ")}
+      )}
     >
       {children}
     </span>

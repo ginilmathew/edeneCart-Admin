@@ -1,4 +1,5 @@
 import { memo, forwardRef, type SelectHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 export interface SelectOption {
   value: string;
@@ -33,16 +34,14 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={selectId}
-          className={[
+          className={cn(
             shouldFullWidth ? "h-11 w-full" : "h-11 w-auto min-w-[8rem] md:min-w-[9rem]",
             "rounded-[var(--radius-md)] border border-border bg-surface-elevated/85 px-3 text-sm text-text shadow-sm transition-all focus:outline-none",
             error
               ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)]"
               : "border-border focus:border-primary focus:shadow-[var(--shadow-focus)]",
             className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          )}
           aria-invalid={!!error}
           {...rest}
         >

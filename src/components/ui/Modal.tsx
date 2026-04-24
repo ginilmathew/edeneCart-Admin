@@ -1,4 +1,5 @@
 import { memo, useEffect, useCallback } from "react";
+import { cn } from "../../lib/utils";
 
 interface ModalProps {
   isOpen: boolean;
@@ -58,10 +59,10 @@ function ModalComponent({
         aria-hidden="true"
       />
       <div
-        className={
-          "admin-modal-panel-in relative m-0 flex max-h-[min(92dvh,calc(100vh-0.5rem))] w-full flex-col overflow-hidden rounded-t-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] sm:m-auto sm:max-h-[min(88dvh,42rem)] sm:rounded-[var(--radius-2xl)] " +
+        className={cn(
+          "admin-modal-panel-in relative m-0 flex max-h-[min(92dvh,calc(100vh-0.5rem))] w-full flex-col overflow-hidden rounded-t-[var(--radius-2xl)] border border-border bg-surface shadow-[var(--shadow-dropdown)] backdrop-blur-xl sm:m-auto sm:max-h-[min(88dvh,42rem)] sm:rounded-[var(--radius-2xl)]",
           sizeClasses[size]
-        }
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-3 sm:gap-3 sm:px-6 sm:py-4">
@@ -74,7 +75,7 @@ function ModalComponent({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-text-muted transition-colors hover:bg-surface-alt hover:text-text-heading focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-10 sm:w-10"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-transparent text-text-muted transition-colors hover:border-border hover:bg-surface-alt hover:text-text-heading focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-10 sm:w-10"
             aria-label="Close"
           >
             <span className="text-xl leading-none sm:text-2xl">&times;</span>
