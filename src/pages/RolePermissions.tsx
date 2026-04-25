@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ArrowPathIcon,
   KeyIcon,
@@ -6,8 +6,16 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Card, CardHeader, Button, Input, Modal, Table, Badge, Tooltip } from "../components/ui";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
+import {
+  useCreateRbacGuestUserMutation,
+  useDeleteRbacGuestUserMutation,
+  useGetRbacGuestUsersQuery,
+  useGetRbacMatrixQuery,
+  useGetRbacRolesQuery,
+  useResetRbacGuestUserPasswordMutation,
+  useUpdateRbacGuestUserMutation,
+  useUpdateRbacRolePermissionsMutation,
+} from "../store/api/edenApi";
 import type { GuestUserRow, RbacMatrixResponse, RbacRoleRow } from "../types";
 import { toast } from "../lib/toast";
 
@@ -21,70 +29,46 @@ const ACTION_LABEL: Record<string, string> = {
 };
 
 function RolePermissionsPage() {
-  const [roles, setRoles] = useState<RbacRoleRow[]>([]);
-  const [guests, setGuests] = useState<GuestUserRow[]>([]);
-  const [catalog, setCatalog] = useState<RbacMatrixResponse["catalog"]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshingGuests, setRefreshingGuests] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<RbacRoleRow | null>(null);
   const [draftSlugs, setDraftSlugs] = useState<Set<string>>(new Set());
-  const [saving, setSaving] = useState(false);
 
   const [guestUsername, setGuestUsername] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestPassword, setGuestPassword] = useState("");
-  const [creatingGuest, setCreatingGuest] = useState(false);
   const [createdGuestPw, setCreatedGuestPw] = useState<string | null>(null);
 
   const [editGuestRow, setEditGuestRow] = useState<GuestUserRow | null>(null);
   const [editGuestName, setEditGuestName] = useState("");
   const [editGuestActive, setEditGuestActive] = useState(true);
-  const [savingGuest, setSavingGuest] = useState(false);
 
   const [resetGuestRow, setResetGuestRow] = useState<GuestUserRow | null>(null);
   const [resetNewPassword, setResetNewPassword] = useState("");
   const [resetResultPw, setResetResultPw] = useState<string | null>(null);
-  const [resettingPw, setResettingPw] = useState(false);
-
-  const loadGuests = useCallback(async () => {
-    try {
-      const g = await api.get<GuestUserRow[]>(endpoints.rbacGuestUsers);
-      setGuests(g);
-    } catch (e) {
-      toast.fromError(e, "Failed to load guest users");
-    }
-  }, []);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [r, m] = await Promise.all([
-        api.get<RbacRoleRow[]>(endpoints.rbacRoles),
-        api.get<RbacMatrixResponse>(endpoints.rbacMatrix),
-      ]);
-      setRoles(r);
-      setCatalog(m.catalog);
-      await loadGuests();
-    } catch (e) {
-      toast.fromError(e, "Failed to load access control data");
-    } finally {
-      setLoading(false);
-    }
-  }, [loadGuests]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const refreshGuestsOnly = useCallback(async () => {
-    setRefreshingGuests(true);
-    try {
-      await loadGuests();
-    } finally {
-      setRefreshingGuests(false);
-    }
-  }, [loadGuests]);
+  const {
+    data: roles = [],
+    isLoading: loadingRoles,
+  } = useGetRbacRolesQuery();
+  const {
+    data: matrix,
+    isLoading: loadingMatrix,
+  } = useGetRbacMatrixQuery();
+  const {
+    data: guests = [],
+    isFetching: refreshingGuests,
+    refetch: refetchGuests,
+  } = useGetRbacGuestUsersQuery();
+  const [updateRolePermissions, { isLoading: saving }] =
+    useUpdateRbacRolePermissionsMutation();
+  const [createGuestMutation, { isLoading: creatingGuest }] =
+    useCreateRbacGuestUserMutation();
+  const [updateGuestMutation, { isLoading: savingGuest }] =
+    useUpdateRbacGuestUserMutation();
+  const [resetGuestPasswordMutation, { isLoading: resettingPw }] =
+    useResetRbacGuestUserPasswordMutation();
+  const [deleteGuestMutation] = useDeleteRbacGuestUserMutation();
+  const loading = loadingRoles || loadingMatrix;
+  const catalog: RbacMatrixResponse["catalog"] = matrix?.catalog ?? [];
 
   const byResource = useMemo(() => {
     const m = new Map<string, RbacMatrixResponse["catalog"]>();
@@ -117,20 +101,17 @@ function RolePermissionsPage() {
 
   const savePermissions = useCallback(async () => {
     if (!editingRole) return;
-    setSaving(true);
     try {
-      await api.put(endpoints.rbacRolePermissions(editingRole.id), {
+      await updateRolePermissions({
+        roleId: editingRole.id,
         permissionSlugs: [...draftSlugs].sort(),
-      });
+      }).unwrap();
       toast.success("Permissions updated");
       setModalOpen(false);
-      await load();
     } catch (e) {
       toast.fromError(e, "Failed to save permissions");
-    } finally {
-      setSaving(false);
     }
-  }, [editingRole, draftSlugs, load]);
+  }, [editingRole, draftSlugs, updateRolePermissions]);
 
   const createGuest = useCallback(async () => {
     const u = guestUsername.trim().toLowerCase();
@@ -138,7 +119,6 @@ function RolePermissionsPage() {
       toast.error("Username and name are required");
       return;
     }
-    setCreatingGuest(true);
     setCreatedGuestPw(null);
     try {
       const body: { username: string; name: string; password?: string } = {
@@ -146,24 +126,25 @@ function RolePermissionsPage() {
         name: guestName.trim(),
       };
       if (guestPassword.trim().length >= 8) body.password = guestPassword.trim();
-      const res = await api.post<{
+      const res = await createGuestMutation({
+        username: body.username,
+        name: body.name,
+        password: body.password,
+      }).unwrap() as {
         id: string;
         username: string;
         name: string;
         temporaryPassword: string;
-      }>(endpoints.rbacGuestUsers, body);
+      };
       setCreatedGuestPw(res.temporaryPassword);
       toast.success(`Guest user “${res.username}” created`);
       setGuestUsername("");
       setGuestName("");
       setGuestPassword("");
-      await loadGuests();
     } catch (e) {
       toast.fromError(e, "Could not create guest user");
-    } finally {
-      setCreatingGuest(false);
     }
-  }, [guestUsername, guestName, guestPassword, loadGuests]);
+  }, [guestUsername, guestName, guestPassword, createGuestMutation]);
 
   const openEditGuest = useCallback((row: GuestUserRow) => {
     setEditGuestRow(row);
@@ -173,21 +154,18 @@ function RolePermissionsPage() {
 
   const saveGuestEdit = useCallback(async () => {
     if (!editGuestRow || !editGuestName.trim()) return;
-    setSavingGuest(true);
     try {
-      await api.patch(endpoints.rbacGuestUserById(editGuestRow.id), {
+      await updateGuestMutation({
+        id: editGuestRow.id,
         name: editGuestName.trim(),
         isActive: editGuestActive,
-      });
+      }).unwrap();
       toast.success("Guest user updated");
       setEditGuestRow(null);
-      await loadGuests();
     } catch (e) {
       toast.fromError(e, "Failed to update guest");
-    } finally {
-      setSavingGuest(false);
     }
-  }, [editGuestRow, editGuestName, editGuestActive, loadGuests]);
+  }, [editGuestRow, editGuestName, editGuestActive, updateGuestMutation]);
 
   const openResetGuest = useCallback((row: GuestUserRow) => {
     setResetGuestRow(row);
@@ -200,23 +178,21 @@ function RolePermissionsPage() {
       toast.error("Password must be at least 8 characters");
       return;
     }
-    setResettingPw(true);
     setResetResultPw(null);
     try {
-      const res = await api.post<{ temporaryPassword: string }>(
-        endpoints.rbacGuestUserResetPassword(resetGuestRow.id),
-        { newPassword: resetNewPassword.trim() }
-      );
+      const res = await resetGuestPasswordMutation({
+        id: resetGuestRow.id,
+        newPassword: resetNewPassword.trim(),
+      }).unwrap();
       setResetResultPw(res.temporaryPassword);
       toast.success("Password updated");
       setResetNewPassword("");
-      await loadGuests();
     } catch (e) {
       toast.fromError(e, "Failed to reset password");
     } finally {
-      setResettingPw(false);
+      // handled by RTK Query isLoading
     }
-  }, [resetGuestRow, resetNewPassword, loadGuests]);
+  }, [resetGuestRow, resetNewPassword, resetGuestPasswordMutation]);
 
   const deleteGuest = useCallback(
     async (row: GuestUserRow) => {
@@ -228,14 +204,13 @@ function RolePermissionsPage() {
         return;
       }
       try {
-        await api.delete(endpoints.rbacGuestUserById(row.id));
+        await deleteGuestMutation(row.id).unwrap();
         toast.success("Guest user deleted");
-        await loadGuests();
       } catch (e) {
         toast.fromError(e, "Failed to delete guest");
       }
     },
-    [loadGuests]
+    [deleteGuestMutation]
   );
 
   const columns = useMemo(
@@ -362,7 +337,7 @@ function RolePermissionsPage() {
               variant="secondary"
               size="sm"
               loading={refreshingGuests}
-              onClick={() => void refreshGuestsOnly()}
+              onClick={() => void refetchGuests()}
             >
               <span className="inline-flex items-center gap-1.5">
                 <ArrowPathIcon className="h-4 w-4" aria-hidden />

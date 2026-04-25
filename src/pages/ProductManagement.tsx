@@ -367,6 +367,8 @@ function ProductManagementPage() {
               alt=""
               width={50}
               height={50}
+              loading="lazy"
+              decoding="async"
               className="h-12 w-12 rounded object-cover"
             />
           ) : (
@@ -378,7 +380,12 @@ function ProductManagementPage() {
         header: "Video",
         render: (row: Product) =>
           row.videoUrl ? (
-            <video width={100} controls className="max-h-24 rounded">
+            <video
+              width={100}
+              controls
+              preload="metadata"
+              className="max-h-24 rounded"
+            >
               <source src={row.videoUrl} />
             </video>
           ) : (

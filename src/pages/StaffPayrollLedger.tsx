@@ -14,8 +14,11 @@ import {
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectStaff, fetchStaff } from "../store/staffSlice";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
+import {
+  useCreateStaffSalaryPaymentMutation,
+  useGetStaffEarningsQuery,
+  useGetStaffSalaryPaymentsQuery,
+} from "../store/api/edenApi";
 import type { StaffEarnings, StaffSalaryPaymentRow } from "../types";
 import { toast } from "../lib/toast";
 import { formatCurrency, formatDateTime } from "../lib/orderUtils";
@@ -37,10 +40,6 @@ function StaffPayrollLedgerPage() {
   const canRecordPay = hasPermission(user, "staff.update");
   const staff = useAppSelector(selectStaff);
 
-  const [earningsRows, setEarningsRows] = useState<StaffEarnings[]>([]);
-  const [payments, setPayments] = useState<StaffSalaryPaymentRow[]>([]);
-  const [earningsLoading, setEarningsLoading] = useState(false);
-  const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [periodDates, setPeriodDates] = useState(() => presetToday());
   const dateFrom = periodDates.from;
   const dateTo = periodDates.to;
@@ -56,56 +55,27 @@ function StaffPayrollLedgerPage() {
     if (!periodComplete) setPayStatusFilter("");
   }, [periodComplete]);
 
-  const loadEarnings = useCallback(async () => {
-    setEarningsLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-      const qs = params.toString();
-      const path = qs ? `${endpoints.staffEarnings}?${qs}` : endpoints.staffEarnings;
-      const data = await api.get<StaffEarnings[]>(path);
-      setEarningsRows(data);
-    } catch (err) {
-      toast.fromError(err, "Failed to load earnings");
-      setEarningsRows([]);
-    } finally {
-      setEarningsLoading(false);
-    }
-  }, [dateFrom, dateTo]);
-
-  const loadPayments = useCallback(async () => {
-    setPaymentsLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-      if (staffFilterId) params.set("staffProfileId", staffFilterId);
-      const qs = params.toString();
-      const path = qs
-        ? `${endpoints.staffSalaryPayments}?${qs}`
-        : endpoints.staffSalaryPayments;
-      const data = await api.get<StaffSalaryPaymentRow[]>(path);
-      setPayments(data);
-    } catch (err) {
-      toast.fromError(err, "Failed to load payment history");
-      setPayments([]);
-    } finally {
-      setPaymentsLoading(false);
-    }
-  }, [dateFrom, dateTo, staffFilterId]);
+  const {
+    data: earningsRows = [],
+    isLoading: earningsLoading,
+    isFetching: earningsFetching,
+    refetch: refetchEarnings,
+  } = useGetStaffEarningsQuery({ dateFrom, dateTo });
+  const {
+    data: payments = [],
+    isLoading: paymentsLoading,
+    isFetching: paymentsFetching,
+    refetch: refetchPayments,
+  } = useGetStaffSalaryPaymentsQuery({
+    dateFrom,
+    dateTo,
+    staffProfileId: staffFilterId || undefined,
+  });
+  const [createPayment] = useCreateStaffSalaryPaymentMutation();
 
   useEffect(() => {
     void dispatch(fetchStaff());
   }, [dispatch]);
-
-  useEffect(() => {
-    void loadEarnings();
-  }, [loadEarnings]);
-
-  useEffect(() => {
-    void loadPayments();
-  }, [loadPayments]);
 
   const staffOptions = useMemo(
     () => [
@@ -154,29 +124,30 @@ function StaffPayrollLedgerPage() {
       }
       setPayingId(r.staffId);
       try {
-        await api.post(endpoints.staffSalaryPayments, {
+        await createPayment({
           staffProfileId: r.staffId,
           dateFrom,
           dateTo,
-        });
+        }).unwrap();
         toast.success(`Recorded pay for ${r.staffName}`);
-        await loadEarnings();
-        await loadPayments();
+        await refetchEarnings();
+        await refetchPayments();
       } catch (err) {
         toast.fromError(err, "Could not record payment");
       } finally {
         setPayingId(null);
       }
     },
-    [dateFrom, dateTo, loadEarnings, loadPayments, periodComplete],
+    [dateFrom, dateTo, createPayment, periodComplete, refetchEarnings, refetchPayments],
   );
 
   const refreshAll = useCallback(() => {
-    void loadEarnings();
-    void loadPayments();
-  }, [loadEarnings, loadPayments]);
+    void refetchEarnings();
+    void refetchPayments();
+  }, [refetchEarnings, refetchPayments]);
 
-  const busy = earningsLoading || paymentsLoading;
+  const busy =
+    earningsLoading || paymentsLoading || earningsFetching || paymentsFetching;
 
   return (
     <div className="space-y-4">

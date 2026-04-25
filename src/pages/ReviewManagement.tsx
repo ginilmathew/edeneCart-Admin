@@ -1,52 +1,24 @@
-import { memo, useCallback, useEffect, useState, useMemo } from "react";
+import { memo, useState, useMemo, useDeferredValue } from "react";
 import { Card, CardHeader, Table, Badge, Button, Input, Modal } from "../components/ui";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
+import {
+  useDeleteAdminReviewMutation,
+  useGetAdminReviewsQuery,
+} from "../store/api/edenApi";
 import { toast } from "../lib/toast";
 import { ArrowPathIcon, MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
-
-interface ReviewRow {
-  id: string;
-  productId: string;
-  customerId: string;
-  orderId: string | null;
-  rating: number;
-  comment: string | null;
-  createdAt: string;
-  product?: {
-    name: string;
-  };
-  customer?: {
-    customerName: string;
-    email: string;
-  };
-  order?: {
-    orderId: string;
-  };
-}
+import type { AdminReviewRow } from "../types";
 
 function ReviewManagementPage() {
-  const [rows, setRows] = useState<ReviewRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.get<ReviewRow[]>(endpoints.adminReviews);
-      setRows(data);
-    } catch (e) {
-      toast.fromError(e, "Failed to load reviews");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAdminReviewsQuery();
+  const [deleteAdminReview] = useDeleteAdminReviewMutation();
 
   const handleDeleteClick = (id: string) => {
     setSelectedReviewId(id);
@@ -56,9 +28,8 @@ function ReviewManagementPage() {
   const confirmDelete = async () => {
     if (!selectedReviewId) return;
     try {
-      await api.delete(endpoints.adminReviewById(selectedReviewId));
+      await deleteAdminReview(selectedReviewId).unwrap();
       toast.success("Review deleted successfully");
-      setRows((prev) => prev.filter((r) => r.id !== selectedReviewId));
     } catch (e) {
       toast.fromError(e, "Failed to delete review");
     } finally {
@@ -67,8 +38,10 @@ function ReviewManagementPage() {
     }
   };
 
+  const deferredQuery = useDeferredValue(searchQuery);
+
   const filteredRows = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = deferredQuery.toLowerCase().trim();
     if (!q) return rows;
     return rows.filter(r => 
       r.comment?.toLowerCase().includes(q) || 
@@ -77,18 +50,18 @@ function ReviewManagementPage() {
       r.order?.orderId.toLowerCase().includes(q) ||
       r.orderId?.toLowerCase().includes(q)
     );
-  }, [rows, searchQuery]);
+  }, [rows, deferredQuery]);
 
   const columns = [
     { 
       key: "product", 
       header: "Product",
-      render: (row: ReviewRow) => row.product?.name || row.productId
+      render: (row: AdminReviewRow) => row.product?.name || row.productId
     },
     { 
       key: "customer", 
       header: "Customer",
-      render: (row: ReviewRow) => (
+      render: (row: AdminReviewRow) => (
         <div>
           <div className="font-medium">{row.customer?.customerName || "Unknown"}</div>
           <div className="text-xs text-muted-foreground">{row.customer?.email}</div>
@@ -98,7 +71,7 @@ function ReviewManagementPage() {
     {
       key: "rating",
       header: "Rating",
-      render: (row: ReviewRow) => (
+      render: (row: AdminReviewRow) => (
         <Badge variant={row.rating >= 4 ? "success" : row.rating <= 2 ? "error" : "warning"}>
           {row.rating} / 5
         </Badge>
@@ -107,7 +80,7 @@ function ReviewManagementPage() {
     {
       key: "comment",
       header: "Comment",
-      render: (row: ReviewRow) => (
+      render: (row: AdminReviewRow) => (
         <div className="max-w-xs truncate" title={row.comment || ""}>
           {row.comment || <span className="text-muted-foreground italic">No comment</span>}
         </div>
@@ -116,7 +89,7 @@ function ReviewManagementPage() {
     {
       key: "orderId",
       header: "Order ID",
-      render: (row: ReviewRow) => {
+      render: (row: AdminReviewRow) => {
         const displayId = row.order?.orderId || row.orderId;
         return <span className="font-mono text-xs">{displayId ? (displayId.includes('-') ? displayId.toUpperCase() : displayId) : <span className="italic text-muted-foreground">N/A</span>}</span>;
       }
@@ -124,12 +97,12 @@ function ReviewManagementPage() {
     {
       key: "createdAt",
       header: "Date",
-      render: (row: ReviewRow) => new Date(row.createdAt).toLocaleDateString()
+      render: (row: AdminReviewRow) => new Date(row.createdAt).toLocaleDateString()
     },
     {
       key: "actions",
       header: "",
-      render: (row: ReviewRow) => (
+      render: (row: AdminReviewRow) => (
         <div className="flex justify-end">
           <button
             type="button"
@@ -159,8 +132,8 @@ function ReviewManagementPage() {
               type="button"
               variant="secondary"
               size="sm"
-              disabled={loading}
-              onClick={() => void load()}
+              disabled={isFetching}
+              onClick={() => void refetch()}
             >
               <ArrowPathIcon className="h-4 w-4 mr-2" aria-hidden />
               Refresh
@@ -182,7 +155,7 @@ function ReviewManagementPage() {
             columns={columns}
             data={filteredRows}
             keyExtractor={(row) => row.id}
-            emptyMessage={loading ? "Loading..." : "No reviews found."}
+            emptyMessage={isLoading ? "Loading..." : "No reviews found."}
           />
         </div>
       </Card>

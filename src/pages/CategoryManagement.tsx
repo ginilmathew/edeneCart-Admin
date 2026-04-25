@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo, useEffect } from "react";
+import { memo, useState, useCallback, useMemo, useEffect, useDeferredValue } from "react";
 import { PencilIcon, TrashIcon, XMarkIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -36,15 +36,18 @@ function CategoryManagementPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingCategory, setViewingCategory] = useState<Category | null>(null);
 
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
   const filteredCategories = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
     if (!q) return categories;
     return categories.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        (c.description || "").toLowerCase().includes(q)
+        c.description?.toLowerCase().includes(q) ||
+        c.slug?.toLowerCase().includes(q)
     );
-  }, [categories, searchQuery]);
+  }, [categories, deferredSearchQuery]);
 
   useEffect(() => {
     if (!imageFile) {

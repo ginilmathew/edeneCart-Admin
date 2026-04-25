@@ -15,6 +15,7 @@ export type OrderStatus =
 export interface Category {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   imageUrl?: string | null;
 }
@@ -471,6 +472,26 @@ export interface BlogAdminDetail {
   authorName: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdminReviewRow {
+  id: string;
+  productId: string;
+  customerId: string;
+  orderId: string | null;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  product?: {
+    name: string;
+  };
+  customer?: {
+    customerName: string;
+    email: string;
+  };
+  order?: {
+    orderId: string;
+  };
 }
 
 export interface BlogFeedItem {

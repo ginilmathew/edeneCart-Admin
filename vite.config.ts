@@ -8,6 +8,27 @@ export default defineConfig({
   build: {
     // ProfitAnalytics (Chart.js) may approach this; route + scanner code-splitting keeps most chunks small.
     chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Keep heavy optional features out of the primary startup chunk.
+        manualChunks(id) {
+          if (id.includes("node_modules/chart.js") || id.includes("node_modules/react-chartjs-2")) {
+            return "admin-charts";
+          }
+          if (id.includes("node_modules/quill")) {
+            return "admin-editor";
+          }
+          if (
+            id.includes("node_modules/html5-qrcode") ||
+            id.includes("node_modules/@zxing/browser") ||
+            id.includes("node_modules/@zxing/library")
+          ) {
+            return "admin-scanners";
+          }
+          return undefined;
+        },
+      },
+    },
   },
   server: {
     proxy: {

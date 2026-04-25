@@ -1,14 +1,26 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  memo,
+  lazy,
+  Suspense,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+import {
+  useCreateBlogAdminPostMutation,
+  useDeleteBlogAdminPostMutation,
+  useGetBlogAdminPostsQuery,
+  useGetStaffPositionsQuery,
+  useGetStaffQuery,
+  useLazyGetBlogAdminPostByIdQuery,
+  useUpdateBlogAdminPostMutation,
+} from "../store/api/edenApi";
 import {
   ChatBubbleLeftIcon,
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { BlogQuillEditor } from "../components/blog/BlogQuillEditor";
-import { BlogCommentsPanel } from "../components/blog/BlogCommentsPanel";
 import { useAuth } from "../context/AuthContext";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
 import {
   Card,
   CardHeader,
@@ -20,15 +32,21 @@ import {
 } from "../components/ui";
 import { toast } from "../lib/toast";
 import { hasEveryPermission } from "../lib/permissions";
-import type {
-  BlogAdminDetail,
-  BlogAdminListRow,
-  BlogAudience,
-  Staff,
-  StaffPosition,
-} from "../types";
+import type { BlogAdminListRow, BlogAudience, Staff } from "../types";
 
 type AudienceMode = "all" | "staff" | "positions";
+
+const BlogQuillEditor = lazy(() =>
+  import("../components/blog/BlogQuillEditor").then((m) => ({
+    default: m.BlogQuillEditor,
+  })),
+);
+
+const BlogCommentsPanel = lazy(() =>
+  import("../components/blog/BlogCommentsPanel").then((m) => ({
+    default: m.BlogCommentsPanel,
+  })),
+);
 
 function audienceToMode(a: BlogAudience): AudienceMode {
   return a.kind;
@@ -51,8 +69,6 @@ function AdminBlogManagementPage() {
   const canUpdate = hasEveryPermission(user, ["blogs.update"]);
   const canDelete = hasEveryPermission(user, ["blogs.delete"]);
 
-  const [rows, setRows] = useState<BlogAdminListRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -61,46 +77,34 @@ function AdminBlogManagementPage() {
   const [audienceMode, setAudienceMode] = useState<AudienceMode>("all");
   const [pickedStaff, setPickedStaff] = useState<string[]>([]);
   const [pickedPositions, setPickedPositions] = useState<string[]>([]);
-  const [staffList, setStaffList] = useState<Staff[]>([]);
-  const [positions, setPositions] = useState<StaffPosition[]>([]);
-  const [saving, setSaving] = useState(false);
   const [commentsModal, setCommentsModal] = useState<{
     postId: string;
     title: string;
   } | null>(null);
-
-  const loadList = useCallback(async () => {
-    if (!canView) return;
-    setLoading(true);
-    try {
-      const data = await api.get<BlogAdminListRow[]>(endpoints.blogAdmin);
-      setRows(data);
-    } catch (e) {
-      toast.fromError(e, "Failed to load posts");
-    } finally {
-      setLoading(false);
-    }
-  }, [canView]);
-
-  useEffect(() => {
-    void loadList();
-  }, [loadList]);
-
-  const loadMeta = useCallback(async () => {
-    try {
-      const [s, p] = await Promise.all([
-        api.get<Staff[]>(endpoints.staff),
-        api.get<StaffPosition[]>(endpoints.staffPositions),
-      ]);
-      setStaffList(s.filter((x) => x.isActive));
-      setPositions(p);
-    } catch {
-      toast.error("Could not load staff or roles for audience picker");
-    }
-  }, []);
+  const {
+    data: rows = [],
+    isLoading,
+    refetch,
+  } = useGetBlogAdminPostsQuery(undefined, { skip: !canView });
+  const [fetchBlogDetail] = useLazyGetBlogAdminPostByIdQuery();
+  const [createBlogPost, { isLoading: creatingPost }] =
+    useCreateBlogAdminPostMutation();
+  const [updateBlogPost, { isLoading: updatingPost }] =
+    useUpdateBlogAdminPostMutation();
+  const [deleteBlogPost] = useDeleteBlogAdminPostMutation();
+  const { data: staffRows = [] } = useGetStaffQuery(undefined, {
+    skip: !canView || !modalOpen,
+  });
+  const { data: positions = [] } = useGetStaffPositionsQuery(undefined, {
+    skip: !canView || !modalOpen,
+  });
+  const staffList = useMemo(
+    () => (staffRows as Staff[]).filter((x) => x.isActive),
+    [staffRows],
+  );
+  const saving = creatingPost || updatingPost;
 
   const openCreate = useCallback(() => {
-    void loadMeta();
     setEditingId(null);
     setTitle("");
     setBodyHtml("");
@@ -109,13 +113,12 @@ function AdminBlogManagementPage() {
     setPickedStaff([]);
     setPickedPositions([]);
     setModalOpen(true);
-  }, [loadMeta]);
+  }, []);
 
   const openEdit = useCallback(
     async (id: string) => {
-      void loadMeta();
       try {
-        const d = await api.get<BlogAdminDetail>(endpoints.blogAdminById(id));
+        const d = await fetchBlogDetail(id).unwrap();
         setEditingId(id);
         setTitle(d.title);
         setBodyHtml(d.bodyHtml);
@@ -135,7 +138,7 @@ function AdminBlogManagementPage() {
         toast.fromError(e, "Failed to load post");
       }
     },
-    [loadMeta],
+    [fetchBlogDetail],
   );
 
   const save = useCallback(async () => {
@@ -148,47 +151,30 @@ function AdminBlogManagementPage() {
       pickedStaff,
       pickedPositions,
     );
-    setSaving(true);
     try {
       if (editingId) {
-        await api.patch(endpoints.blogAdminById(editingId), {
-          title: title.trim(),
-          bodyHtml,
-          published,
-          audience: {
-            kind: audience.kind,
-            ...(audience.kind === "staff"
-              ? { staffIds: audience.staffIds }
-              : {}),
-            ...(audience.kind === "positions"
-              ? { positionIds: audience.positionIds }
-              : {}),
+        await updateBlogPost({
+          id: editingId,
+          patch: {
+            title: title.trim(),
+            bodyHtml,
+            published,
+            audience,
           },
-        });
+        }).unwrap();
         toast.success("Post updated");
       } else {
-        await api.post(endpoints.blogAdmin, {
+        await createBlogPost({
           title: title.trim(),
           bodyHtml,
           published,
-          audience: {
-            kind: audience.kind,
-            ...(audience.kind === "staff"
-              ? { staffIds: audience.staffIds }
-              : {}),
-            ...(audience.kind === "positions"
-              ? { positionIds: audience.positionIds }
-              : {}),
-          },
-        });
+          audience,
+        }).unwrap();
         toast.success("Post created");
       }
       setModalOpen(false);
-      void loadList();
     } catch (e) {
       toast.fromError(e, "Save failed");
-    } finally {
-      setSaving(false);
     }
   }, [
     title,
@@ -198,30 +184,26 @@ function AdminBlogManagementPage() {
     pickedStaff,
     pickedPositions,
     editingId,
-    loadList,
+    createBlogPost,
+    updateBlogPost,
   ]);
 
   const remove = useCallback(
     async (id: string) => {
       if (!window.confirm("Delete this post and all comments/likes?")) return;
       try {
-        await api.delete(endpoints.blogAdminById(id));
+        await deleteBlogPost(id).unwrap();
         toast.success("Deleted");
-        void loadList();
       } catch (e) {
         toast.fromError(e, "Delete failed");
       }
     },
-    [loadList],
+    [deleteBlogPost],
   );
 
-  const bumpRowCommentCount = useCallback((postId: string) => {
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === postId ? { ...r, commentCount: r.commentCount + 1 } : r,
-      ),
-    );
-  }, []);
+  const bumpRowCommentCount = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   const audienceLabel = useCallback((a: BlogAudience) => {
     if (a.kind === "all") return "All staff";
@@ -331,7 +313,7 @@ function AdminBlogManagementPage() {
             ) : undefined
           }
         />
-        {loading ? (
+        {isLoading ? (
           <p className="px-4 py-8 text-sm text-text-muted md:px-6">Loading…</p>
         ) : (
           <Table
@@ -360,11 +342,19 @@ function AdminBlogManagementPage() {
               Content
             </label>
             <div className="rounded-lg border border-border bg-surface [&_.ql-container]:min-h-[200px] [&_.ql-editor]:min-h-[200px]">
-              <BlogQuillEditor
-                key={editingId ?? "new"}
-                value={bodyHtml}
-                onChange={setBodyHtml}
-              />
+              <Suspense
+                fallback={
+                  <div className="p-3 text-sm text-text-muted">
+                    Loading editor…
+                  </div>
+                }
+              >
+                <BlogQuillEditor
+                  key={editingId ?? "new"}
+                  value={bodyHtml}
+                  onChange={setBodyHtml}
+                />
+              </Suspense>
             </div>
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -464,13 +454,21 @@ function AdminBlogManagementPage() {
                 Read what staff wrote and reply as admin. Staff see your replies
                 on the post.
               </p>
-              <BlogCommentsPanel
-                key={editingId}
-                postId={editingId}
-                variant="admin"
-                canReply={canUpdate}
-                onPosted={() => bumpRowCommentCount(editingId)}
-              />
+              <Suspense
+                fallback={
+                  <div className="p-2 text-sm text-text-muted">
+                    Loading comments…
+                  </div>
+                }
+              >
+                <BlogCommentsPanel
+                  key={editingId}
+                  postId={editingId}
+                  variant="admin"
+                  canReply={canUpdate}
+                  onPosted={() => bumpRowCommentCount()}
+                />
+              </Suspense>
             </div>
           ) : null}
           <div className="flex justify-end gap-2 pt-2">
@@ -503,13 +501,21 @@ function AdminBlogManagementPage() {
         size="lg"
       >
         {commentsModal ? (
-          <BlogCommentsPanel
-            key={commentsModal.postId}
-            postId={commentsModal.postId}
-            variant="admin"
-            canReply={canUpdate}
-            onPosted={() => bumpRowCommentCount(commentsModal.postId)}
-          />
+          <Suspense
+            fallback={
+              <div className="p-2 text-sm text-text-muted">
+                Loading comments…
+              </div>
+            }
+          >
+            <BlogCommentsPanel
+              key={commentsModal.postId}
+              postId={commentsModal.postId}
+              variant="admin"
+              canReply={canUpdate}
+              onPosted={() => bumpRowCommentCount()}
+            />
+          </Suspense>
         ) : null}
       </Modal>
     </div>

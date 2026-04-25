@@ -2,8 +2,7 @@ import { memo, useCallback, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
-import { api } from "../api/client";
-import { endpoints } from "../api/endpoints";
+import { useChangePasswordMutation } from "../store/api/edenApi";
 import { Card, CardHeader, Button, Input } from "../components/ui";
 import { getErrorMessage, toast } from "../lib/toast";
 
@@ -17,7 +16,7 @@ function ChangePasswordPage() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [changePassword, { isLoading: submitting }] = useChangePasswordMutation();
 
   const afterSuccess = useCallback(async () => {
     await refreshUser();
@@ -39,20 +38,17 @@ function ChangePasswordPage() {
         setError("New password and confirmation do not match");
         return;
       }
-      setSubmitting(true);
       try {
-        await api.post(endpoints.authChangePassword, {
+        await changePassword({
           currentPassword,
           newPassword,
-        });
+        }).unwrap();
         await afterSuccess();
       } catch (err) {
         setError(getErrorMessage(err, "Failed to update password"));
-      } finally {
-        setSubmitting(false);
       }
     },
-    [currentPassword, newPassword, confirm, afterSuccess]
+    [currentPassword, newPassword, confirm, afterSuccess, changePassword]
   );
 
   if (!isAuthenticated || !user) {

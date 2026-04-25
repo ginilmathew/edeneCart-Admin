@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useDeferredValue } from "react";
 import { Link, useSearchParams } from "react-router";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
@@ -60,6 +60,8 @@ function OrdersListPage() {
 
   const staffId = user?.role === "staff" ? user.staffId : null;
 
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
   const groupedOrders = useMemo(() => {
     const lines = filterOrderLinesForList(orders, {
       staffId,
@@ -72,7 +74,7 @@ function OrdersListPage() {
 
     let rows = buildGroupedOrderRows(lines, products);
 
-    const q = searchTerm.trim().toLowerCase();
+    const q = deferredSearchTerm.trim().toLowerCase();
     if (q) {
       const qNoSpace = q.replace(/\s+/g, "");
       rows = rows.filter((row) => {
@@ -94,7 +96,7 @@ function OrdersListPage() {
     }
 
     return rows;
-  }, [orders, staffId, productFilter, typeFilter, statusFilter, fromDate, toDate, products, searchTerm]);
+  }, [orders, staffId, productFilter, typeFilter, statusFilter, fromDate, toDate, products, deferredSearchTerm]);
 
   const productOptions: SelectOption[] = useMemo(
     () => [

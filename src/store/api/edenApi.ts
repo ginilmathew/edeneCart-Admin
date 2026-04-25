@@ -2,20 +2,29 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { endpoints } from "../../api/endpoints";
 import { normalizeStaff } from "../../lib/staffNormalize";
 import type {
+  AdminReviewRow,
   AppSettings,
   AssignedNumber,
   Banner,
+  BlogAdminDetail,
+  BlogAdminListRow,
+  BlogAudience,
   Category,
   CreateOrderPayload,
   Customer,
   DeliveryMethod,
+  GuestUserRow,
   Order,
   PdfSize,
   Product,
   ProductDeliveryFee,
   ProductOffer,
+  RbacMatrixResponse,
+  RbacRoleRow,
   Sender,
   Staff,
+  StaffEarnings,
+  StaffSalaryPaymentRow,
   StaffPosition,
   Subcategory,
 } from "../../types";
@@ -127,6 +136,11 @@ export const edenApi = createApi({
     "Banner",
     "Subcategory",
     "Offer",
+    "Review",
+    "Blog",
+    "RBAC",
+    "GuestUser",
+    "Salary",
   ],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -864,6 +878,214 @@ export const edenApi = createApi({
         { type: "Offer", id: "LIST" },
       ],
     }),
+    getAdminReviews: builder.query<AdminReviewRow[], void>({
+      query: () => endpoints.adminReviews,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Review", id: "LIST" },
+              ...r.map((row) => ({ type: "Review" as const, id: row.id })),
+            ]
+          : [{ type: "Review", id: "LIST" }],
+    }),
+    deleteAdminReview: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.adminReviewById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Review", id: "LIST" },
+        { type: "Review", id },
+      ],
+    }),
+    getBlogAdminPosts: builder.query<BlogAdminListRow[], void>({
+      query: () => endpoints.blogAdmin,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Blog", id: "LIST" },
+              ...r.map((row) => ({ type: "Blog" as const, id: row.id })),
+            ]
+          : [{ type: "Blog", id: "LIST" }],
+    }),
+    getBlogAdminPostById: builder.query<BlogAdminDetail, string>({
+      query: (id) => endpoints.blogAdminById(id),
+      providesTags: (_r, _e, id) => [{ type: "Blog", id }],
+    }),
+    createBlogAdminPost: builder.mutation<
+      BlogAdminDetail,
+      {
+        title: string;
+        bodyHtml: string;
+        published: boolean;
+        audience: BlogAudience;
+      }
+    >({
+      query: (body) => ({
+        url: endpoints.blogAdmin,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Blog", id: "LIST" }],
+    }),
+    updateBlogAdminPost: builder.mutation<
+      BlogAdminDetail,
+      {
+        id: string;
+        patch: {
+          title: string;
+          bodyHtml: string;
+          published: boolean;
+          audience: BlogAudience;
+        };
+      }
+    >({
+      query: ({ id, patch }) => ({
+        url: endpoints.blogAdminById(id),
+        method: "PATCH",
+        body: patch,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Blog", id: "LIST" },
+        { type: "Blog", id },
+      ],
+    }),
+    deleteBlogAdminPost: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.blogAdminById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Blog", id: "LIST" },
+        { type: "Blog", id },
+      ],
+    }),
+    changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
+      query: (body) => ({
+        url: endpoints.authChangePassword,
+        method: "POST",
+        body,
+      }),
+    }),
+    getStaffEarnings: builder.query<
+      StaffEarnings[],
+      { dateFrom?: string; dateTo?: string } | void
+    >({
+      query: (arg) => {
+        const params = new URLSearchParams();
+        if (arg?.dateFrom) params.set("dateFrom", arg.dateFrom);
+        if (arg?.dateTo) params.set("dateTo", arg.dateTo);
+        const qs = params.toString();
+        return qs ? `${endpoints.staffEarnings}?${qs}` : endpoints.staffEarnings;
+      },
+      providesTags: [{ type: "Salary", id: "EARNINGS" }],
+    }),
+    getStaffSalaryPayments: builder.query<
+      StaffSalaryPaymentRow[],
+      { dateFrom?: string; dateTo?: string; staffProfileId?: string } | void
+    >({
+      query: (arg) => {
+        const params = new URLSearchParams();
+        if (arg?.dateFrom) params.set("dateFrom", arg.dateFrom);
+        if (arg?.dateTo) params.set("dateTo", arg.dateTo);
+        if (arg?.staffProfileId) params.set("staffProfileId", arg.staffProfileId);
+        const qs = params.toString();
+        return qs ? `${endpoints.staffSalaryPayments}?${qs}` : endpoints.staffSalaryPayments;
+      },
+      providesTags: [{ type: "Salary", id: "PAYMENTS" }],
+    }),
+    createStaffSalaryPayment: builder.mutation<
+      void,
+      { staffProfileId: string; dateFrom: string; dateTo: string }
+    >({
+      query: (body) => ({
+        url: endpoints.staffSalaryPayments,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [
+        { type: "Salary", id: "EARNINGS" },
+        { type: "Salary", id: "PAYMENTS" },
+      ],
+    }),
+    getRbacRoles: builder.query<RbacRoleRow[], void>({
+      query: () => endpoints.rbacRoles,
+      providesTags: [{ type: "RBAC", id: "ROLES" }],
+    }),
+    getRbacMatrix: builder.query<RbacMatrixResponse, void>({
+      query: () => endpoints.rbacMatrix,
+      providesTags: [{ type: "RBAC", id: "MATRIX" }],
+    }),
+    updateRbacRolePermissions: builder.mutation<
+      void,
+      { roleId: string; permissionSlugs: string[] }
+    >({
+      query: ({ roleId, permissionSlugs }) => ({
+        url: endpoints.rbacRolePermissions(roleId),
+        method: "PUT",
+        body: { permissionSlugs },
+      }),
+      invalidatesTags: [{ type: "RBAC", id: "ROLES" }],
+    }),
+    getRbacGuestUsers: builder.query<GuestUserRow[], void>({
+      query: () => endpoints.rbacGuestUsers,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "GuestUser", id: "LIST" },
+              ...r.map((u) => ({ type: "GuestUser" as const, id: u.id })),
+            ]
+          : [{ type: "GuestUser", id: "LIST" }],
+    }),
+    createRbacGuestUser: builder.mutation<
+      { id: string; username: string; name: string; temporaryPassword: string },
+      { username: string; name: string; password?: string }
+    >({
+      query: (body) => ({
+        url: endpoints.rbacGuestUsers,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "GuestUser", id: "LIST" }],
+    }),
+    updateRbacGuestUser: builder.mutation<
+      void,
+      { id: string; name: string; isActive: boolean }
+    >({
+      query: ({ id, ...body }) => ({
+        url: endpoints.rbacGuestUserById(id),
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "GuestUser", id: "LIST" },
+        { type: "GuestUser", id },
+      ],
+    }),
+    resetRbacGuestUserPassword: builder.mutation<
+      { temporaryPassword: string },
+      { id: string; newPassword: string }
+    >({
+      query: ({ id, newPassword }) => ({
+        url: endpoints.rbacGuestUserResetPassword(id),
+        method: "POST",
+        body: { newPassword },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "GuestUser", id: "LIST" },
+        { type: "GuestUser", id },
+      ],
+    }),
+    deleteRbacGuestUser: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.rbacGuestUserById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "GuestUser", id: "LIST" },
+        { type: "GuestUser", id },
+      ],
+    }),
     createProductDeliveryFee: builder.mutation<
       ProductDeliveryFee,
       {
@@ -1040,6 +1262,25 @@ export const {
   useCreateProductOfferMutation,
   useUpdateProductOfferMutation,
   useDeleteProductOfferMutation,
+  useGetAdminReviewsQuery,
+  useDeleteAdminReviewMutation,
+  useGetBlogAdminPostsQuery,
+  useLazyGetBlogAdminPostByIdQuery,
+  useCreateBlogAdminPostMutation,
+  useUpdateBlogAdminPostMutation,
+  useDeleteBlogAdminPostMutation,
+  useChangePasswordMutation,
+  useGetStaffEarningsQuery,
+  useGetStaffSalaryPaymentsQuery,
+  useCreateStaffSalaryPaymentMutation,
+  useGetRbacRolesQuery,
+  useGetRbacMatrixQuery,
+  useUpdateRbacRolePermissionsMutation,
+  useGetRbacGuestUsersQuery,
+  useCreateRbacGuestUserMutation,
+  useUpdateRbacGuestUserMutation,
+  useResetRbacGuestUserPasswordMutation,
+  useDeleteRbacGuestUserMutation,
   useIndiaPostLoginTestMutation,
   useIndiaPostBulkTrackingMutation,
 } = edenApi;
