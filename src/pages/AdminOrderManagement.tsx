@@ -21,6 +21,7 @@ import {
   selectDeliveryMethods,
 } from "../store/deliveriesSlice";
 import { fetchSettings, selectSettings } from "../store/settingsSlice";
+import { fetchSenders, selectSenders } from "../store/sendersSlice";
 import { Card, CardHeader, Table } from "../components/ui";
 import { toast } from "../lib/toast";
 import { downloadBulkOrdersPdf, downloadOrderPdf } from "../lib/download-order-pdf";
@@ -58,6 +59,7 @@ function AdminOrderManagementPage() {
   const products = useAppSelector(selectProducts);
   const deliveryMethods = useAppSelector(selectDeliveryMethods);
   const settings = useAppSelector(selectSettings);
+  const senders = useAppSelector(selectSenders);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState("");
   const [staffFilter, setStaffFilter] = useState("");
@@ -306,6 +308,10 @@ function AdminOrderManagementPage() {
 
   useEffect(() => {
     void dispatch(fetchDeliveryMethods());
+  }, [dispatch]);
+
+  useEffect(() => {
+    void dispatch(fetchSenders());
   }, [dispatch]);
 
   useEffect(() => {
@@ -910,6 +916,7 @@ function AdminOrderManagementPage() {
         <AdminOrderBulkBar
           filteredOrders={filteredOrders}
           selectedIds={selectedIds}
+          defaultSender={senders.find(s => s.id === settings?.defaultSenderId)}
           selectedCount={selectedVisibleCount}
           bulkAdvanceAction={bulkAdvanceAction}
           bulkStatusLoading={bulkStatusLoading}

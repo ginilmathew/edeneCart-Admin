@@ -25,6 +25,7 @@ export type AdminOrderBulkBarProps = {
   onClearSelection: () => void;
   filteredOrders?: any[];
   selectedIds?: Set<string>;
+  defaultSender?: any;
 };
 
 function AdminOrderBulkBarComponent({
@@ -37,6 +38,7 @@ function AdminOrderBulkBarComponent({
   onClearSelection,
   filteredOrders,
   selectedIds,
+  defaultSender,
 }: AdminOrderBulkBarProps) {
   if (selectedCount <= 0) return null;
 
@@ -101,15 +103,15 @@ function AdminOrderBulkBarComponent({
         "",                  // DELIVERY INSTRUCTION
         "",                  // DELIVERY SLOT
         "",                  // INSTRUCTION RTS
-        "",                  // SENDER NAME
-        "",                  // SENDER COMPANY NAME
-        "",                  // SENDER CITY
-        "",                  // SENDER STATE/UT
-        "",                  // SENDER PINCODE
-        "",                  // SENDER EMAILID
-        "",                  // SENDER ALT CONTACT
-        "",                  // SENDER KYC
-        "",                  // SENDER TAX
+        defaultSender?.name || "",                  // SENDER NAME
+        defaultSender?.name || "",                  // SENDER COMPANY NAME
+        defaultSender?.district || defaultSender?.cityState || "", // SENDER CITY
+        defaultSender?.state || "",                 // SENDER STATE/UT
+        defaultSender?.pincode || "",               // SENDER PINCODE
+        defaultSender?.email || "",                 // SENDER EMAILID
+        defaultSender?.phone || "",                 // SENDER ALT CONTACT
+        "",                                         // SENDER KYC
+        "",                                         // SENDER TAX
         "",                  // RECEIVER COMPANY NAME
         receiverState,       // RECEIVER STATE/UT
         receiverEmail,       // RECEIVER EMAILID
@@ -118,9 +120,9 @@ function AdminOrderBulkBarComponent({
         "",                  // RECEIVER TAX REF
         "",                  // ALT ADDRESS FLAG
         "",                  // BULK REFERENCE
-        "",                  // SENDER ADD LINE 1
-        "",                  // SENDER ADD LINE 2
-        ""                   // SENDER ADD LINE 3
+        defaultSender?.streetLine1 || "",           // SENDER ADD LINE 1
+        defaultSender?.streetLine2 || "",           // SENDER ADD LINE 2
+        defaultSender?.area || ""                   // SENDER ADD LINE 3
       ];
     });
 
@@ -137,7 +139,7 @@ function AdminOrderBulkBarComponent({
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Orders exported successfully");
-  }, [filteredOrders, selectedIds]);
+  }, [filteredOrders, selectedIds, defaultSender]);
 
   const showExportButton = bulkAdvanceAction?.kind === "action" && bulkAdvanceAction?.current === "packed";
 
