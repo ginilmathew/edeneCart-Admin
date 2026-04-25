@@ -1,28 +1,65 @@
-import { memo, forwardRef, type SelectHTMLAttributes } from "react";
+import { memo, forwardRef, useState, useRef, useEffect, type SelectHTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
+import { ChevronDownIcon, CheckIcon } from "@heroicons/react/20/solid";
 
 export interface SelectOption {
   value: string;
   label: string;
 }
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   label?: string;
   options: SelectOption[];
   error?: string;
   placeholder?: string;
   fullWidth?: boolean;
+  value?: string | number;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { label, options, error, placeholder, fullWidth, className = "", id, ...rest },
+    { label, options, error, placeholder, fullWidth, className = "", id, value, onChange, ...rest },
     ref
   ) => {
     const selectId = id ?? `select-${Math.random().toString(36).slice(2, 9)}`;
     const shouldFullWidth = fullWidth ?? Boolean(label);
+    
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Close on click outside
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+          setIsOpen(false);
+        }
+      };
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isOpen]);
+
+    const selectedOption = options.find((opt) => opt.value === String(value));
+    const displayLabel = selectedOption ? selectedOption.label : (placeholder || "Select...");
+
+    const handleSelect = (optionValue: string) => {
+      if (onChange) {
+        // Mock the event object structure to support (e) => setVal(e.target.value)
+        const mockEvent = {
+          target: { value: optionValue, name: rest.name },
+          currentTarget: { value: optionValue, name: rest.name }
+        } as unknown as React.ChangeEvent<HTMLSelectElement>;
+        onChange(mockEvent);
+      }
+      setIsOpen(false);
+    };
+
     return (
-      <div className={shouldFullWidth ? "w-full" : "w-auto"}>
+      <div className={shouldFullWidth ? "w-full" : "w-auto"} ref={containerRef}>
         {label && (
           <label
             htmlFor={selectId}
@@ -31,29 +68,85 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
             {label}
           </label>
         )}
+        
+        {/* Hidden native select for form submissions and refs */}
         <select
           ref={ref}
           id={selectId}
-          className={cn(
-            shouldFullWidth ? "h-11 w-full" : "h-11 w-auto min-w-[8rem] md:min-w-[9rem]",
-            "rounded-[var(--radius-md)] border border-border bg-surface-elevated/85 px-3 text-sm text-text shadow-sm transition-all focus:outline-none",
-            error
-              ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)]"
-              : "border-border focus:border-primary focus:shadow-[var(--shadow-focus)]",
-            className,
-          )}
-          aria-invalid={!!error}
+          value={value}
+          onChange={onChange}
+          className="hidden"
+          aria-hidden="true"
+          tabIndex={-1}
           {...rest}
         >
-          {placeholder && (
-            <option value="">{placeholder}</option>
-          )}
+          {placeholder && <option value="">{placeholder}</option>}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
           ))}
         </select>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className={cn(
+              shouldFullWidth ? "h-11 w-full" : "h-11 w-auto min-w-[8rem] md:min-w-[9rem]",
+              "flex items-center justify-between gap-2 rounded-[var(--radius-md)] border bg-surface-elevated/85 px-3 text-sm shadow-sm transition-all focus:outline-none",
+              error
+                ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)] text-error"
+                : "border-border hover:bg-surface-soft focus:border-primary focus:shadow-[var(--shadow-focus)] text-text-heading",
+              isOpen && !error && "border-primary shadow-[var(--shadow-focus)]",
+              className
+            )}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+          >
+            <span className="truncate">{displayLabel}</span>
+            <ChevronDownIcon className={cn("h-4 w-4 text-text-muted shrink-0 transition-transform duration-200", isOpen && "rotate-180")} />
+          </button>
+
+          {isOpen && (
+            <div className="absolute z-[100] mt-1 max-h-60 w-full min-w-[12rem] overflow-auto rounded-[var(--radius-md)] border border-border bg-surface-elevated py-1 shadow-[var(--shadow-dropdown)] backdrop-blur-xl">
+              <ul role="listbox" className="flex flex-col">
+                {placeholder && (
+                  <li
+                    role="option"
+                    aria-selected={value === ""}
+                    onClick={() => handleSelect("")}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-alt",
+                      (value === "" || value === undefined) ? "bg-surface-alt font-medium text-primary" : "text-text"
+                    )}
+                  >
+                    <span className="truncate">{placeholder}</span>
+                    {(value === "" || value === undefined) && <CheckIcon className="h-4 w-4 text-primary shrink-0" />}
+                  </li>
+                )}
+                {options.map((opt) => {
+                  const isSelected = String(value) === String(opt.value);
+                  return (
+                    <li
+                      key={opt.value}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(opt.value)}
+                      className={cn(
+                        "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-alt",
+                        isSelected ? "bg-surface-alt font-medium text-primary" : "text-text"
+                      )}
+                    >
+                      <span className="truncate">{opt.label}</span>
+                      {isSelected && <CheckIcon className="h-4 w-4 text-primary shrink-0" />}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
         {error && (
           <p className="mt-1 text-xs text-error md:text-sm">{error}</p>
         )}
