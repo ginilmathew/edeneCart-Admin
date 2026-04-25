@@ -85,6 +85,7 @@ function AdminOrderManagementPage() {
     string | null
   >(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+
   const selectAllHeaderRef = useRef<HTMLInputElement>(null);
   const listLinesRef = useRef(listLines);
   listLinesRef.current = listLines;
@@ -737,7 +738,7 @@ function AdminOrderManagementPage() {
           const first = res.errors[0]?.message;
           toast.error(
             first ??
-              `None of the ${res.failed} line(s) could be moved to ${next}. Check tracking and rules per order.`,
+            `None of the ${res.failed} line(s) could be moved to ${next}. Check tracking and rules per order.`,
           );
         } else {
           toast.warning(
@@ -794,7 +795,7 @@ function AdminOrderManagementPage() {
     ],
     [deliveryMethods],
   );
-  
+
   const platformOptions = useMemo(
     () => [
       { value: "", label: "Select all platforms" },
@@ -851,6 +852,7 @@ function AdminOrderManagementPage() {
   );
 
   const columns = useAdminOrderTableColumns({
+
     selectAllHeaderRef,
     staff,
     products,
@@ -867,6 +869,7 @@ function AdminOrderManagementPage() {
       : undefined,
     revokePackedLoadingId,
   });
+  console.log("filteredOrders", selectedIds);
 
   return (
     <div className="space-y-4">
@@ -905,6 +908,8 @@ function AdminOrderManagementPage() {
           appliedServerSearch={appliedServerSearch}
         />
         <AdminOrderBulkBar
+          filteredOrders={filteredOrders}
+          selectedIds={selectedIds}
           selectedCount={selectedVisibleCount}
           bulkAdvanceAction={bulkAdvanceAction}
           bulkStatusLoading={bulkStatusLoading}
@@ -912,7 +917,9 @@ function AdminOrderManagementPage() {
           onBulkAdvance={(next) => void applyBulkAdvance(next)}
           onDownloadSelectedPdf={() => void downloadSelectedPdf()}
           onClearSelection={clearRowSelection}
+
         />
+
         <AdminOrderMobileSelectAll
           allVisibleSelected={allVisibleSelected}
           onToggleAll={toggleAllVisibleSelected}
@@ -922,7 +929,9 @@ function AdminOrderManagementPage() {
           data={filteredOrders}
           keyExtractor={(o) => o.id}
           emptyMessage="No orders."
+
         />
+
         <AdminOrderPagination
           visible={showApiPagination}
           listTotal={listTotal}
@@ -931,6 +940,7 @@ function AdminOrderManagementPage() {
           loading={filtersLoading}
           onGoToPage={goToOrdersPage}
         />
+
       </Card>
 
       <AdminOrderDetailModal
