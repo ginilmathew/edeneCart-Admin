@@ -202,6 +202,7 @@ export const edenApi = createApi({
         const fd = new FormData();
         Object.entries(patch).forEach(([key, val]) => {
           if (val === undefined || key === "image" || key === "video") return;
+          console.log(`[edenApi] Appending to FormData: ${key}=${val === null ? "null" : String(val)}`);
           fd.append(key, val === null ? "" : String(val));
         });
         if (patch.image) {

@@ -131,7 +131,7 @@ function AdminDashboardPage() {
 
   const lowOrOutProducts = useMemo(() => {
     return products
-      .filter((p) => p.isActive !== false)
+      .filter((p) => !!p.isActive)
       .filter((p) => isAtOrBelowStockThreshold(p.stockQuantity ?? 0, lowStockThreshold))
       .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) || a.name.localeCompare(b.name));
   }, [products, lowStockThreshold]);

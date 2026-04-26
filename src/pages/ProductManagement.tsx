@@ -53,6 +53,7 @@ function validateVideoFile(file: File): string | null {
 function ProductManagementPage() {
   const dispatch = useAppDispatch();
   const products = useAppSelector(selectProducts);
+  console.log("[ProductManagement] Products in state:", products.map(p => ({ name: p.name, isActive: p.isActive })));
   const categories = useAppSelector(selectCategories);
   const subcategories = useAppSelector(selectSubcategories);
   const [modalOpen, setModalOpen] = useState(false);
@@ -281,7 +282,7 @@ function ProductManagementPage() {
         await dispatch(
           updateProduct({ id: p.id, patch: { isActive: next } }),
         ).unwrap();
-        toast.success(next ? "Product is active" : "Product hidden from staff");
+        toast.success(next ? "Product is active in catalog" : "Product hidden from catalog");
       } catch (err) {
         toast.fromError(err, "Failed to update product");
       } finally {
@@ -432,7 +433,8 @@ function ProductManagementPage() {
         header: "Catalog",
         mobileLabel: "Status",
         render: (row: Product) => {
-          const active = row.isActive !== false;
+          console.log(`[ProductManagement] Rendering row ${row.name}. isActive: ${row.isActive} (${typeof row.isActive})`);
+          const active = !!row.isActive;
           const busy = togglingActiveId === row.id;
           return (
             <ToggleSwitch
@@ -441,7 +443,7 @@ function ProductManagementPage() {
               onChange={(next) => void toggleProductActive(row, next)}
               aria-label={
                 active
-                  ? `In catalog: ${row.name}. Turn off to hide from staff.`
+                  ? `In catalog: ${row.name}. Turn off to hide from customers.`
                   : `Hidden: ${row.name}. Turn on to show in catalog.`
               }
             />
@@ -868,8 +870,8 @@ function ProductManagementPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase text-text-muted">Status</p>
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${viewingProduct.isActive !== false ? "bg-success/10 text-success" : "bg-error/10 text-error"}`}>
-                  {viewingProduct.isActive !== false ? "Active" : "Hidden"}
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${!!viewingProduct.isActive ? "bg-success/10 text-success" : "bg-error/10 text-error"}`}>
+                  {!!viewingProduct.isActive ? "Active" : "Hidden"}
                 </span>
               </div>
             </div>

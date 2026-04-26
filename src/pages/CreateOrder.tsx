@@ -348,7 +348,7 @@ function CreateOrderPage() {
   const products = useAppSelector(selectProducts);
   /** Staff API returns only active; admin list includes inactive — exclude from new orders. */
   const catalogProducts = useMemo(
-    () => products.filter((p) => p.isActive !== false),
+    () => products.filter((p) => !!p.isActive),
     [products],
   );
   const categories = useAppSelector(selectCategories);

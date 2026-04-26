@@ -26,7 +26,7 @@ export default function AdminVendorProductManagement() {
   const handleToggleActive = async (id: string, nextValue: boolean) => {
     try {
       await updateProduct({ id, patch: { isActive: nextValue } }).unwrap();
-      toast.success(`Product ${nextValue ? "activated" : "deactivated"}`);
+      toast.success(`Product ${nextValue ? "activated in catalog" : "hidden from catalog"}`);
     } catch (err) {
       toast.fromError(err, "Failed to update product status");
     }
@@ -107,11 +107,11 @@ export default function AdminVendorProductManagement() {
       header: "Actions",
       render: (row: Product) => (
         <div className="flex items-center gap-2">
-          <Tooltip content={row.isActive ? "Deactivate" : "Activate"}>
+          <Tooltip content={row.isActive ? "Hide from Catalog" : "Show in Catalog"}>
             <ToggleSwitch 
               checked={!!row.isActive} 
               onChange={(newVal) => handleToggleActive(row.id, newVal)}
-              aria-label={`Toggle status for ${row.name}`}
+              aria-label={row.isActive ? "Hide product from catalog" : "Show product in catalog"}
             />
           </Tooltip>
           <Tooltip content="Delete Product">
