@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
-import { PencilIcon, TrashIcon, XMarkIcon, EyeIcon, TagIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, XMarkIcon, TagIcon } from "@heroicons/react/24/outline";
 import {
   Card,
   CardHeader,
@@ -27,7 +27,7 @@ import {
 } from "../store/api/edenApi";
 import { OfferEditModal } from "./VendorOfferManagement";
 
-const UNCATEGORIZED_FILTER = "__none__";
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -79,7 +79,6 @@ function VendorProductManagement() {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
 
   const handleApplyFilters = useCallback(() => {
     setAppliedSearch(search.trim());
@@ -123,7 +122,7 @@ function VendorProductManagement() {
     const cat = categories.find(c => c.id === categoryId);
     return [
       { value: "", label: "Select subcategory…" },
-      ...(cat?.subcategories || []).map(s => ({ value: s.id, label: s.name }))
+      ...(cat?.subcategories || []).map((s: any) => ({ value: s.id, label: s.name }))
     ];
   }, [categories, categoryId]);
 
@@ -231,7 +230,7 @@ function VendorProductManagement() {
             try {
               const fd = new FormData();
               fd.append('isActive', (!row.isActive).toString());
-              await updateProduct({ id: row.id, data: fd }).unwrap();
+              await updateProduct({ id: row.id, patch: { isActive: !row.isActive } }).unwrap();
               toast.success(`Product ${!row.isActive ? 'activated' : 'deactivated'}`);
             } catch (err) {
               toast.fromError(err, "Failed to update status");
@@ -268,7 +267,7 @@ function VendorProductManagement() {
         
         <div className="px-6 pb-4">
           <ResponsiveManagementFilters modalTitle="Product Filters">
-            <ManagementFilterPanel onApply={handleApplyFilters} onClear={handleClearFilters}>
+            <ManagementFilterPanel>
               <ManagementFilterField label="Search" className="lg:col-span-2">
                 <Input 
                   placeholder="Product name, code..." 
@@ -283,6 +282,12 @@ function VendorProductManagement() {
                   value={categoryFilter} 
                   onChange={(e) => setCategoryFilter(e.target.value)} 
                 />
+              </ManagementFilterField>
+              <ManagementFilterField label="Actions">
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
+                  <Button size="sm" variant="secondary" onClick={handleClearFilters}>Clear</Button>
+                </div>
               </ManagementFilterField>
             </ManagementFilterPanel>
           </ResponsiveManagementFilters>
@@ -399,7 +404,7 @@ function VendorProductManagement() {
               </div>
               {products.find(p => p.id === editingId)?.videoUrl && (
                 <div className="relative group w-fit">
-                  <video src={products.find(p => p.id === editingId)?.videoUrl} className="h-20 rounded border" controls />
+                  <video src={products.find(p => p.id === editingId)?.videoUrl ?? undefined} className="h-20 rounded border" controls />
                   <button
                     onClick={async () => {
                       if (!window.confirm("Delete video permanently?")) return;

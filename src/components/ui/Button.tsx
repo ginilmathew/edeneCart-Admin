@@ -14,15 +14,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "border border-primary bg-primary text-text-inverse shadow-[var(--shadow-card)] hover:border-primary-hover hover:bg-primary-hover focus:outline-none",
+    "border border-primary bg-primary text-text-inverse shadow-[var(--shadow-card)] hover:border-primary-hover hover:bg-primary-hover focus:outline-none focus-visible:shadow-[var(--shadow-focus)] disabled:opacity-60",
   secondary:
-    "border border-border-strong bg-surface-elevated/90 text-text shadow-sm hover:bg-surface-soft focus:outline-none",
+    "border border-border bg-surface-elevated text-text shadow-[var(--shadow-card)] hover:bg-surface-soft focus:outline-none focus-visible:shadow-[var(--shadow-focus)] disabled:opacity-60",
   outline:
-    "border border-primary/35 bg-primary/5 text-primary hover:bg-primary/10 focus:outline-none",
+    "border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 focus:outline-none focus-visible:shadow-[var(--shadow-focus)] disabled:opacity-60",
   ghost:
-    "border border-transparent text-text hover:bg-surface-soft focus:outline-none",
+    "border border-transparent text-text hover:bg-surface-soft focus:outline-none focus-visible:shadow-[var(--shadow-focus)] disabled:opacity-60",
   danger:
-    "border border-error bg-error text-text-inverse shadow-sm hover:brightness-95 focus:outline-none",
+    "border border-error bg-error text-text-inverse shadow-[var(--shadow-card)] hover:brightness-110 focus:outline-none focus-visible:shadow-[var(--shadow-focus)] disabled:opacity-60",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -47,7 +47,7 @@ function ButtonComponent({
       type="button"
       disabled={disabled || loading}
       className={cn(
-        "inline-flex touch-manipulation items-center justify-center gap-2 whitespace-nowrap font-medium transition-all duration-150 ease-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:shadow-[var(--shadow-focus)]",
+        "inline-flex touch-manipulation items-center justify-center gap-2 whitespace-nowrap font-medium transition-all duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none focus-visible:outline-none",
         variantClasses[variant],
         sizeClasses[size],
         fullWidth ? "w-full" : "",

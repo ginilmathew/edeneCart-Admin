@@ -18,6 +18,7 @@ export interface Category {
   slug?: string;
   description?: string;
   imageUrl?: string | null;
+  subcategories?: Subcategory[];
 }
 
 export interface Subcategory {

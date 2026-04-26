@@ -52,7 +52,7 @@ function VendorOrderManagement() {
     return Object.keys(p).length > 0 ? p : undefined;
   }, [appliedSearch, appliedDateFrom, appliedDateTo]);
 
-  const { data: allOrders = [], isLoading, refetch } = useGetVendorPortalOrdersQuery(queryParams);
+  const { data: allOrders = [], isLoading } = useGetVendorPortalOrdersQuery(queryParams);
 
   const { data: products = [] } = useGetVendorPortalProductsQuery();
   const [updateStatus] = useUpdateVendorPortalOrderStatusMutation();

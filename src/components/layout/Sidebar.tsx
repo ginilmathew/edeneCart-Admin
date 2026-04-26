@@ -312,11 +312,11 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
   }, [user]);
 
   const linkBase =
-    "group flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] border border-transparent py-2 pl-2.5 pr-3 text-xs font-medium transition-all duration-150 ease-out max-md:gap-2.5 md:min-h-0 md:gap-3 md:py-2.5 md:px-3 md:text-sm ";
+    "group flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] border border-transparent py-2 pl-2.5 pr-3 text-xs font-medium transition-all duration-150 ease-out max-md:gap-2.5 md:min-h-0 md:gap-3 md:py-2.5 md:px-3 md:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-accent/40";
   const linkActive =
-    "border-sidebar-border bg-white/[0.09] text-sidebar-text-active shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+    "border-sidebar-accent/30 bg-sidebar-accent/10 text-sidebar-text-active shadow-sm";
   const linkInactive =
-    "text-sidebar-text hover:border-sidebar-border hover:bg-sidebar-hover/90 hover:text-sidebar-text-active";
+    "text-sidebar-text hover:border-sidebar-accent/20 hover:bg-sidebar-hover hover:text-sidebar-text-active";
 
   return (
     <aside
@@ -332,14 +332,13 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
         className={`flex h-20 shrink-0 items-center border-b border-sidebar-border px-3 pl-[max(0.75rem,env(safe-area-inset-left))] ${collapsed ? "md:justify-center justify-between" : "justify-between"}`}
       >
         <div className={`flex min-w-0 items-center gap-3 px-1 ${collapsed ? "md:hidden" : ""}`}>
-          <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-lg)] bg-white/8 text-sm font-bold text-sidebar-accent ring-1 ring-white/10"
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-gradient-to-br from-sidebar-accent to-sidebar-accent/70 text-sm font-bold text-sidebar-bg shadow-sm"
             aria-hidden
           >
             EC
-          </span>
+          </div>
           <div className="min-w-0">
-
             <span className="truncate text-base font-semibold tracking-tight text-sidebar-text-active">
               PilliPot
             </span>
@@ -421,9 +420,9 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
       </nav>
       <div className="border-t border-sidebar-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {!collapsed && (
-          <div className="mb-3 rounded-[var(--radius-lg)] border border-sidebar-border bg-white/5 p-3">
-            <p className="text-xs font-medium text-sidebar-text-active">{user.name}</p>
-            <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-sidebar-text">
+          <div className="mb-3 rounded-[var(--radius-md)] border border-sidebar-accent/20 bg-sidebar-accent/8 p-3">
+            <p className="text-xs font-semibold text-sidebar-text-active">{user.name}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-sidebar-text">
               {user.role.replace("_", " ")}
             </p>
           </div>
@@ -433,7 +432,7 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
             <button
               type="button"
               onClick={() => { handleMobileNavClick(); onLogout(); }}
-              className="flex w-full items-center rounded-[var(--radius-md)] border border-transparent px-3 py-2 text-sidebar-text hover:border-sidebar-border hover:bg-sidebar-hover hover:text-sidebar-text-active md:justify-center md:p-2.5"
+              className="flex w-full items-center rounded-[var(--radius-md)] border border-transparent px-3 py-2 text-sidebar-text hover:border-sidebar-accent/20 hover:bg-sidebar-hover hover:text-sidebar-text-active md:justify-center md:p-2.5 transition-colors duration-150"
               aria-label="Logout"
             >
               <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
@@ -446,7 +445,7 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
           <button
             type="button"
             onClick={() => { handleMobileNavClick(); onLogout(); }}
-            className="flex w-full items-center gap-2 rounded-[var(--radius-md)] border border-transparent px-3 py-2.5 text-left text-xs text-sidebar-text hover:border-sidebar-border hover:bg-sidebar-hover hover:text-sidebar-text-active md:gap-3 md:text-sm"
+            className="flex w-full items-center gap-2 rounded-[var(--radius-md)] border border-transparent px-3 py-2.5 text-left text-xs text-sidebar-text hover:border-sidebar-accent/20 hover:bg-sidebar-hover hover:text-sidebar-text-active md:gap-3 md:text-sm transition-colors duration-150"
           >
             <ArrowLeftOnRectangleIcon className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
             Logout

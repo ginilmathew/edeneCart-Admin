@@ -1,127 +1,117 @@
 /**
- * EdeneCart Admin — 2026 refresh
- * Direction: editorial SaaS admin with warm neutrals, cobalt actions,
- * softer glass layers, and stronger responsive surfaces.
+ * EdeneCart Admin — 2026 Modern Refresh
+ * Direction: Clean, refined SaaS admin with optimal contrast,
+ * subtle spacing, and smooth interactions inspired by industry leaders.
  */
 @theme {
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-  --color-primary-muted: #dbeafe;
+  --color-primary-active: #1e40af;
+  --color-primary-muted: #e0f2fe;
   --color-primary-dark: #1e40af;
 
-  --color-surface: #ffffffcc;
-  --color-surface-alt: #eef4ff;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f9fbfd;
   --color-surface-elevated: #ffffff;
-  --color-surface-soft: #f8fbff;
-  --color-border: #d9e3f3;
-  --color-border-strong: #b9c9e6;
+  --color-surface-soft: #fafbfc;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-border-subtle: #f3f4f6;
 
-  --color-table-header-bg: #f4f8ff;
-  --color-table-row-hover: #edf4ff;
+  --color-table-header-bg: #f9fafb;
+  --color-table-row-hover: #f3f4f6;
+  --color-table-border: #e5e7eb;
 
-  --color-text: #36506f;
-  --color-text-muted: #6780a0;
-  --color-text-heading: #0f172a;
-  --color-text-inverse: #f8fbff;
+  --color-text: #374151;
+  --color-text-muted: #6b7280;
+  --color-text-heading: #1f2937;
+  --color-text-inverse: #ffffff;
 
-  --color-success: #047857;
-  --color-success-bg: #dcfce7;
-  --color-warning: #b45309;
-  --color-warning-bg: #fef3c7;
-  --color-error: #c2410c;
-  --color-error-bg: #ffedd5;
-  --color-info: #0369a1;
-  --color-info-bg: #dbeafe;
+  --color-success: #16a34a;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
+  --color-info: #0891b2;
+  --color-info-bg: #ecf0ff;
 
-  --color-earnings: #0f766e;
-  --color-earnings-bg: #ccfbf1;
+  --color-earnings: #059669;
+  --color-earnings-bg: #d1fae5;
   --color-bonus: #2563eb;
 
-  --color-sidebar-bg: #081426;
-  --color-sidebar-bg-end: #102445;
-  --color-sidebar-text: #8ea6c7;
-  --color-sidebar-text-active: #f8fbff;
-  --color-sidebar-hover: #173053;
-  --color-sidebar-accent: #8bc8ff;
-  --color-sidebar-border: rgba(139, 200, 255, 0.16);
+  --color-sidebar-bg: #0f172a;
+  --color-sidebar-bg-end: #1e293b;
+  --color-sidebar-text: #94a3b8;
+  --color-sidebar-text-active: #ffffff;
+  --color-sidebar-hover: #1e293b;
+  --color-sidebar-accent: #60a5fa;
+  --color-sidebar-border: rgba(96, 165, 250, 0.12);
 
-  --font-sans-app: "Space Grotesk", "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-sans-app: "Space Grotesk", "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  --radius-sm: 0.65rem;
-  --radius-md: 0.9rem;
-  --radius-lg: 1.1rem;
-  --radius-xl: 1.5rem;
-  --radius-2xl: 1.9rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
 
-  --shadow-card:
-    0 10px 30px -18px rgba(15, 23, 42, 0.18),
-    0 2px 10px rgba(37, 99, 235, 0.08);
-  --shadow-card-lg:
-    0 28px 60px -28px rgba(15, 23, 42, 0.28),
-    0 14px 26px -20px rgba(37, 99, 235, 0.18);
-  --shadow-dropdown:
-    0 20px 40px -24px rgba(15, 23, 42, 0.28),
-    0 8px 18px -12px rgba(15, 23, 42, 0.18);
-  --shadow-header:
-    0 1px 0 rgba(185, 201, 230, 0.55),
-    0 12px 30px -28px rgba(37, 99, 235, 0.32);
-  --shadow-focus: 0 0 0 4px rgba(37, 99, 235, 0.14);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-dropdown: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-header: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 :root[data-theme="dark"] {
-  --color-primary: #7cc4ff;
-  --color-primary-hover: #a6d9ff;
-  --color-primary-muted: #13345f;
-  --color-primary-dark: #4ea6ff;
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-primary-active: #3b82f6;
+  --color-primary-muted: #1e3a8a;
+  --color-primary-dark: #3b82f6;
 
-  --color-surface: rgba(12, 22, 38, 0.82);
-  --color-surface-alt: #050c17;
-  --color-surface-elevated: #0d1829;
-  --color-surface-soft: #0f2036;
-  --color-border: #213452;
-  --color-border-strong: #35547d;
+  --color-surface: #111827;
+  --color-surface-alt: #0f172a;
+  --color-surface-elevated: #1f2937;
+  --color-surface-soft: #111827;
+  --color-border: #374151;
+  --color-border-strong: #4b5563;
+  --color-border-subtle: #1f2937;
 
-  --color-table-header-bg: #0f2036;
-  --color-table-row-hover: #132842;
+  --color-table-header-bg: #1f2937;
+  --color-table-row-hover: #111827;
+  --color-table-border: #374151;
 
-  --color-text: #d4e4fb;
-  --color-text-muted: #8fa9ca;
-  --color-text-heading: #f5f9ff;
-  --color-text-inverse: #081426;
+  --color-text: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-text-heading: #f3f4f6;
+  --color-text-inverse: #111827;
 
   --color-success: #4ade80;
-  --color-success-bg: #123423;
+  --color-success-bg: #064e3b;
   --color-warning: #fbbf24;
-  --color-warning-bg: #422006;
-  --color-error: #fb923c;
-  --color-error-bg: #4a1b08;
-  --color-info: #7cc4ff;
-  --color-info-bg: #0f2d4f;
+  --color-warning-bg: #78350f;
+  --color-error: #f87171;
+  --color-error-bg: #7f1d1d;
+  --color-info: #38bdf8;
+  --color-info-bg: #0c2d4a;
 
-  --color-earnings: #5eead4;
-  --color-earnings-bg: #103331;
-  --color-bonus: #7cc4ff;
+  --color-earnings: #2dd4bf;
+  --color-earnings-bg: #134e4a;
+  --color-bonus: #60a5fa;
 
-  --color-sidebar-bg: #040914;
-  --color-sidebar-bg-end: #0a1730;
-  --color-sidebar-text: #7f97ba;
-  --color-sidebar-text-active: #f8fbff;
-  --color-sidebar-hover: #11233f;
-  --color-sidebar-accent: #7cc4ff;
-  --color-sidebar-border: rgba(124, 196, 255, 0.18);
+  --color-sidebar-bg: #0f172a;
+  --color-sidebar-bg-end: #1e293b;
+  --color-sidebar-text: #94a3b8;
+  --color-sidebar-text-active: #ffffff;
+  --color-sidebar-hover: #1e293b;
+  --color-sidebar-accent: #60a5fa;
+  --color-sidebar-border: rgba(96, 165, 250, 0.12);
 
-  --shadow-card:
-    0 18px 38px -24px rgba(0, 0, 0, 0.65),
-    0 2px 10px rgba(124, 196, 255, 0.08);
-  --shadow-card-lg:
-    0 32px 80px -32px rgba(0, 0, 0, 0.72),
-    0 16px 28px -24px rgba(124, 196, 255, 0.16);
-  --shadow-dropdown:
-    0 28px 60px -34px rgba(0, 0, 0, 0.72),
-    0 14px 22px -20px rgba(0, 0, 0, 0.55);
-  --shadow-header:
-    0 1px 0 rgba(124, 196, 255, 0.12),
-    0 12px 26px -24px rgba(0, 0, 0, 0.8);
-  --shadow-focus: 0 0 0 4px rgba(124, 196, 255, 0.16);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-card-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-dropdown: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --shadow-header: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.1);
 }

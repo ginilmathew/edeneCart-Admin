@@ -1303,8 +1303,11 @@ export const edenApi = createApi({
       ],
     }),
 
-    getVendorPortalProducts: builder.query<Product[], void>({
-      query: () => endpoints.vendorPortalProducts,
+    getVendorPortalProducts: builder.query<Product[], { search?: string; categoryId?: string } | void>({
+      query: (params) => ({
+        url: endpoints.vendorPortalProducts,
+        params: params || undefined,
+      }),
       providesTags: (r) =>
         r
           ? [

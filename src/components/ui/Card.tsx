@@ -9,7 +9,7 @@ const paddingMap = {
   none: "",
   sm: "p-3 md:p-4",
   md: "p-4 md:p-6",
-  lg: "p-5 md:p-8",
+  lg: "p-6 md:p-8",
 };
 
 function CardComponent({
@@ -21,7 +21,7 @@ function CardComponent({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-xl)] border border-border/90 bg-surface shadow-[var(--shadow-card)] backdrop-blur-sm transition-shadow duration-200 ease-out md:rounded-[var(--radius-2xl)]",
+        "rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-card)] transition-all duration-200 ease-out hover:shadow-[var(--shadow-card-lg)] md:rounded-[var(--radius-xl)]",
         paddingMap[padding],
         className,
       )}
@@ -48,10 +48,10 @@ export const CardHeader = memo(function CardHeaderInner({
   action,
 }: CardHeaderProps) {
   return (
-    <div className="mb-5 flex flex-col gap-3 border-b border-border/70 pb-4 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
+    <div className="mb-5 flex flex-col gap-3 border-b border-border pb-4 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
       <div className="flex min-w-0 flex-1 gap-3">
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary md:h-12 md:w-12">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary md:h-12 md:w-12 md:rounded-xl">
             {icon}
           </div>
         )}
@@ -110,7 +110,7 @@ export const CardFooter = memo(function CardFooter({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4", className)}
+      className={cn("mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4", className)}
       {...rest}
     />
   );

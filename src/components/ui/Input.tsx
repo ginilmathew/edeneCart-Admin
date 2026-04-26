@@ -26,11 +26,11 @@ const InputComponent = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "h-11 w-full rounded-[var(--radius-md)] border border-border bg-surface-elevated/85 text-sm text-text shadow-sm transition-all placeholder:text-text-muted focus:outline-none md:h-11",
+              "h-11 w-full rounded-[var(--radius-md)] border border-border bg-surface text-sm text-text shadow-[var(--shadow-card)] transition-all placeholder:text-text-muted focus:outline-none md:h-11",
               endNode ? "pl-3 pr-10" : "px-3",
               error
-                ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)]"
-                : "border-border focus:border-primary focus:shadow-[var(--shadow-focus)]",
+                ? "border-error focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]"
+                : "focus:border-primary focus:shadow-[var(--shadow-focus)]",
               className,
             )}
             aria-invalid={!!error}

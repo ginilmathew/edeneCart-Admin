@@ -77,10 +77,10 @@ function TableComponent<T>({
   if (isLoading) {
     return (
       <div className={cn(
-        "rounded-[var(--radius-xl)] border border-border/80 bg-surface py-12 flex flex-col items-center justify-center gap-3 md:rounded-[var(--radius-2xl)] md:py-16",
+        "rounded-[var(--radius-lg)] border border-border bg-surface py-12 flex flex-col items-center justify-center gap-3 md:rounded-[var(--radius-xl)] md:py-16 shadow-[var(--shadow-card)]",
         className
       )}>
-        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         <p className="text-sm text-text-muted animate-pulse">Loading data...</p>
       </div>
     );
@@ -89,10 +89,10 @@ function TableComponent<T>({
   if (data.length === 0) {
     return (
       <div
-        className={
-          "rounded-[var(--radius-xl)] border border-border/80 bg-surface py-12 text-center text-sm text-text-muted shadow-[var(--shadow-card)] md:rounded-[var(--radius-2xl)] md:py-16 md:text-base " +
+        className={cn(
+          "rounded-[var(--radius-lg)] border border-border bg-surface py-12 text-center text-sm text-text-muted shadow-[var(--shadow-card)] md:rounded-[var(--radius-xl)] md:py-16 md:text-base",
           className
-        }
+        )}
       >
         {emptyMessage}
       </div>
@@ -118,18 +118,18 @@ function TableComponent<T>({
     <div
       className={
         mobileCards
-          ? "hidden md:block overflow-x-auto overscroll-x-contain rounded-[var(--radius-xl)] border border-border/80 bg-surface [-webkit-overflow-scrolling:touch] md:rounded-[var(--radius-2xl)]"
-          : "overflow-x-auto overscroll-x-contain rounded-[var(--radius-xl)] border border-border/80 bg-surface [-webkit-overflow-scrolling:touch] md:rounded-[var(--radius-2xl)]"
+          ? "hidden md:block overflow-x-auto overscroll-x-contain rounded-[var(--radius-lg)] border border-border bg-surface [-webkit-overflow-scrolling:touch] md:rounded-[var(--radius-xl)] shadow-[var(--shadow-card)]"
+          : "overflow-x-auto overscroll-x-contain rounded-[var(--radius-lg)] border border-border bg-surface [-webkit-overflow-scrolling:touch] md:rounded-[var(--radius-xl)] shadow-[var(--shadow-card)]"
       }
     >
       <table className="w-full min-w-[600px] text-left text-sm">
         <thead>
-          <tr className="border-b border-border/90 bg-[var(--color-table-header-bg)]">
+          <tr className="border-b border-border bg-[var(--color-table-header-bg)]">
             {columns.map((col) => (
               <th
                 key={col.key}
                 className={cn(
-                  "whitespace-nowrap px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted first:pl-4 last:pr-4 md:px-4 md:py-[1.125rem]",
+                  "whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-[0.08em] text-text-muted first:pl-5 last:pr-5 md:px-5 md:py-4",
                   col.className
                 )}
               >
@@ -138,17 +138,17 @@ function TableComponent<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border/80">
+        <tbody className="divide-y divide-border">
           {data.map((row) => (
             <tr
               key={keyExtractor(row)}
-              className="transition-colors hover:bg-[var(--color-table-row-hover)]"
+              className="transition-colors duration-150 hover:bg-[var(--color-table-row-hover)]"
             >
               {columns.map((col) => (
                 <td
                   key={col.key}
                   className={cn(
-                    "px-3 py-3.5 align-top text-sm text-text first:pl-4 last:pr-4 md:px-4 md:py-4",
+                    "px-4 py-3.5 align-top text-sm text-text first:pl-5 last:pr-5 md:px-5 md:py-4",
                     col.className
                   )}
                 >
@@ -172,9 +172,9 @@ function TableComponent<T>({
         {data.map((row) => (
           <article
             key={keyExtractor(row)}
-            className="overflow-hidden rounded-[var(--radius-xl)] border border-border/80 bg-surface shadow-[var(--shadow-card)] [touch-action:manipulation]"
+            className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-card)] [touch-action:manipulation]"
           >
-            <div className="flex items-center gap-1.5 border-b border-border/80 bg-[var(--color-table-header-bg)] px-3 py-3 sm:gap-2 sm:px-4 sm:py-3.5">
+            <div className="flex items-center gap-1.5 border-b border-border bg-[var(--color-table-header-bg)] px-4 py-3 sm:gap-2 sm:px-5 sm:py-3.5">
               {headerStartColumns.length > 0 ? (
                 <div className="flex shrink-0 items-center gap-1">
                   {headerStartColumns.map((col) => (
@@ -200,13 +200,13 @@ function TableComponent<T>({
                 </div>
               ) : null}
             </div>
-            <dl className="divide-y divide-border/80">
+            <dl className="divide-y divide-border">
               {bodyColumns.map((col) => (
                 <div
                   key={col.key}
-                  className="flex gap-2 px-3 py-2.5 text-xs leading-snug sm:gap-3 sm:px-4 sm:py-3 sm:text-sm"
+                  className="flex gap-2 px-4 py-2.5 text-xs leading-snug sm:gap-3 sm:px-5 sm:py-3 sm:text-sm"
                 >
-                  <dt className="w-[40%] shrink-0 text-[11px] font-medium tracking-tight text-text-muted sm:w-[38%] sm:text-xs">
+                  <dt className="w-[40%] shrink-0 text-xs font-medium tracking-tight text-text-muted sm:w-[38%]">
                     {columnLabel(col)}
                   </dt>
                   <dd className="min-w-0 flex-1 text-right text-xs font-medium text-text-heading [word-break:break-word] sm:text-sm">

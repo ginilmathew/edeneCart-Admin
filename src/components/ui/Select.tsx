@@ -94,9 +94,9 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
               shouldFullWidth ? "h-11 w-full" : "h-11 w-auto min-w-[8rem] md:min-w-[9rem]",
-              "flex items-center justify-between gap-2 rounded-[var(--radius-md)] border bg-surface-elevated/85 px-3 text-sm shadow-sm transition-all focus:outline-none",
+              "flex items-center justify-between gap-2 rounded-[var(--radius-md)] border bg-surface px-3 text-sm shadow-[var(--shadow-card)] transition-all focus:outline-none",
               error
-                ? "border-error focus:shadow-[0_0_0_4px_rgba(194,65,12,0.12)] text-error"
+                ? "border-error focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)] text-error"
                 : "border-border hover:bg-surface-soft focus:border-primary focus:shadow-[var(--shadow-focus)] text-text-heading",
               isOpen && !error && "border-primary shadow-[var(--shadow-focus)]",
               className
@@ -109,7 +109,7 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
           </button>
 
           {isOpen && (
-            <div className="absolute z-[100] mt-1 max-h-60 w-full min-w-[12rem] overflow-auto rounded-[var(--radius-md)] border border-border bg-surface-elevated py-1 shadow-[var(--shadow-dropdown)] backdrop-blur-xl">
+            <div className="absolute z-[100] mt-1 max-h-60 w-full min-w-[12rem] overflow-auto rounded-[var(--radius-md)] border border-border bg-surface py-1 shadow-[var(--shadow-dropdown)]">
               <ul role="listbox" className="flex flex-col">
                 {placeholder && (
                   <li
@@ -117,8 +117,8 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
                     aria-selected={value === ""}
                     onClick={() => handleSelect("")}
                     className={cn(
-                      "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-alt",
-                      (value === "" || value === undefined) ? "bg-surface-alt font-medium text-primary" : "text-text"
+                      "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-soft",
+                      (value === "" || value === undefined) ? "bg-surface-soft font-medium text-primary" : "text-text"
                     )}
                   >
                     <span className="truncate">{placeholder}</span>
@@ -134,8 +134,8 @@ const SelectComponent = forwardRef<HTMLSelectElement, SelectProps>(
                       aria-selected={isSelected}
                       onClick={() => handleSelect(opt.value)}
                       className={cn(
-                        "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-alt",
-                        isSelected ? "bg-surface-alt font-medium text-primary" : "text-text"
+                        "flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface-soft",
+                        isSelected ? "bg-surface-soft font-medium text-primary" : "text-text"
                       )}
                     >
                       <span className="truncate">{opt.label}</span>

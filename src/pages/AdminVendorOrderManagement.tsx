@@ -38,8 +38,8 @@ import { useAuth } from "../context/AuthContext";
 import { hasPermission } from "../lib/permissions";
 import { useGetAdminVendorOrdersQuery } from "../store/api/edenApi";
 
-function getAdminOrderEditHref(orderId: string): string {
-  return `/admin/orders/${orderId}`;
+function getAdminOrderEditHref(row: Order & { items?: Order[] }): string | null {
+  return `/admin/orders/${row.id}`;
 }
 
 function AdminVendorOrderManagementPage() {
@@ -632,7 +632,8 @@ function AdminVendorOrderManagementPage() {
   );
 
   const handleRevokePacked = useCallback(
-    async (groupId: string) => {
+    async (row: Order & { items?: Order[] }) => {
+      const groupId = row.id;
       if (!hasPermission(user, "orders.update")) return;
       const group = groupedOrders.find((o) => o.id === groupId);
       if (!group) return;
