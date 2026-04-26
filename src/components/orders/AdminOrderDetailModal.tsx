@@ -326,7 +326,7 @@ function AdminOrderDetailModalComponent({
                 <Badge 
                   variant={
                     orderDetail.paymentStatus === "paid" ? "success" 
-                    : orderDetail.paymentStatus === "failed" ? "danger" 
+                    : orderDetail.paymentStatus === "failed" ? "error" 
                     : "warning"
                   }
                 >
