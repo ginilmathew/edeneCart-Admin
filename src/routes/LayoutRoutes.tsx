@@ -21,8 +21,8 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
         <Route
           path="/"
           element={
-            <ProtectedRoute allowedRoles={["staff"]}>
-              <Pages.StaffDashboard />
+            <ProtectedRoute allowedRoles={["staff", "vendor"]}>
+              {user.role === "vendor" ? <Pages.VendorDashboard /> : <Pages.StaffDashboard />}
             </ProtectedRoute>
           }
         />
@@ -119,6 +119,47 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
           element={
             <ProtectedRoute allowedRoles={["staff"]}>
               <Pages.StaffEnquiryDetail />
+            </ProtectedRoute>
+          }
+        />
+        {/* Vendor portal routes */}
+        <Route
+          path="/vendor/products"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <Pages.VendorProductManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/orders"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <Pages.VendorOrderManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/categories"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <Pages.VendorCategoryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/subcategories"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <Pages.VendorSubcategoryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/offers"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <Pages.VendorOfferManagement />
             </ProtectedRoute>
           }
         />
@@ -227,6 +268,50 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
               requiredPermissions={["customers.view"]}
             >
               <Pages.CustomerManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vendors"
+          element={
+            <ProtectedRoute
+              allowedRoles={["super_admin", "guest"]}
+              requiredPermissions={["vendors.view"]}
+            >
+              <Pages.VendorManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vendors/active"
+          element={
+            <ProtectedRoute
+              allowedRoles={["super_admin", "guest"]}
+              requiredPermissions={["vendors.view"]}
+            >
+              <Pages.ActiveVendorManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vendors/products"
+          element={
+            <ProtectedRoute
+              allowedRoles={["super_admin", "guest"]}
+              requiredPermissions={["vendors.view"]}
+            >
+              <Pages.AdminVendorProductManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vendors/orders"
+          element={
+            <ProtectedRoute
+              allowedRoles={["super_admin", "guest"]}
+              requiredPermissions={["vendors.view"]}
+            >
+              <Pages.AdminVendorOrderManagement />
             </ProtectedRoute>
           }
         />
@@ -445,7 +530,7 @@ export function LayoutRoutes({ user }: LayoutRoutesProps) {
           path="*"
           element={
             <Navigate
-              to={user.role === "staff" ? "/" : "/admin"}
+              to={user.role === "staff" ? "/" : user.role === "vendor" ? "/" : "/admin"}
               replace
             />
           }

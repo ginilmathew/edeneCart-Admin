@@ -93,6 +93,31 @@ const STAFF_NAV_SECTIONS: NavSection<StaffNavItem>[] = [
   },
 ];
 
+const VENDOR_NAV_SECTIONS: NavSection<StaffNavItem>[] = [
+  {
+    title: "Marketplace",
+    items: [
+      { to: "/", label: "Dashboard", end: true, icon: HomeIcon },
+      { to: "/vendor/products", label: "My Products", end: true, icon: Squares2X2Icon },
+      { to: "/vendor/orders", label: "Product Orders", end: true, icon: ClipboardDocumentListIcon },
+      { to: "/vendor/offers", label: "Offers", end: true, icon: TagIcon },
+    ],
+  },
+  {
+    title: "Catalog",
+    items: [
+      { to: "/vendor/categories", label: "Categories", end: true, icon: TagIcon },
+      { to: "/vendor/subcategories", label: "Subcategories", end: true, icon: ListBulletIcon },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      { to: "/account/password", label: "Change password", end: true, icon: KeyIcon },
+    ],
+  },
+];
+
 const ADMIN_NAV_SECTIONS: NavSection<AdminNavItem>[] = [
   {
     title: "Overview",
@@ -172,6 +197,15 @@ const ADMIN_NAV_SECTIONS: NavSection<AdminNavItem>[] = [
       { to: "/admin/reviews", label: "Reviews", end: true, icon: StarIcon, permission: "products.view" },
       { to: "/admin/customers", label: "Customers", end: true, icon: UserGroupIcon, permission: "customers.view" },
       { to: "/admin/webapp-users", label: "Platform customers", end: true, icon: IdentificationIcon, permission: "customers.view" },
+    ],
+  },
+  {
+    title: "Vendors",
+    items: [
+      { to: "/admin/vendors", label: "Applications", end: true, icon: BriefcaseIcon, permission: "vendors.view" },
+      { to: "/admin/vendors/active", label: "Active Vendors", end: true, icon: UsersIcon, permission: "vendors.view" },
+      { to: "/admin/vendors/products", label: "Vendor Products", end: true, icon: Squares2X2Icon, permission: "vendors.view" },
+      { to: "/admin/vendors/orders", label: "Vendor Orders", end: true, icon: ClipboardDocumentListIcon, permission: "vendors.view" },
     ],
   },
   {
@@ -263,6 +297,9 @@ function SidebarComponent({ user, onLogout, mobileOpen, setMobileOpen }: Sidebar
   const navSections = useMemo(() => {
     if (user.role === "staff") {
       return STAFF_NAV_SECTIONS.filter((sec) => sec.items.length > 0);
+    }
+    if (user.role === "vendor") {
+      return VENDOR_NAV_SECTIONS.filter((sec) => sec.items.length > 0);
     }
     return ADMIN_NAV_SECTIONS.map((sec) => ({
       title: sec.title,

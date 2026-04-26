@@ -40,10 +40,12 @@ function DataLoader() {
   const staffId = user?.staffId ?? "";
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    dispatch(fetchProducts());
-    dispatch(fetchCategories());
-    dispatch(fetchOrders());
-    void dispatch(fetchSettings());
+    if (user.role !== "vendor") {
+      dispatch(fetchProducts());
+      dispatch(fetchCategories());
+      dispatch(fetchOrders());
+      void dispatch(fetchSettings());
+    }
     const p = user.permissions ?? [];
     if (user.role === "super_admin" || p.includes("staff.view")) {
       dispatch(fetchStaff());

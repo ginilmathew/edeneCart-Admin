@@ -26,6 +26,7 @@ export interface TableProps<T> {
   className?: string;
   /** When false, only the horizontal table is shown (all breakpoints). */
   mobileCards?: boolean;
+  isLoading?: boolean;
 }
 
 function cellContent<T>(row: T, col: Column<T>): ReactNode {
@@ -71,7 +72,20 @@ function TableComponent<T>({
   emptyMessage = "No data",
   className = "",
   mobileCards = true,
+  isLoading = false,
 }: TableProps<T>) {
+  if (isLoading) {
+    return (
+      <div className={cn(
+        "rounded-[var(--radius-xl)] border border-border/80 bg-surface py-12 flex flex-col items-center justify-center gap-3 md:rounded-[var(--radius-2xl)] md:py-16",
+        className
+      )}>
+        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <p className="text-sm text-text-muted animate-pulse">Loading data...</p>
+      </div>
+    );
+  }
+
   if (data.length === 0) {
     return (
       <div

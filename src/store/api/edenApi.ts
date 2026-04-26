@@ -27,6 +27,7 @@ import type {
   StaffSalaryPaymentRow,
   StaffPosition,
   Subcategory,
+  Vendor,
 } from "../../types";
 import { baseQueryWithAuth } from "./baseQueryWithAuth";
 import { isIndiaPostDirectDevProxy } from "../../lib/india-post-dev-proxy";
@@ -46,6 +47,7 @@ export type OrderListFilters = {
   search?: string;
   page?: number;
   limit?: number;
+  isVendorOrder?: boolean;
 };
 
 export type OrderListPayload = { items: Order[]; total: number };
@@ -101,6 +103,8 @@ function ordersQueryParams(filters: OrderListFilters | undefined): string {
     params.append("orderId", filters.orderId.trim());
   if (filters?.search?.trim())
     params.append("search", filters.search.trim());
+  if (filters?.isVendorOrder != null)
+    params.append("isVendorOrder", String(filters.isVendorOrder));
   const narrowed = !!(
     filters?.dateFrom ||
     filters?.dateTo ||
@@ -141,6 +145,9 @@ export const edenApi = createApi({
     "RBAC",
     "GuestUser",
     "Salary",
+    "Vendor",
+    "VendorPortalProduct",
+    "VendorPortalOrder",
   ],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
@@ -1241,11 +1248,276 @@ export const edenApi = createApi({
         return { data: parsed };
       },
     }),
+ 
+    getVendors: builder.query<Vendor[], void>({
+      query: () => endpoints.adminVendors,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Vendor" as const, id: "LIST" },
+              ...r.map((v) => ({ type: "Vendor" as const, id: v.id })),
+            ]
+          : [{ type: "Vendor", id: "LIST" }],
+    }),
+    approveVendor: builder.mutation<Vendor, { id: string; password?: string }>({
+      query: ({ id, password }) => ({
+        url: endpoints.adminVendorApprove(id),
+        method: "PUT",
+        body: { password },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Vendor", id },
+        { type: "Vendor", id: "LIST" },
+      ],
+    }),
+    rejectVendor: builder.mutation<Vendor, { id: string; reason: string }>({
+      query: ({ id, reason }) => ({
+        url: endpoints.adminVendorReject(id),
+        method: "PUT",
+        body: { reason },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Vendor", id },
+        { type: "Vendor", id: "LIST" },
+      ],
+    }),
+    toggleVendorStatus: builder.mutation<Vendor, string>({
+      query: (id) => ({
+        url: endpoints.adminVendorToggleStatus(id),
+        method: "PUT",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Vendor", id },
+        { type: "Vendor", id: "LIST" },
+      ],
+    }),
+    resetVendorPassword: builder.mutation<Vendor, { id: string; password?: string }>({
+      query: ({ id, password }) => ({
+        url: endpoints.adminVendorResetPassword(id),
+        method: "PUT",
+        body: { password },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Vendor", id },
+        { type: "Vendor", id: "LIST" },
+      ],
+    }),
+
+    getVendorPortalProducts: builder.query<Product[], void>({
+      query: () => endpoints.vendorPortalProducts,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "VendorPortalProduct" as const, id: "LIST" },
+              { type: "Product" as const, id: "LIST" },
+              ...r.map((p) => ({ type: "VendorPortalProduct" as const, id: p.id })),
+            ]
+          : [{ type: "VendorPortalProduct", id: "LIST" }],
+    }),
+    createVendorPortalProduct: builder.mutation<Product, Partial<Product> & { image?: File | File[]; video?: File }>({
+      query: (body) => {
+        const fd = new FormData();
+        Object.entries(body).forEach(([key, val]) => {
+          if (val === undefined || key === "image" || key === "video") return;
+          fd.append(key, val === null ? "" : String(val));
+        });
+        if (body.image) {
+          if (Array.isArray(body.image)) {
+            body.image.forEach((f) => fd.append("image", f));
+          } else {
+            fd.append("image", body.image);
+          }
+        }
+        if (body.video) fd.append("video", body.video);
+        return {
+          url: endpoints.vendorPortalProducts,
+          method: "POST",
+          body: fd,
+        };
+      },
+      invalidatesTags: [
+        { type: "VendorPortalProduct", id: "LIST" },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+    updateVendorPortalProduct: builder.mutation<
+      Product,
+      { id: string; patch: Partial<Product> & { image?: File | File[]; video?: File } }
+    >({
+      query: ({ id, patch }) => {
+        const fd = new FormData();
+        Object.entries(patch).forEach(([key, val]) => {
+          if (val === undefined || key === "image" || key === "video") return;
+          fd.append(key, val === null ? "" : String(val));
+        });
+        if (patch.image) {
+          if (Array.isArray(patch.image)) {
+            patch.image.forEach((f) => fd.append("image", f));
+          } else {
+            fd.append("image", patch.image);
+          }
+        }
+        if (patch.video) fd.append("video", patch.video);
+        return {
+          url: endpoints.vendorPortalProductById(id),
+          method: "PUT",
+          body: fd,
+        };
+      },
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "VendorPortalProduct", id },
+        { type: "VendorPortalProduct", id: "LIST" },
+        { type: "Product", id },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+    deleteVendorPortalProduct: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.vendorPortalProductById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "VendorPortalProduct", id },
+        { type: "VendorPortalProduct", id: "LIST" },
+        { type: "Product", id },
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+
+    getVendorPortalOrders: builder.query<Order[], { 
+      search?: string, 
+      status?: string,
+      dateFrom?: string,
+      dateTo?: string,
+      type?: string,
+      productId?: string,
+    } | void>({
+      query: (params) => ({
+        url: endpoints.vendorPortalOrders,
+        params: params || undefined,
+      }),
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "VendorPortalOrder" as const, id: "LIST" },
+              { type: "Order" as const, id: "LIST" },
+              ...r.map((o) => ({ type: "VendorPortalOrder" as const, id: o.id })),
+            ]
+          : [{ type: "VendorPortalOrder", id: "LIST" }],
+    }),
+    updateVendorPortalOrderStatus: builder.mutation<
+      Order,
+      { id: string; status?: Order["status"]; trackingId?: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: endpoints.vendorPortalOrderUpdateStatus(id),
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "VendorPortalOrder", id },
+        { type: "VendorPortalOrder", id: "LIST" },
+        { type: "Order", id },
+        { type: "Order", id: "LIST" },
+      ],
+    }),
+
+    getVendorPortalCategories: builder.query<Category[], void>({
+      query: () => endpoints.vendorPortalCategories,
+      providesTags: [{ type: "Category", id: "LIST" }],
+    }),
+    createVendorPortalCategory: builder.mutation<Category, { name: string; description?: string }>({
+      query: (body) => ({
+        url: endpoints.vendorPortalCategories,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Category", id: "LIST" }],
+    }),
+    createVendorPortalSubcategory: builder.mutation<
+      Subcategory,
+      { name: string; categoryId: string; description?: string }
+    >({
+      query: (body) => ({
+        url: endpoints.vendorPortalSubcategories,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Category", id: "LIST" }, { type: "Subcategory", id: "LIST" }],
+    }),
+    getVendorPortalOffers: builder.query<ProductOffer[], void>({
+      query: () => endpoints.vendorPortalOffers,
+      providesTags: (r) =>
+        r
+          ? [
+              { type: "Offer" as const, id: "LIST" },
+              ...r.map((o) => ({ type: "Offer" as const, id: o.id })),
+            ]
+          : [{ type: "Offer", id: "LIST" }],
+    }),
+    createVendorPortalOffer: builder.mutation<
+      ProductOffer,
+      Partial<ProductOffer> & Pick<ProductOffer, "productId" | "title">
+    >({
+      query: (body) => ({
+        url: endpoints.vendorPortalOffers,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "Offer", id: "LIST" }],
+    }),
+    updateVendorPortalOffer: builder.mutation<
+      ProductOffer,
+      { id: string; patch: Partial<ProductOffer> }
+    >({
+      query: ({ id, patch }) => ({
+        url: endpoints.vendorPortalOfferById(id),
+        method: "PUT",
+        body: patch,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Offer", id },
+        { type: "Offer", id: "LIST" },
+      ],
+    }),
+    deleteVendorPortalOffer: builder.mutation<void, string>({
+      query: (id) => ({
+        url: endpoints.vendorPortalOfferById(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Offer", id },
+        { type: "Offer", id: "LIST" },
+      ],
+    }),
+    getAdminVendorProducts: builder.query<Product[], void>({
+      query: () => endpoints.adminVendorProducts,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Product" as const, id })),
+              { type: "Product", id: "LIST" },
+            ]
+          : [{ type: "Product", id: "LIST" }],
+    }),
+    getAdminVendorOrders: builder.query<OrderListPayload, void>({
+      query: () => endpoints.adminVendorOrders,
+      providesTags: (r) =>
+        r?.items?.length
+          ? [
+              { type: "Order" as const, id: "VENDOR_LIST" },
+              ...r.items.map((o) => ({ type: "Order" as const, id: o.id })),
+            ]
+          : [{ type: "Order", id: "VENDOR_LIST" }],
+    }),
   }),
 });
 
 export const {
   useGetProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
   useGetCategoriesQuery,
   useGetOrdersQuery,
   useGetStaffQuery,
@@ -1283,4 +1555,24 @@ export const {
   useDeleteRbacGuestUserMutation,
   useIndiaPostLoginTestMutation,
   useIndiaPostBulkTrackingMutation,
+  useGetVendorsQuery,
+  useApproveVendorMutation,
+  useRejectVendorMutation,
+  useToggleVendorStatusMutation,
+  useResetVendorPasswordMutation,
+  useGetVendorPortalProductsQuery,
+  useCreateVendorPortalProductMutation,
+  useUpdateVendorPortalProductMutation,
+  useDeleteVendorPortalProductMutation,
+  useGetVendorPortalOrdersQuery,
+  useUpdateVendorPortalOrderStatusMutation,
+  useGetVendorPortalCategoriesQuery,
+  useCreateVendorPortalCategoryMutation,
+  useCreateVendorPortalSubcategoryMutation,
+  useGetVendorPortalOffersQuery,
+  useCreateVendorPortalOfferMutation,
+  useUpdateVendorPortalOfferMutation,
+  useDeleteVendorPortalOfferMutation,
+  useGetAdminVendorProductsQuery,
+  useGetAdminVendorOrdersQuery,
 } = edenApi;

@@ -55,6 +55,15 @@ export const ExportData = lazyRoute(() => import("../pages/ExportData"));
 export const CustomerManagement = lazyRoute(
   () => import("../pages/CustomerManagement"),
 );
+export const VendorManagement = lazyRoute(
+  () => import("../pages/VendorManagement"),
+);
+export const ActiveVendorManagement = lazyRoute(
+  () => import("../pages/ActiveVendorManagement"),
+);
+export const VendorDashboard = lazyRoute(
+  () => import("../pages/VendorDashboard"),
+);
 export const ChangePassword = lazyRoute(() => import("../pages/ChangePassword"));
 export const SenderManagement = lazyRoute(
   () => import("../pages/SenderManagement"),
@@ -97,3 +106,12 @@ export const WebappUserManagement = lazyRoute(
 );
 export const BannerManagement = lazyRoute(() => import("../pages/BannerManagement"));
 export const ReviewManagement = lazyRoute(() => import("../pages/ReviewManagement"));
+export const VendorProductManagement = lazyRoute(() => import("../pages/VendorProductManagement"));
+export const VendorOrderManagement = lazyRoute(() => import("../pages/VendorOrderManagement"));
+export const VendorCategoryManagement = lazyRoute(() => import("../pages/VendorCategoryManagement"));
+export const VendorSubcategoryManagement = lazyRoute(() => import("../pages/VendorSubcategoryManagement"));
+export const VendorOfferManagement = lazyRoute(() => import("../pages/VendorOfferManagement"));
+export const AdminVendorProductManagement = lazyRoute(() => import("../pages/AdminVendorProductManagement"));
+export const AdminVendorOrderManagement = lazyRoute(() => import("../pages/AdminVendorOrderManagement"));
+
+

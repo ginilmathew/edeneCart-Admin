@@ -11,6 +11,7 @@ export type AdminOrdersQuery = {
   orderId?: string;
   /** API `search`: order id, name, phone, or pincode. */
   search?: string;
+  isVendorOrder?: boolean;
 };
 
 const DEFAULT_PAGE_SIZE = 15;
@@ -24,6 +25,7 @@ function toOrderListFilters(q: AdminOrdersQuery): OrderListFilters {
     dateTo: q.dateTo,
     orderId: q.orderId,
     search: q.search,
+    isVendorOrder: q.isVendorOrder,
   };
   if (!narrowed && q.page != null) {
     filters.page = q.page;

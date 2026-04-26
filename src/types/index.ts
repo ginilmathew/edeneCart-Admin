@@ -1,4 +1,4 @@
-export type UserRole = "super_admin" | "staff" | "guest";
+export type UserRole = "super_admin" | "staff" | "guest" | "vendor";
 
 export type OrderType = "cod" | "prepaid";
 export type PdfSize = "thermal" | "a4";
@@ -89,6 +89,8 @@ export interface Product {
   color?: string;
   /** false = hidden from staff catalog; admin still sees all. */
   isActive?: boolean;
+  categoryEntity?: Category | null;
+  subcategoryEntity?: Subcategory | null;
 }
 
 export interface ProductOffer {
@@ -294,6 +296,34 @@ export interface Customer {
   state: string;
   district: string;
   secondaryPhone?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type VendorStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISABLED";
+
+export interface Vendor {
+  id: string;
+  businessName: string;
+  ownerName: string;
+  email: string;
+  phoneNumber: string;
+  gstNumber: string;
+  panNumber: string;
+  address: string;
+  bankAccountNumber: string;
+  ifscCode: string;
+  status: VendorStatus;
+  userId: string | null;
+  user?: {
+    isActive: boolean;
+    mustChangePassword: boolean;
+    initialTempPassword: string | null;
+  } | null;
+  pendingPasswordResetRequest?: {
+    id: string;
+    createdAt: string;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
