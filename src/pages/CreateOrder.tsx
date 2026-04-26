@@ -867,7 +867,6 @@ function CreateOrderPage() {
     if (!form.state.trim()) e.state = "Required";
     if (!form.district.trim()) e.district = "Required";
     if (!form.orderType) e.orderType = "Select order type";
-    if (!selectedDeliveryMethodId) e.deliveryMethod = "Select a courier service";
 
     const selected = productRows.filter((r) => r.quantity > 0);
     if (selected.length === 0) {
@@ -911,7 +910,6 @@ function CreateOrderPage() {
     productRows,
     detailsEnabled,
     unitPrice,
-    selectedDeliveryMethodId,
     scheduleAllowed,
     scheduledForDate,
     scheduleOrder,
