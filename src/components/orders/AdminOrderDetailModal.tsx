@@ -315,6 +315,25 @@ function AdminOrderDetailModalComponent({
                 ).toFixed(2)}
               </dd>
             </div>
+            <div>
+              <dt className="text-text-muted mb-1 text-xs uppercase tracking-wider">
+                Payment Info
+              </dt>
+              <dd className="flex flex-col gap-1">
+                <Badge variant="default">
+                  {(orderDetail.paymentMethod || "cod").toUpperCase()}
+                </Badge>
+                <Badge 
+                  variant={
+                    orderDetail.paymentStatus === "paid" ? "success" 
+                    : orderDetail.paymentStatus === "failed" ? "danger" 
+                    : "warning"
+                  }
+                >
+                  {(orderDetail.paymentStatus || "pending").toUpperCase()}
+                </Badge>
+              </dd>
+            </div>
             {discountEditable ? (
               <div className="sm:col-span-2 rounded-[var(--radius-md)] border border-border bg-surface-alt p-3">
                 <dt className="text-text-muted mb-2 text-xs uppercase tracking-wider">
